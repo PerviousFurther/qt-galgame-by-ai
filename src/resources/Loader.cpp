@@ -97,8 +97,12 @@ std::shared_ptr<Resource> FileImageLoader::loadSync(const std::string& url) {
 
 void FileImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
     // Launch async loading in a separate thread
-    std::thread([this, url, callback]() {
-        auto resource = loadSync(url);
+    // Note: We don't capture 'this' to avoid potential use-after-free
+    // All needed state is captured by value
+    std::thread([url, callback]() {
+        // Create a temporary loader for this operation
+        FileImageLoader tempLoader;
+        auto resource = tempLoader.loadSync(url);
         bool success = resource && resource->isLoaded();
         if (callback) {
             callback(resource, success);
@@ -137,8 +141,13 @@ std::shared_ptr<Resource> QrcImageLoader::loadSync(const std::string& url) {
 }
 
 void QrcImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
-    std::thread([this, url, callback]() {
-        auto resource = loadSync(url);
+    // Launch async loading in a separate thread
+    // Note: We don't capture 'this' to avoid potential use-after-free
+    // All needed state is captured by value
+    std::thread([url, callback]() {
+        // Create a temporary loader for this operation
+        QrcImageLoader tempLoader;
+        auto resource = tempLoader.loadSync(url);
         bool success = resource && resource->isLoaded();
         if (callback) {
             callback(resource, success);

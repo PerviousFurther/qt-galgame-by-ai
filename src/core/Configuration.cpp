@@ -54,13 +54,16 @@ void Configuration::parseCommandLine(int argc, char* argv[]) {
                 } else {
                     setInt(key, std::stoi(value));
                 }
-            } catch (...) {
+            } catch (const std::invalid_argument& e) {
                 // If not a number, treat as string
                 if (value == "true" || value == "false") {
                     setBool(key, value == "true");
                 } else {
                     setString(key, value);
                 }
+            } catch (const std::out_of_range& e) {
+                std::cerr << "Warning: Command line argument value out of range: " << arg << std::endl;
+                setString(key, value);  // Fall back to string
             }
         }
     }

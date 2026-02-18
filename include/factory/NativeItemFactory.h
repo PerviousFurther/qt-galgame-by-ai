@@ -68,8 +68,8 @@ public:
 
 private:
     // Helper to get a property value with type checking
-    template<typename T>
-    T getProperty(const PropertyMap& properties, const std::string& key, const T& defaultValue) const;
+    // Note: These are not used in current implementation but kept for future reference
+    // Explicit template specializations would be needed if used
 };
 
 #endif // NATIVEITEMFACTORY_H

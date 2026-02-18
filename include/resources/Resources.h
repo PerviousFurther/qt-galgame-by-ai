@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <mutex>
 
 /**
  * @brief Resources singleton for managing resource loading
@@ -109,6 +110,7 @@ private:
 
     std::vector<std::shared_ptr<Loader>> m_loaders;
     std::map<std::string, std::shared_ptr<Resource>> m_cache;
+    mutable std::mutex m_cacheMutex;  // Protects cache access from multiple threads
 };
 
 #endif // RESOURCES_H

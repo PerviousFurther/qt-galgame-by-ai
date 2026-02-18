@@ -37,10 +37,13 @@ std::shared_ptr<Loader> Resources::findLoader(const std::string& url) const {
 }
 
 std::shared_ptr<Resource> Resources::load(const std::string& url) {
-    // Check if already cached
-    auto it = m_cache.find(url);
-    if (it != m_cache.end()) {
-        return it->second;
+    // Check if already cached (thread-safe)
+    {
+        std::lock_guard<std::mutex> lock(m_cacheMutex);
+        auto it = m_cache.find(url);
+        if (it != m_cache.end()) {
+            return it->second;
+        }
     }
 
     // Find appropriate loader
@@ -53,8 +56,9 @@ std::shared_ptr<Resource> Resources::load(const std::string& url) {
     // Load the resource
     auto resource = loader->loadSync(url);
     
-    // Cache if successful
+    // Cache if successful (thread-safe)
     if (resource && resource->isLoaded()) {
+        std::lock_guard<std::mutex> lock(m_cacheMutex);
         m_cache[url] = resource;
     }
 
@@ -62,13 +66,16 @@ std::shared_ptr<Resource> Resources::load(const std::string& url) {
 }
 
 void Resources::loadAsync(const std::string& url, LoadCallback callback) {
-    // Check if already cached
-    auto it = m_cache.find(url);
-    if (it != m_cache.end()) {
-        if (callback) {
-            callback(it->second, true);
+    // Check if already cached (thread-safe)
+    {
+        std::lock_guard<std::mutex> lock(m_cacheMutex);
+        auto it = m_cache.find(url);
+        if (it != m_cache.end()) {
+            if (callback) {
+                callback(it->second, true);
+            }
+            return;
         }
-        return;
     }
 
     // Find appropriate loader
@@ -82,10 +89,15 @@ void Resources::loadAsync(const std::string& url, LoadCallback callback) {
     }
 
     // Load asynchronously
-    loader->loadAsync(url, [this, url, callback](std::shared_ptr<Resource> resource, bool success) {
-        // Cache if successful
+    // Capture a reference to the mutex via a shared_ptr to ensure lifetime
+    auto cacheMutexPtr = &m_cacheMutex;
+    auto cachePtr = &m_cache;
+    
+    loader->loadAsync(url, [cachePtr, cacheMutexPtr, url, callback](std::shared_ptr<Resource> resource, bool success) {
+        // Cache if successful (thread-safe)
         if (success && resource && resource->isLoaded()) {
-            m_cache[url] = resource;
+            std::lock_guard<std::mutex> lock(*cacheMutexPtr);
+            (*cachePtr)[url] = resource;
         }
         
         // Call user callback
@@ -96,6 +108,7 @@ void Resources::loadAsync(const std::string& url, LoadCallback callback) {
 }
 
 std::shared_ptr<Resource> Resources::get(const std::string& url) const {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
     auto it = m_cache.find(url);
     if (it != m_cache.end()) {
         return it->second;
@@ -104,10 +117,12 @@ std::shared_ptr<Resource> Resources::get(const std::string& url) const {
 }
 
 bool Resources::isCached(const std::string& url) const {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
     return m_cache.find(url) != m_cache.end();
 }
 
 bool Resources::unload(const std::string& url) {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
     auto it = m_cache.find(url);
     if (it == m_cache.end()) {
         return false;
@@ -123,6 +138,7 @@ bool Resources::unload(const std::string& url) {
 }
 
 void Resources::clearCache() {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
     // Unload all resources
     for (auto& pair : m_cache) {
         if (pair.second) {
@@ -133,6 +149,7 @@ void Resources::clearCache() {
 }
 
 size_t Resources::getCacheSize() const {
+    std::lock_guard<std::mutex> lock(m_cacheMutex);
     size_t totalSize = 0;
     for (const auto& pair : m_cache) {
         if (pair.second) {

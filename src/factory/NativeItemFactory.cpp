@@ -84,16 +84,3 @@ std::shared_ptr<Item> NativeItemFactory::create(const PropertyMap& properties) {
 std::string NativeItemFactory::getTypeName() const {
     return "Native";
 }
-
-template<typename T>
-T NativeItemFactory::getProperty(const PropertyMap& properties, const std::string& key, const T& defaultValue) const {
-    if (properties.count(key)) {
-        try {
-            return std::get<T>(properties.at(key));
-        } catch (const std::bad_variant_access&) {
-            // Return default if type doesn't match
-            return defaultValue;
-        }
-    }
-    return defaultValue;
-}
