@@ -39,7 +39,7 @@ bool FileLoader::readFile(const QString& path, QByteArray& outData) const {
     }
 
     outData = file.readAll();
-    return !outData.isEmpty() || file.size() == 0;
+    return file.error() == QFile::NoError;
 }
 
 // QrcLoader
@@ -56,7 +56,7 @@ bool QrcLoader::readQrcResource(const QString& path, QByteArray& outData) const 
 
     QFile file(resourcePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "QRC loading failed:" << resourcePath;
+        qWarning() << "QRC loading failed:" << resourcePath;
         return false;
     }
 
