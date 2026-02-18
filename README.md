@@ -4,42 +4,103 @@ A visual novel (galgame) development engine built with C++ and Qt6.
 
 ## Overview
 
-This project provides a flexible framework for creating visual novels and interactive story-driven games. The engine is designed with a modular architecture centered around Items and Scenes.
+This project provides a flexible framework for creating visual novels and interactive story-driven games. The engine is designed with a modular singleton-based architecture with support for different scene types (dialog scenes, mini-game scenes, settings scenes).
 
 ## Architecture
+
+### Singleton Systems
+
+#### Timer
+Global timer singleton for managing frame timing:
+- Provides delta time between frames
+- Tracks total runtime and frame count
+- Supports fixed update intervals for physics/mini-games
+- FPS calculation
+- Items get timing information from `Timer::getInstance()`
+
+#### Configuration
+Settings management singleton:
+- Loads configuration from JSON files and command line arguments
+- Manages audio volumes (master, music, sound effects, voice)
+- Window settings (dimensions, fullscreen)
+- Render settings (target FPS, V-Sync)
+- Generic key-value storage for extensibility
+- Can be modified through UI (see `resources/menu.qml`)
+
+#### Registration
+Factory pattern singleton for creating Items:
+- Register/unregister Factory objects
+- Create Items dynamically from JSON/QML properties
+- Native Item factory included with extensibility comments
+- Support for custom Item types through factory registration
+
+#### Resources
+Resource management singleton:
+- Abstract Loader and Resource classes
+- Supports multiple protocols (file://, qrc://)
+- Async loading with callbacks for large files
+- Resource types: TextureResource, AudioResource, ChatSessionResource
+- Automatic resource caching
+- Memory management with unload capabilities
+
+#### GameManager
+Central game logic controller:
+- Manages game state (running, paused, stopped)
+- Container for multiple Scenes
+- Scene switching and lifecycle management
+- Game event system with callbacks
+- Coordinates updates between systems
 
 ### Core Components
 
 #### Item
-The `Item` class is the base class for all objects that can be placed in a scene. Most objects in the engine inherit from this class, providing:
-- Unique identification system
-- Lifecycle management (initialize, update, cleanup)
-- Base functionality for scene objects
+Base class for all scene objects:
+- Unique identification system (ID and name)
+- Lifecycle management: `initialize()`, `update()`, `fixedUpdate()`, `cleanup()`
+- `update()`: Called every frame, gets delta time from Timer singleton
+- `fixedUpdate()`: Called at fixed intervals for physics/mini-games
+- Extensible through inheritance
 
 #### Scene
-The `Scene` class serves as a container for Items and manages their interactions:
+Container for Items with support for specialization:
 - Manages collections of Items
+- Supports loading from QML or JSON files
 - Handles connections between Items transparently
-- Supports loading scenes from QML or JSON files
-- Items don't need to directly interact with each other; the Scene handles their relationships
+- Can be inherited for specialized scenes (DialogScene, MiniGameScene, SettingsScene)
+- Provides `update()` and `fixedUpdate()` for all contained Items
 
 ## Project Structure
 
 ```
 qt-galgame/
-├── CMakeLists.txt          # CMake build configuration
+├── CMakeLists.txt              # CMake build configuration
 ├── include/
+│   ├── core/                   # Core singletons
+│   │   ├── Timer.h            # Frame timing management
+│   │   ├── Configuration.h    # Settings management
+│   │   └── GameManager.h      # Game logic controller
+│   ├── factory/               # Factory pattern for Items
+│   │   ├── Factory.h          # Abstract factory base
+│   │   ├── Registration.h     # Factory registry
+│   │   └── NativeItemFactory.h # Built-in Item factory
+│   ├── resources/             # Resource management
+│   │   ├── Resource.h         # Resource types (Texture, Audio, etc.)
+│   │   ├── Loader.h           # Resource loaders (file, qrc protocols)
+│   │   └── Resources.h        # Resource manager singleton
 │   └── scene/
-│       ├── Item.h          # Item base class header
-│       └── Scene.h         # Scene container header
-├── src/
-│   ├── main.cpp            # Application entry point
+│       ├── Item.h             # Item base class
+│       └── Scene.h            # Scene container
+├── src/                       # Implementation files
+│   ├── main.cpp               # Application entry point
+│   ├── core/
+│   ├── factory/
+│   ├── resources/
 │   └── scene/
-│       ├── Item.cpp        # Item implementation
-│       └── Scene.cpp       # Scene implementation
-└── resources/              # Game resources (images, scenes, etc.)
-    ├── scene.json          # Example JSON scene definition
-    └── scene.qml           # Example QML scene definition
+└── resources/                 # Game resources
+    ├── config.json            # Default configuration
+    ├── menu.qml               # Settings UI
+    ├── scene.json             # Example JSON scene
+    └── scene.qml              # Example QML scene
 ```
 
 ## Building the Project
@@ -77,38 +138,179 @@ cmake -DQt6_DIR=/path/to/qt6 ..
 
 ## Usage Example
 
+### Basic Setup
+
 ```cpp
-#include "scene/Scene.h"
-#include "scene/Item.h"
+#include "core/Timer.h"
+#include "core/Configuration.h"
+#include "core/GameManager.h"
+#include "factory/Registration.h"
+#include "factory/NativeItemFactory.h"
+#include "resources/Resources.h"
 
-// Create a scene
-Scene mainScene;
-mainScene.setId("main_scene");
+int main(int argc, char* argv[]) {
+    // 1. Initialize Configuration (first step)
+    Configuration& config = Configuration::getInstance();
+    config.parseCommandLine(argc, argv);
+    config.loadFromFile("resources/config.json");
+    
+    // 2. Initialize Timer
+    Timer& timer = Timer::getInstance();
+    timer.initialize();
+    
+    // 3. Register Item factories
+    Registration& registration = Registration::getInstance();
+    registration.registerFactory(std::make_shared<NativeItemFactory>());
+    
+    // 4. Initialize Resources
+    Resources& resources = Resources::getInstance();
+    
+    // 5. Initialize GameManager
+    GameManager& gameManager = GameManager::getInstance();
+    gameManager.initialize();
+    
+    // 6. Create and add scenes
+    auto scene = std::make_shared<Scene>();
+    gameManager.addScene("main", scene);
+    gameManager.setActiveScene("main");
+    
+    // 7. Game loop
+    gameManager.start();
+    while (gameManager.getState() == GameManager::State::Running) {
+        timer.update();
+        gameManager.update();
+        
+        if (timer.shouldFixedUpdate()) {
+            gameManager.fixedUpdate();
+        }
+    }
+    
+    return 0;
+}
+```
 
-// Create items
-auto background = std::make_shared<Item>();
-background->setId("background");
-background->setName("Background Image");
+### Creating Items with Factory
 
-// Add items to scene
-mainScene.addItem(background);
+```cpp
+// Create items from properties (simulating JSON/QML loading)
+PropertyMap props = {
+    {"type", "Item"},
+    {"id", "character"},
+    {"name", "Main Character"}
+};
 
-// Initialize and run
-mainScene.initialize();
-mainScene.update(deltaTime);
+auto item = Registration::getInstance().createItem("Native", props);
+scene->addItem(item);
+```
+
+### Loading Resources
+
+```cpp
+// Synchronous loading
+auto texture = Resources::getInstance().load("file://textures/bg.png");
+
+// Asynchronous loading (for large files)
+Resources::getInstance().loadAsync("file://audio/bgm.mp3",
+    [](std::shared_ptr<Resource> res, bool success) {
+        if (success) {
+            // Use the loaded resource
+        }
+    });
+```
+
+### Custom Item Types
+
+```cpp
+// 1. Create your Item subclass
+class MyCustomItem : public Item {
+public:
+    void update() override {
+        float deltaTime = Timer::getInstance().getDeltaTime();
+        // Your custom logic here
+    }
+    
+    void fixedUpdate() override {
+        // Physics or time-critical updates
+    }
+};
+
+// 2. Create a factory for your Item
+class MyCustomFactory : public Factory {
+public:
+    std::shared_ptr<Item> create(const PropertyMap& properties) override {
+        auto item = std::make_shared<MyCustomItem>();
+        // Parse properties and configure item
+        return item;
+    }
+    
+    std::string getTypeName() const override {
+        return "MyCustom";
+    }
+};
+
+// 3. Register the factory
+Registration::getInstance().registerFactory(
+    std::make_shared<MyCustomFactory>()
+);
 ```
 
 ## Features
 
-- ✅ Basic Item and Scene architecture
-- ✅ Item lifecycle management
-- ✅ Scene item management (add, remove, retrieve)
-- 🚧 JSON scene loading (stub implemented)
-- 🚧 QML scene loading (stub implemented)
-- 📋 Future: Resource management system
-- 📋 Future: Event system for item communication
-- 📋 Future: Animation system
-- 📋 Future: Audio system
+### Implemented ✅
+- Timer singleton for frame timing and fixed updates
+- Configuration singleton for settings management
+- Registration singleton with factory pattern for Items
+- Resources singleton with async loading support
+- GameManager singleton for game flow control
+- Item lifecycle: initialize, update, fixedUpdate, cleanup
+- Scene management with inheritance support
+- Resource types: Texture, Audio, ChatSession
+- Loader support for file:// and qrc:// protocols
+- Event system for game events
+- Configuration UI (menu.qml)
+
+### In Progress 🚧
+- JSON parsing for configuration and scenes
+- QML scene loading integration
+- Image decoding (stb_image or similar)
+- Audio playback system
+- Live2D support
+
+### Planned 📋
+- Animation system
+- Dialog system with chat trees
+- Save/Load system
+- Mini-game framework
+- Input management
+- UI components
+
+## Extending the Engine
+
+### Adding New Native Item Types
+
+See `include/factory/NativeItemFactory.h` for detailed instructions. The factory includes extensive comments on how to add new native Item types.
+
+### Creating Custom Loaders
+
+Inherit from `Loader` or combine `FileLoader`/`QrcLoader` with your format-specific logic:
+
+```cpp
+class FileAudioLoader : public FileLoader {
+public:
+    bool canLoad(const std::string& url) const override {
+        return FileLoader::canLoad(url) && isAudioExtension(getExtension(url));
+    }
+    
+    std::shared_ptr<Resource> loadSync(const std::string& url) override {
+        // Your audio loading logic
+    }
+};
+
+// Register with Resources
+Resources::getInstance().registerLoader(
+    std::make_shared<FileAudioLoader>()
+);
+```
 
 ## License
 
