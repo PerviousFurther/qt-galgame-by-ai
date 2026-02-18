@@ -101,10 +101,18 @@ void Scene::initialize() {
     }
 }
 
-void Scene::update(float deltaTime) {
+void Scene::update() {
     for (auto& item : m_items) {
         if (item) {
-            item->update(deltaTime);
+            item->update();
+        }
+    }
+}
+
+void Scene::fixedUpdate() {
+    for (auto& item : m_items) {
+        if (item) {
+            item->fixedUpdate();
         }
     }
 }

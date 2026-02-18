@@ -47,9 +47,16 @@ public:
 
     /**
      * @brief Update the item state
-     * @param deltaTime Time elapsed since last update in seconds
+     * Called every frame. Use Timer::getInstance().getDeltaTime() to get delta time.
      */
-    virtual void update(float deltaTime);
+    virtual void update();
+
+    /**
+     * @brief Fixed update for physics and time-critical operations
+     * Called at fixed intervals (e.g., for mini-games like Snake).
+     * Use Timer::getInstance().getFixedUpdateInterval() to get the interval.
+     */
+    virtual void fixedUpdate();
 
     /**
      * @brief Clean up resources when item is removed

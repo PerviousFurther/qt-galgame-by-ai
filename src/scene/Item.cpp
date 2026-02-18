@@ -27,10 +27,16 @@ void Item::initialize() {
     m_initialized = true;
 }
 
-void Item::update(float deltaTime) {
+void Item::update() {
     // Base implementation does nothing
     // Derived classes can override to implement specific behavior
-    // deltaTime is expected in seconds
+    // Use Timer::getInstance().getDeltaTime() to get delta time in seconds
+}
+
+void Item::fixedUpdate() {
+    // Base implementation does nothing
+    // Derived classes can override for fixed-interval updates (physics, mini-games)
+    // Use Timer::getInstance().getFixedUpdateInterval() to get the interval
 }
 
 void Item::cleanup() {

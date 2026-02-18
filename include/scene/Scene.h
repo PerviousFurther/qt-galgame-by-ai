@@ -82,9 +82,15 @@ public:
 
     /**
      * @brief Update all items in the scene
-     * @param deltaTime Time elapsed since last update in seconds
+     * Called every frame
      */
-    void update(float deltaTime);
+    void update();
+
+    /**
+     * @brief Fixed update for all items in the scene
+     * Called at fixed intervals
+     */
+    void fixedUpdate();
 
     /**
      * @brief Clear all items from the scene

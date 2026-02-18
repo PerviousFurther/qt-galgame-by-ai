@@ -25,12 +25,29 @@ set(SOURCES
     src/main.cpp
     src/scene/Item.cpp
     src/scene/Scene.cpp
+    src/core/Timer.cpp
+    src/core/Configuration.cpp
+    src/core/GameManager.cpp
+    src/factory/Registration.cpp
+    src/factory/NativeItemFactory.cpp
+    src/resources/Resource.cpp
+    src/resources/Loader.cpp
+    src/resources/Resources.cpp
 )
 
 # Header files
 set(HEADERS
     include/scene/Item.h
     include/scene/Scene.h
+    include/core/Timer.h
+    include/core/Configuration.h
+    include/core/GameManager.h
+    include/factory/Factory.h
+    include/factory/Registration.h
+    include/factory/NativeItemFactory.h
+    include/resources/Resource.h
+    include/resources/Loader.h
+    include/resources/Resources.h
 )
 
 # Create executable
