@@ -30,6 +30,7 @@ void Item::initialize() {
 void Item::update(float deltaTime) {
     // Base implementation does nothing
     // Derived classes can override to implement specific behavior
+    // deltaTime is expected in seconds
 }
 
 void Item::cleanup() {

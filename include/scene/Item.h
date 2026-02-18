@@ -47,7 +47,7 @@ public:
 
     /**
      * @brief Update the item state
-     * @param deltaTime Time elapsed since last update
+     * @param deltaTime Time elapsed since last update in seconds
      */
     virtual void update(float deltaTime);
 

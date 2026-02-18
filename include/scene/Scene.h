@@ -79,7 +79,7 @@ public:
 
     /**
      * @brief Update all items in the scene
-     * @param deltaTime Time elapsed since last update
+     * @param deltaTime Time elapsed since last update in seconds
      */
     void update(float deltaTime);
 
