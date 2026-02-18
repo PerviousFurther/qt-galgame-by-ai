@@ -1,8 +1,8 @@
 #ifndef ITEM_H
 #define ITEM_H
 
-#include <string>
-#include <memory>
+#include <QString>
+#include <QSharedPointer>
 
 /**
  * @brief Base class for all items that can be placed in a scene.
@@ -19,25 +19,25 @@ public:
      * @brief Get the unique identifier of this item
      * @return The item's ID
      */
-    const std::string& getId() const;
+    const QString& getId() const;
 
     /**
      * @brief Set the unique identifier of this item
      * @param id The new ID
      */
-    void setId(const std::string& id);
+    void setId(const QString& id);
 
     /**
      * @brief Get the name of this item
      * @return The item's name
      */
-    const std::string& getName() const;
+    const QString& getName() const;
 
     /**
      * @brief Set the name of this item
      * @param name The new name
      */
-    void setName(const std::string& name);
+    void setName(const QString& name);
 
     /**
      * @brief Initialize the item
@@ -64,8 +64,8 @@ public:
     virtual void cleanup();
 
 protected:
-    std::string m_id;
-    std::string m_name;
+    QString m_id;
+    QString m_name;
     bool m_initialized;
 };
 

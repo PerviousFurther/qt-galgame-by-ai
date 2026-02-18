@@ -2,10 +2,10 @@
 #define SCENE_H
 
 #include "Item.h"
-#include <vector>
-#include <map>
-#include <memory>
-#include <string>
+#include <QList>
+#include <QHash>
+#include <QSharedPointer>
+#include <QString>
 
 /**
  * @brief Container for Items with support for loading from QML or JSON.
@@ -26,54 +26,54 @@ public:
      * @brief Get the unique identifier of this scene
      * @return The scene's ID
      */
-    const std::string& getId() const;
+    const QString& getId() const;
 
     /**
      * @brief Set the unique identifier of this scene
      * @param id The new ID
      */
-    void setId(const std::string& id);
+    void setId(const QString& id);
 
     /**
      * @brief Add an item to the scene
      * @param item The item to add
      * @return true if successful, false otherwise
      */
-    bool addItem(std::shared_ptr<Item> item);
+    bool addItem(QSharedPointer<Item> item);
 
     /**
      * @brief Remove an item from the scene by ID
      * @param itemId The ID of the item to remove
      * @return true if successful, false otherwise
      */
-    bool removeItem(const std::string& itemId);
+    bool removeItem(const QString& itemId);
 
     /**
      * @brief Get an item by its ID
      * @param itemId The ID of the item to find
      * @return Shared pointer to the item, or nullptr if not found
      */
-    std::shared_ptr<Item> getItem(const std::string& itemId) const;
+    QSharedPointer<Item> getItem(const QString& itemId) const;
 
     /**
      * @brief Get all items in the scene
-     * @return Vector of all items
+     * @return List of all items
      */
-    const std::vector<std::shared_ptr<Item>>& getItems() const;
+    const QList<QSharedPointer<Item>>& getItems() const;
 
     /**
      * @brief Load scene from a JSON file
      * @param filePath Path to the JSON file
      * @return true if successful, false otherwise
      */
-    bool loadFromJson(const std::string& filePath);
+    bool loadFromJson(const QString& filePath);
 
     /**
      * @brief Load scene from a QML file
      * @param filePath Path to the QML file
      * @return true if successful, false otherwise
      */
-    bool loadFromQml(const std::string& filePath);
+    bool loadFromQml(const QString& filePath);
 
     /**
      * @brief Initialize all items in the scene
@@ -98,9 +98,9 @@ public:
     void clear();
 
 private:
-    std::string m_id;
-    std::vector<std::shared_ptr<Item>> m_items;
-    std::map<std::string, std::shared_ptr<Item>> m_itemMap;
+    QString m_id;
+    QList<QSharedPointer<Item>> m_items;
+    QHash<QString, QSharedPointer<Item>> m_itemMap;
 };
 
 #endif // SCENE_H

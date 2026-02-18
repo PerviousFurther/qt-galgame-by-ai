@@ -1,6 +1,5 @@
 #include "scene/Scene.h"
-#include <algorithm>
-#include <iostream>
+#include <QDebug>
 
 Scene::Scene() {
 }
@@ -9,39 +8,39 @@ Scene::~Scene() {
     clear();
 }
 
-const std::string& Scene::getId() const {
+const QString& Scene::getId() const {
     return m_id;
 }
 
-void Scene::setId(const std::string& id) {
+void Scene::setId(const QString& id) {
     m_id = id;
 }
 
-bool Scene::addItem(std::shared_ptr<Item> item) {
+bool Scene::addItem(QSharedPointer<Item> item) {
     if (!item) {
         return false;
     }
 
-    const std::string& itemId = item->getId();
+    const QString& itemId = item->getId();
     
     // Check if item with this ID already exists
-    if (!itemId.empty() && m_itemMap.find(itemId) != m_itemMap.end()) {
-        std::cerr << "Item with ID '" << itemId << "' already exists in scene" << std::endl;
+    if (!itemId.isEmpty() && m_itemMap.contains(itemId)) {
+        qWarning() << "Item with ID '" << itemId << "' already exists in scene";
         return false;
     }
 
-    m_items.push_back(item);
+    m_items.append(item);
     
     // Add to map if item has an ID
-    if (!itemId.empty()) {
+    if (!itemId.isEmpty()) {
         m_itemMap[itemId] = item;
     }
 
     return true;
 }
 
-bool Scene::removeItem(const std::string& itemId) {
-    if (itemId.empty()) {
+bool Scene::removeItem(const QString& itemId) {
+    if (itemId.isEmpty()) {
         return false;
     }
 
@@ -50,15 +49,15 @@ bool Scene::removeItem(const std::string& itemId) {
         return false;
     }
 
-    auto item = mapIt->second;
+    auto item = mapIt.value();
     
-    // Remove from vector
+    // Remove from list
     // Note: O(n) linear search. For better performance with large item counts,
     // consider maintaining indices or using a different data structure.
-    auto it = std::find(m_items.begin(), m_items.end(), item);
-    if (it != m_items.end()) {
-        (*it)->cleanup();
-        m_items.erase(it);
+    int index = m_items.indexOf(item);
+    if (index >= 0) {
+        m_items[index]->cleanup();
+        m_items.removeAt(index);
     }
 
     // Remove from map
@@ -67,29 +66,29 @@ bool Scene::removeItem(const std::string& itemId) {
     return true;
 }
 
-std::shared_ptr<Item> Scene::getItem(const std::string& itemId) const {
+QSharedPointer<Item> Scene::getItem(const QString& itemId) const {
     auto it = m_itemMap.find(itemId);
     if (it != m_itemMap.end()) {
-        return it->second;
+        return it.value();
     }
-    return nullptr;
+    return QSharedPointer<Item>();
 }
 
-const std::vector<std::shared_ptr<Item>>& Scene::getItems() const {
+const QList<QSharedPointer<Item>>& Scene::getItems() const {
     return m_items;
 }
 
-bool Scene::loadFromJson(const std::string& filePath) {
+bool Scene::loadFromJson(const QString& filePath) {
     // TODO: Implement JSON loading
     // This is a stub for future implementation
-    std::cout << "Loading scene from JSON: " << filePath << " (not yet implemented)" << std::endl;
+    qDebug() << "Loading scene from JSON:" << filePath << "(not yet implemented)";
     return false;
 }
 
-bool Scene::loadFromQml(const std::string& filePath) {
+bool Scene::loadFromQml(const QString& filePath) {
     // TODO: Implement QML loading
     // This is a stub for future implementation
-    std::cout << "Loading scene from QML: " << filePath << " (not yet implemented)" << std::endl;
+    qDebug() << "Loading scene from QML:" << filePath << "(not yet implemented)";
     return false;
 }
 

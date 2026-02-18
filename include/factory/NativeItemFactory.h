@@ -8,6 +8,18 @@
  * 
  * This factory handles creation of all native Item types provided by the engine.
  * 
+ * ==================== CODING STANDARDS ====================
+ * ⚠️ IMPORTANT: Use Qt containers, NOT STL containers! ⚠️
+ * 
+ * - Use QString instead of std::string
+ * - Use QList instead of std::vector
+ * - Use QHash instead of std::map
+ * - Use QVariant instead of std::variant
+ * - Use QSharedPointer instead of std::shared_ptr
+ * 
+ * This keeps the codebase consistent with Qt conventions.
+ * ==========================================================
+ * 
  * ==================== ADDING NEW NATIVE ITEMS ====================
  * When adding a new native Item type to the engine:
  * 
@@ -19,14 +31,14 @@
  * Example:
  * @code
  * if (type == "YourNewType") {
- *     auto item = std::make_shared<YourNewItem>();
+ *     auto item = QSharedPointer<YourNewItem>::create();
  *     
  *     // Parse properties
- *     if (properties.count("someProperty")) {
- *         try {
- *             std::string value = std::get<std::string>(properties.at("someProperty"));
+ *     if (properties.contains("someProperty")) {
+ *         if (properties["someProperty"].canConvert<QString>()) {
+ *             QString value = properties["someProperty"].toString();
  *             item->setSomeProperty(value);
- *         } catch (const std::bad_variant_access&) {
+ *         } else {
  *             throw std::runtime_error("Property 'someProperty' must be a string");
  *         }
  *     }
@@ -36,15 +48,16 @@
  * @endcode
  * 
  * ==================== PROPERTY PARSING ====================
- * Properties from JSON/QML are stored as std::variant<string, int, float, bool>.
- * Use std::get<T>() to extract the value with type checking:
+ * Properties from JSON/QML are stored as QVariant.
+ * Use QVariant methods to extract the value with type checking:
  * 
- * - std::get<std::string>(value)  // For strings
- * - std::get<int>(value)          // For integers
- * - std::get<float>(value)        // For floats
- * - std::get<bool>(value)         // For booleans
+ * - properties["key"].toString()   // For strings
+ * - properties["key"].toInt()      // For integers
+ * - properties["key"].toDouble()   // For floats
+ * - properties["key"].toBool()     // For booleans
+ * - properties["key"].canConvert<T>()  // Check if convertible to type T
  * 
- * Always wrap in try-catch to handle type mismatches gracefully!
+ * Always check canConvert() or handle conversion failures gracefully!
  * ================================================================
  */
 class NativeItemFactory : public Factory {
@@ -58,18 +71,13 @@ public:
      * @return Shared pointer to the created Item
      * @throws std::runtime_error if properties are invalid or incompatible
      */
-    std::shared_ptr<Item> create(const PropertyMap& properties) override;
+    QSharedPointer<Item> create(const PropertyMap& properties) override;
 
     /**
      * @brief Get the factory type name
      * @return "Native" to indicate this handles native types
      */
-    std::string getTypeName() const override;
-
-private:
-    // Helper to get a property value with type checking
-    // Note: These are not used in current implementation but kept for future reference
-    // Explicit template specializations would be needed if used
+    QString getTypeName() const override;
 };
 
 #endif // NATIVEITEMFACTORY_H

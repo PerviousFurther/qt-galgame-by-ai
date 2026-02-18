@@ -7,19 +7,19 @@ Item::~Item() {
     cleanup();
 }
 
-const std::string& Item::getId() const {
+const QString& Item::getId() const {
     return m_id;
 }
 
-void Item::setId(const std::string& id) {
+void Item::setId(const QString& id) {
     m_id = id;
 }
 
-const std::string& Item::getName() const {
+const QString& Item::getName() const {
     return m_name;
 }
 
-void Item::setName(const std::string& name) {
+void Item::setName(const QString& name) {
     m_name = name;
 }
 

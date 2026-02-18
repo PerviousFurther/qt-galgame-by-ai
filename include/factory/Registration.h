@@ -2,10 +2,10 @@
 #define REGISTRATION_H
 
 #include "Factory.h"
-#include <memory>
-#include <map>
-#include <string>
-#include <vector>
+#include <QSharedPointer>
+#include <QHash>
+#include <QString>
+#include <QStringList>
 
 /**
  * @brief Registration singleton for managing Item factories
@@ -17,11 +17,14 @@
  * Usage:
  * @code
  * // Register a factory
- * auto factory = std::make_shared<ImageItemFactory>();
+ * auto factory = QSharedPointer<ImageItemFactory>::create();
  * Registration::getInstance().registerFactory(factory);
  * 
  * // Create an item
- * PropertyMap props = {{"source", "image.png"}, {"x", 100}, {"y", 200}};
+ * PropertyMap props;
+ * props["source"] = "image.png";
+ * props["x"] = 100;
+ * props["y"] = 200;
  * auto item = Registration::getInstance().createItem("Image", props);
  * 
  * // Unregister when no longer needed
@@ -41,36 +44,36 @@ public:
      * @param factory Shared pointer to the Factory
      * @return true if successful, false if a factory with this type already exists
      */
-    bool registerFactory(std::shared_ptr<Factory> factory);
+    bool registerFactory(QSharedPointer<Factory> factory);
 
     /**
      * @brief Unregister a factory by type name
      * @param typeName The type name of the factory to remove
      * @return true if successful, false if no such factory exists
      */
-    bool unregisterFactory(const std::string& typeName);
+    bool unregisterFactory(const QString& typeName);
 
     /**
      * @brief Create an Item using the registered factory
      * @param typeName The type of Item to create
      * @param properties Dictionary of properties from JSON/QML
      * @return Shared pointer to the created Item
-     * @throws std::runtime_error if no factory is registered for the type
+     * @throws runtime_error if no factory is registered for the type
      */
-    std::shared_ptr<Item> createItem(const std::string& typeName, const PropertyMap& properties);
+    QSharedPointer<Item> createItem(const QString& typeName, const PropertyMap& properties);
 
     /**
      * @brief Check if a factory is registered for a type
      * @param typeName The type name to check
      * @return true if a factory is registered, false otherwise
      */
-    bool hasFactory(const std::string& typeName) const;
+    bool hasFactory(const QString& typeName) const;
 
     /**
      * @brief Get all registered type names
-     * @return Vector of registered type names
+     * @return List of registered type names
      */
-    std::vector<std::string> getRegisteredTypes() const;
+    QStringList getRegisteredTypes() const;
 
 private:
     Registration();
@@ -78,7 +81,7 @@ private:
     Registration(const Registration&) = delete;
     Registration& operator=(const Registration&) = delete;
 
-    std::map<std::string, std::shared_ptr<Factory>> m_factories;
+    QHash<QString, QSharedPointer<Factory>> m_factories;
 };
 
 #endif // REGISTRATION_H

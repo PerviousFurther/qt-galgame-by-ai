@@ -1,22 +1,21 @@
 #ifndef FACTORY_H
 #define FACTORY_H
 
-#include <memory>
-#include <string>
-#include <map>
-#include <variant>
+#include <QSharedPointer>
+#include <QString>
+#include <QHash>
+#include <QVariant>
 
 // Forward declaration
 class Item;
 
 /**
- * @brief Type alias for property values that can be passed from JSON/QML
+ * @brief Type alias for property map that can be passed from JSON/QML
  * 
- * Properties can be strings, integers, floats, or booleans.
+ * Properties are stored as QVariant which can hold strings, integers, floats, or booleans.
  * When implementing a Factory, parse these variants to create Item instances.
  */
-using PropertyValue = std::variant<std::string, int, float, bool>;
-using PropertyMap = std::map<std::string, PropertyValue>;
+using PropertyMap = QHash<QString, QVariant>;
 
 /**
  * @brief Abstract Factory base class for creating Items
@@ -33,11 +32,11 @@ using PropertyMap = std::map<std::string, PropertyValue>;
  * @code
  * class ImageItemFactory : public Factory {
  * public:
- *     std::shared_ptr<Item> create(const PropertyMap& properties) override {
- *         auto item = std::make_shared<ImageItem>();
+ *     QSharedPointer<Item> create(const PropertyMap& properties) override {
+ *         auto item = QSharedPointer<ImageItem>::create();
  *         // Parse properties and configure item
- *         if (properties.count("source")) {
- *             std::string source = std::get<std::string>(properties.at("source"));
+ *         if (properties.contains("source")) {
+ *             QString source = properties.value("source").toString();
  *             item->setSource(source);
  *         }
  *         return item;
@@ -53,15 +52,15 @@ public:
      * @brief Create an Item from properties
      * @param properties Dictionary of property name-value pairs from JSON/QML
      * @return Shared pointer to the created Item
-     * @throws std::runtime_error if properties are invalid or incompatible
+     * @throws runtime_error if properties are invalid or incompatible
      */
-    virtual std::shared_ptr<Item> create(const PropertyMap& properties) = 0;
+    virtual QSharedPointer<Item> create(const PropertyMap& properties) = 0;
 
     /**
      * @brief Get the type name this factory creates
      * @return Type name (e.g., "Image", "Text", "Character")
      */
-    virtual std::string getTypeName() const = 0;
+    virtual QString getTypeName() const = 0;
 };
 
 #endif // FACTORY_H

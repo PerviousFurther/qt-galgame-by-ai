@@ -1,6 +1,5 @@
 #include "factory/Registration.h"
 #include <stdexcept>
-#include <algorithm>
 
 Registration::Registration() {
 }
@@ -10,15 +9,15 @@ Registration& Registration::getInstance() {
     return instance;
 }
 
-bool Registration::registerFactory(std::shared_ptr<Factory> factory) {
+bool Registration::registerFactory(QSharedPointer<Factory> factory) {
     if (!factory) {
         return false;
     }
 
-    std::string typeName = factory->getTypeName();
+    QString typeName = factory->getTypeName();
     
     // Check if factory already exists
-    if (m_factories.find(typeName) != m_factories.end()) {
+    if (m_factories.contains(typeName)) {
         return false;
     }
 
@@ -26,36 +25,27 @@ bool Registration::registerFactory(std::shared_ptr<Factory> factory) {
     return true;
 }
 
-bool Registration::unregisterFactory(const std::string& typeName) {
-    auto it = m_factories.find(typeName);
-    if (it == m_factories.end()) {
+bool Registration::unregisterFactory(const QString& typeName) {
+    if (!m_factories.contains(typeName)) {
         return false;
     }
 
-    m_factories.erase(it);
+    m_factories.remove(typeName);
     return true;
 }
 
-std::shared_ptr<Item> Registration::createItem(const std::string& typeName, const PropertyMap& properties) {
-    auto it = m_factories.find(typeName);
-    if (it == m_factories.end()) {
-        throw std::runtime_error("No factory registered for type: " + typeName);
+QSharedPointer<Item> Registration::createItem(const QString& typeName, const PropertyMap& properties) {
+    if (!m_factories.contains(typeName)) {
+        throw std::runtime_error(("No factory registered for type: " + typeName).toStdString());
     }
 
-    return it->second->create(properties);
+    return m_factories[typeName]->create(properties);
 }
 
-bool Registration::hasFactory(const std::string& typeName) const {
-    return m_factories.find(typeName) != m_factories.end();
+bool Registration::hasFactory(const QString& typeName) const {
+    return m_factories.contains(typeName);
 }
 
-std::vector<std::string> Registration::getRegisteredTypes() const {
-    std::vector<std::string> types;
-    types.reserve(m_factories.size());
-    
-    for (const auto& pair : m_factories) {
-        types.push_back(pair.first);
-    }
-    
-    return types;
+QStringList Registration::getRegisteredTypes() const {
+    return m_factories.keys();
 }

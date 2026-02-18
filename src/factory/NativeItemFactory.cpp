@@ -5,17 +5,17 @@
 NativeItemFactory::NativeItemFactory() {
 }
 
-std::shared_ptr<Item> NativeItemFactory::create(const PropertyMap& properties) {
+QSharedPointer<Item> NativeItemFactory::create(const PropertyMap& properties) {
     // Get the type property to determine which Item to create
-    std::string type;
-    try {
-        if (properties.count("type")) {
-            type = std::get<std::string>(properties.at("type"));
+    QString type;
+    if (properties.contains("type")) {
+        if (properties["type"].canConvert<QString>()) {
+            type = properties["type"].toString();
         } else {
-            throw std::runtime_error("Property 'type' is required to create an Item");
+            throw std::runtime_error("Property 'type' must be a string");
         }
-    } catch (const std::bad_variant_access&) {
-        throw std::runtime_error("Property 'type' must be a string");
+    } else {
+        throw std::runtime_error("Property 'type' is required to create an Item");
     }
 
     // ==================== ADD NEW NATIVE ITEM TYPES HERE ====================
@@ -23,21 +23,21 @@ std::shared_ptr<Item> NativeItemFactory::create(const PropertyMap& properties) {
     
     if (type == "Item" || type == "Base") {
         // Create a basic Item
-        auto item = std::make_shared<Item>();
+        auto item = QSharedPointer<Item>::create();
         
         // Set common properties
-        if (properties.count("id")) {
-            try {
-                item->setId(std::get<std::string>(properties.at("id")));
-            } catch (const std::bad_variant_access&) {
+        if (properties.contains("id")) {
+            if (properties["id"].canConvert<QString>()) {
+                item->setId(properties["id"].toString());
+            } else {
                 throw std::runtime_error("Property 'id' must be a string");
             }
         }
         
-        if (properties.count("name")) {
-            try {
-                item->setName(std::get<std::string>(properties.at("name")));
-            } catch (const std::bad_variant_access&) {
+        if (properties.contains("name")) {
+            if (properties["name"].canConvert<QString>()) {
+                item->setName(properties["name"].toString());
+            } else {
                 throw std::runtime_error("Property 'name' must be a string");
             }
         }
@@ -49,27 +49,27 @@ std::shared_ptr<Item> NativeItemFactory::create(const PropertyMap& properties) {
     // Example template:
     //
     // if (type == "Image") {
-    //     auto item = std::make_shared<ImageItem>();
+    //     auto item = QSharedPointer<ImageItem>::create();
     //     
-    //     if (properties.count("source")) {
-    //         try {
-    //             item->setSource(std::get<std::string>(properties.at("source")));
-    //         } catch (const std::bad_variant_access&) {
+    //     if (properties.contains("source")) {
+    //         if (properties["source"].canConvert<QString>()) {
+    //             item->setSource(properties["source"].toString());
+    //         } else {
     //             throw std::runtime_error("Property 'source' must be a string");
     //         }
     //     }
     //     
-    //     if (properties.count("x")) {
-    //         try {
-    //             item->setX(std::get<int>(properties.at("x")));
-    //         } catch (const std::bad_variant_access&) {
+    //     if (properties.contains("x")) {
+    //         if (properties["x"].canConvert<int>()) {
+    //             item->setX(properties["x"].toInt());
+    //         } else {
     //             throw std::runtime_error("Property 'x' must be an integer");
     //         }
     //     }
     //     
     //     // Set common properties (id, name)
-    //     if (properties.count("id")) {
-    //         item->setId(std::get<std::string>(properties.at("id")));
+    //     if (properties.contains("id")) {
+    //         item->setId(properties["id"].toString());
     //     }
     //     
     //     return item;
@@ -78,9 +78,9 @@ std::shared_ptr<Item> NativeItemFactory::create(const PropertyMap& properties) {
     // =========================================================================
 
     // If we get here, the type is not recognized
-    throw std::runtime_error("Unknown native Item type: " + type);
+    throw std::runtime_error(("Unknown native Item type: " + type).toStdString());
 }
 
-std::string NativeItemFactory::getTypeName() const {
+QString NativeItemFactory::getTypeName() const {
     return "Native";
 }
