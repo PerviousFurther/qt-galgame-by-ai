@@ -28,7 +28,7 @@ void Scene::removeItem(Item *item)
 
 Item *Scene::findItem(const QString &itemId) const
 {
-    const auto children = findChildren<Item *>();
+    const auto children = findChildren<Item *>(Qt::FindDirectChildrenOnly);
     for (auto *child : children) {
         if (child->id() == itemId)
             return child;
@@ -50,6 +50,7 @@ void Scene::loadFromJson(const QJsonObject &json)
         const QString id = obj[QStringLiteral("id")].toString();
 
         auto *item = new Item(id, className, this);
+        emit itemAdded(item);
 
         const QJsonObject props = obj[QStringLiteral("properties")].toObject();
         for (auto it = props.begin(); it != props.end(); ++it) {
