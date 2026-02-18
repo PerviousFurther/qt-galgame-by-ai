@@ -1,0 +1,22 @@
+# Build directories
+build/
+cmake-build-*/
+
+# Qt generated files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.qm
+
+# Compiled objects
+*.o
+*.obj
+*.exe
+*.out
+
+# IDE files
+.vscode/
+.idea/
+*.user
+*.swp
+*~
