@@ -1,7 +1,7 @@
 #include "resources/Resource.h"
 
 // Resource base class
-Resource::Resource(const std::string& url)
+Resource::Resource(const QString& url)
     : m_url(url)
     , m_state(State::Unloaded)
 {
@@ -11,7 +11,7 @@ Resource::~Resource() {
     unload();
 }
 
-const std::string& Resource::getUrl() const {
+const QString& Resource::getUrl() const {
     return m_url;
 }
 
@@ -33,7 +33,7 @@ void Resource::setState(State state) {
 }
 
 // TextureResource
-TextureResource::TextureResource(const std::string& url)
+TextureResource::TextureResource(const QString& url)
     : Resource(url)
     , m_width(0)
     , m_height(0)
@@ -52,7 +52,7 @@ void TextureResource::setDimensions(int width, int height) {
 }
 
 // AudioResource
-AudioResource::AudioResource(const std::string& url)
+AudioResource::AudioResource(const QString& url)
     : Resource(url)
     , m_duration(0.0f)
 {
@@ -69,7 +69,7 @@ void AudioResource::setDuration(float duration) {
 }
 
 // ChatSessionResource
-ChatSessionResource::ChatSessionResource(const std::string& url)
+ChatSessionResource::ChatSessionResource(const QString& url)
     : Resource(url)
     , m_dataSize(0)
 {

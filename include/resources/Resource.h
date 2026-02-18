@@ -1,8 +1,7 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
 
-#include <string>
-#include <memory>
+#include <QString>
 
 /**
  * @brief Base class for loaded resources
@@ -12,6 +11,8 @@
  * 
  * Resources emit signals when they are loaded or unloaded, allowing
  * Items to respond to resource state changes.
+ * 
+ * NOTE: Uses Qt containers - see CodingStandards.h
  */
 class Resource {
 public:
@@ -22,14 +23,14 @@ public:
         Failed      // Loading failed
     };
 
-    Resource(const std::string& url);
+    Resource(const QString& url);
     virtual ~Resource();
 
     /**
      * @brief Get the resource URL
      * @return The URL/path of the resource
      */
-    const std::string& getUrl() const;
+    const QString& getUrl() const;
 
     /**
      * @brief Get the current state of the resource
@@ -61,7 +62,7 @@ public:
     void setState(State state);
 
 protected:
-    std::string m_url;
+    QString m_url;
     State m_state;
 };
 
@@ -70,7 +71,7 @@ protected:
  */
 class TextureResource : public Resource {
 public:
-    TextureResource(const std::string& url);
+    TextureResource(const QString& url);
     virtual ~TextureResource() = default;
 
     size_t getSize() const override;
@@ -91,7 +92,7 @@ private:
  */
 class AudioResource : public Resource {
 public:
-    AudioResource(const std::string& url);
+    AudioResource(const QString& url);
     virtual ~AudioResource() = default;
 
     size_t getSize() const override;
@@ -113,7 +114,7 @@ private:
  */
 class ChatSessionResource : public Resource {
 public:
-    ChatSessionResource(const std::string& url);
+    ChatSessionResource(const QString& url);
     virtual ~ChatSessionResource() = default;
 
     size_t getSize() const override;
