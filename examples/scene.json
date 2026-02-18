@@ -1,0 +1,21 @@
+{
+    "sceneId": "opening",
+    "items": [
+        {
+            "className": "ChatDialog",
+            "id": "dialog_01",
+            "properties": {
+                "text": "Welcome to the game!",
+                "speaker": "Narrator"
+            }
+        },
+        {
+            "className": "AudioPlayer",
+            "id": "bgm_01",
+            "properties": {
+                "source": "audio/opening.mp3",
+                "loop": true
+            }
+        }
+    ]
+}
