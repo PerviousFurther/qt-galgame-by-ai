@@ -1,105 +1,105 @@
 #include "resources/Loader.h"
-#include <algorithm>
-#include <fstream>
-#include <thread>
-#include <iostream>
+#include <QFile>
+#include <QThread>
+#include <QDebug>
 
 // Loader base class
-std::string Loader::getProtocol(const std::string& url) {
-    size_t pos = url.find("://");
-    if (pos != std::string::npos) {
-        return url.substr(0, pos);
+QString Loader::getProtocol(const QString& url) {
+    int pos = url.indexOf(QLatin1String("://"));
+    if (pos != -1) {
+        return url.left(pos);
     }
-    return "file";  // Default to file protocol
+    return QStringLiteral("file");  // Default to file protocol
 }
 
-std::string Loader::getExtension(const std::string& url) {
-    size_t pos = url.find_last_of('.');
-    if (pos != std::string::npos && pos < url.length() - 1) {
-        std::string ext = url.substr(pos + 1);
-        std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-        return ext;
+QString Loader::getExtension(const QString& url) {
+    int pos = url.lastIndexOf(QLatin1Char('.'));
+    if (pos != -1 && pos < url.length() - 1) {
+        return url.mid(pos + 1).toLower();
     }
-    return "";
+    return QString();
 }
 
 // FileLoader
-bool FileLoader::canLoad(const std::string& url) const {
-    std::string protocol = getProtocol(url);
-    return protocol == "file" || url.find("://") == std::string::npos;
+bool FileLoader::canLoad(const QString& url) const {
+    QString protocol = getProtocol(url);
+    return protocol == QLatin1String("file") || !url.contains(QLatin1String("://"));
 }
 
-bool FileLoader::readFile(const std::string& path, std::vector<char>& outData) const {
+bool FileLoader::readFile(const QString& path, QByteArray& outData) const {
     // Strip file:// protocol if present
-    std::string filePath = path;
-    if (filePath.substr(0, 7) == "file://") {
-        filePath = filePath.substr(7);
+    QString filePath = path;
+    if (filePath.startsWith(QLatin1String("file://"))) {
+        filePath = filePath.mid(7);
     }
 
-    std::ifstream file(filePath, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
         return false;
     }
 
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    outData.resize(static_cast<size_t>(size));
-    if (!file.read(outData.data(), size)) {
-        return false;
-    }
-
-    return true;
+    outData = file.readAll();
+    return !outData.isEmpty() || file.size() == 0;
 }
 
 // QrcLoader
-bool QrcLoader::canLoad(const std::string& url) const {
-    return getProtocol(url) == "qrc";
+bool QrcLoader::canLoad(const QString& url) const {
+    return getProtocol(url) == QLatin1String("qrc");
 }
 
-bool QrcLoader::readQrcResource(const std::string& path, std::vector<char>& outData) const {
-    // TODO: Implement Qt resource system reading when Qt is fully integrated
-    std::cout << "QRC loading not yet implemented: " << path << std::endl;
-    return false;
+bool QrcLoader::readQrcResource(const QString& path, QByteArray& outData) const {
+    // Convert qrc:// URL to Qt resource path (:/)
+    QString resourcePath = path;
+    if (resourcePath.startsWith(QLatin1String("qrc://"))) {
+        resourcePath = QLatin1String(":/") + resourcePath.mid(6);
+    }
+
+    QFile file(resourcePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "QRC loading failed:" << resourcePath;
+        return false;
+    }
+
+    outData = file.readAll();
+    return true;
 }
 
 // FileImageLoader
-bool FileImageLoader::isImageExtension(const std::string& ext) const {
-    return ext == "png" || ext == "jpg" || ext == "jpeg" || 
-           ext == "bmp" || ext == "gif" || ext == "webp";
+bool FileImageLoader::isImageExtension(const QString& ext) const {
+    return ext == QLatin1String("png") || ext == QLatin1String("jpg") || ext == QLatin1String("jpeg") || 
+           ext == QLatin1String("bmp") || ext == QLatin1String("gif") || ext == QLatin1String("webp");
 }
 
-bool FileImageLoader::canLoad(const std::string& url) const {
+bool FileImageLoader::canLoad(const QString& url) const {
     if (!FileLoader::canLoad(url)) {
         return false;
     }
     return isImageExtension(getExtension(url));
 }
 
-std::shared_ptr<Resource> FileImageLoader::loadSync(const std::string& url) {
-    auto resource = std::make_shared<TextureResource>(url);
+QSharedPointer<Resource> FileImageLoader::loadSync(const QString& url) {
+    auto resource = QSharedPointer<TextureResource>::create(url);
     resource->setState(Resource::State::Loading);
 
-    std::vector<char> data;
+    QByteArray data;
     if (readFile(url, data)) {
         // TODO: Actual image decoding (using stb_image or similar)
         // For now, just mark as loaded with dummy dimensions
         resource->setDimensions(100, 100);
         resource->setState(Resource::State::Loaded);
-        std::cout << "Loaded image: " << url << " (" << data.size() << " bytes)" << std::endl;
+        qDebug() << "Loaded image:" << url << "(" << data.size() << "bytes)";
     } else {
         resource->setState(Resource::State::Failed);
-        std::cerr << "Failed to load image: " << url << std::endl;
+        qWarning() << "Failed to load image:" << url;
     }
 
     return resource;
 }
 
-void FileImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
+void FileImageLoader::loadAsync(const QString& url, LoadCallback callback) {
     // Launch async loading in a separate thread
-    // Note: We don't capture 'this' to avoid potential use-after-free
-    // All needed state is captured by value
-    std::thread([url, callback]() {
+    // Note: We capture url and callback by value to avoid use-after-free
+    QThread::create([url, callback]() {
         // Create a temporary loader for this operation
         FileImageLoader tempLoader;
         auto resource = tempLoader.loadSync(url);
@@ -107,44 +107,43 @@ void FileImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
         if (callback) {
             callback(resource, success);
         }
-    }).detach();
+    })->start();
 }
 
 // QrcImageLoader
-bool QrcImageLoader::isImageExtension(const std::string& ext) const {
-    return ext == "png" || ext == "jpg" || ext == "jpeg" || 
-           ext == "bmp" || ext == "gif" || ext == "webp";
+bool QrcImageLoader::isImageExtension(const QString& ext) const {
+    return ext == QLatin1String("png") || ext == QLatin1String("jpg") || ext == QLatin1String("jpeg") || 
+           ext == QLatin1String("bmp") || ext == QLatin1String("gif") || ext == QLatin1String("webp");
 }
 
-bool QrcImageLoader::canLoad(const std::string& url) const {
+bool QrcImageLoader::canLoad(const QString& url) const {
     if (!QrcLoader::canLoad(url)) {
         return false;
     }
     return isImageExtension(getExtension(url));
 }
 
-std::shared_ptr<Resource> QrcImageLoader::loadSync(const std::string& url) {
-    auto resource = std::make_shared<TextureResource>(url);
+QSharedPointer<Resource> QrcImageLoader::loadSync(const QString& url) {
+    auto resource = QSharedPointer<TextureResource>::create(url);
     resource->setState(Resource::State::Loading);
 
-    std::vector<char> data;
+    QByteArray data;
     if (readQrcResource(url, data)) {
         // TODO: Actual image decoding
         resource->setDimensions(100, 100);
         resource->setState(Resource::State::Loaded);
     } else {
         resource->setState(Resource::State::Failed);
-        std::cerr << "Failed to load QRC image: " << url << std::endl;
+        qWarning() << "Failed to load QRC image:" << url;
     }
 
     return resource;
 }
 
-void QrcImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
+void QrcImageLoader::loadAsync(const QString& url, LoadCallback callback) {
     // Launch async loading in a separate thread
-    // Note: We don't capture 'this' to avoid potential use-after-free
-    // All needed state is captured by value
-    std::thread([url, callback]() {
+    // Note: We capture url and callback by value to avoid use-after-free
+    QThread::create([url, callback]() {
         // Create a temporary loader for this operation
         QrcImageLoader tempLoader;
         auto resource = tempLoader.loadSync(url);
@@ -152,5 +151,5 @@ void QrcImageLoader::loadAsync(const std::string& url, LoadCallback callback) {
         if (callback) {
             callback(resource, success);
         }
-    }).detach();
+    })->start();
 }

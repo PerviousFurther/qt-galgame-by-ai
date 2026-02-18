@@ -1,6 +1,6 @@
 #include "core/GameManager.h"
 #include "core/Timer.h"
-#include <iostream>
+#include <QDebug>
 
 GameManager::GameManager()
     : m_state(State::Stopped)
@@ -14,7 +14,7 @@ GameManager& GameManager::getInstance() {
 }
 
 void GameManager::initialize() {
-    std::cout << "GameManager initialized" << std::endl;
+    qDebug() << "GameManager initialized";
     m_state = State::Stopped;
 }
 
@@ -44,7 +44,7 @@ void GameManager::start() {
     if (m_state == State::Stopped) {
         m_state = State::Running;
         emitEvent(GameEvent::GameStarted);
-        std::cout << "Game started" << std::endl;
+        qDebug() << "Game started";
     }
 }
 
@@ -52,7 +52,7 @@ void GameManager::pause() {
     if (m_state == State::Running) {
         m_state = State::Paused;
         emitEvent(GameEvent::GamePaused);
-        std::cout << "Game paused" << std::endl;
+        qDebug() << "Game paused";
     }
 }
 
@@ -60,7 +60,7 @@ void GameManager::resume() {
     if (m_state == State::Paused) {
         m_state = State::Running;
         emitEvent(GameEvent::GameResumed);
-        std::cout << "Game resumed" << std::endl;
+        qDebug() << "Game resumed";
     }
 }
 
@@ -68,7 +68,7 @@ void GameManager::stop() {
     if (m_state != State::Stopped) {
         m_state = State::Stopped;
         emitEvent(GameEvent::GameEnded);
-        std::cout << "Game stopped" << std::endl;
+        qDebug() << "Game stopped";
     }
 }
 
@@ -76,24 +76,24 @@ GameManager::State GameManager::getState() const {
     return m_state;
 }
 
-void GameManager::addScene(const std::string& name, std::shared_ptr<Scene> scene) {
+void GameManager::addScene(const QString& name, QSharedPointer<Scene> scene) {
     if (!scene) {
         return;
     }
 
     m_scenes[name] = scene;
-    std::cout << "Added scene: " << name << std::endl;
+    qDebug() << "Added scene:" << name;
 }
 
-bool GameManager::removeScene(const std::string& name) {
+bool GameManager::removeScene(const QString& name) {
     auto it = m_scenes.find(name);
     if (it == m_scenes.end()) {
         return false;
     }
 
     // Don't remove if it's the active scene
-    if (it->second == m_activeScene) {
-        std::cerr << "Cannot remove active scene: " << name << std::endl;
+    if (it.value() == m_activeScene) {
+        qWarning() << "Cannot remove active scene:" << name;
         return false;
     }
 
@@ -102,43 +102,43 @@ bool GameManager::removeScene(const std::string& name) {
     return true;
 }
 
-std::shared_ptr<Scene> GameManager::getScene(const std::string& name) const {
+QSharedPointer<Scene> GameManager::getScene(const QString& name) const {
     auto it = m_scenes.find(name);
     if (it != m_scenes.end()) {
-        return it->second;
+        return it.value();
     }
-    return nullptr;
+    return QSharedPointer<Scene>();
 }
 
-bool GameManager::setActiveScene(const std::string& name) {
+bool GameManager::setActiveScene(const QString& name) {
     auto it = m_scenes.find(name);
     if (it == m_scenes.end()) {
-        std::cerr << "Scene not found: " << name << std::endl;
+        qWarning() << "Scene not found:" << name;
         return false;
     }
 
     // Cleanup old scene if needed
     if (m_activeScene) {
-        std::cout << "Switching from scene: " << m_activeSceneName << std::endl;
+        qDebug() << "Switching from scene:" << m_activeSceneName;
     }
 
-    m_activeScene = it->second;
+    m_activeScene = it.value();
     m_activeSceneName = name;
     
     // Initialize new scene
     m_activeScene->initialize();
     
     emitEvent(GameEvent::SceneChanged, name);
-    std::cout << "Active scene set to: " << name << std::endl;
+    qDebug() << "Active scene set to:" << name;
     
     return true;
 }
 
-std::shared_ptr<Scene> GameManager::getActiveScene() const {
+QSharedPointer<Scene> GameManager::getActiveScene() const {
     return m_activeScene;
 }
 
-const std::string& GameManager::getActiveSceneName() const {
+const QString& GameManager::getActiveSceneName() const {
     return m_activeSceneName;
 }
 
@@ -149,13 +149,13 @@ int GameManager::registerEventCallback(GameEventCallback callback) {
 }
 
 void GameManager::unregisterEventCallback(int handle) {
-    m_eventCallbacks.erase(handle);
+    m_eventCallbacks.remove(handle);
 }
 
-void GameManager::emitEvent(GameEvent event, const std::string& data) {
-    for (const auto& pair : m_eventCallbacks) {
-        if (pair.second) {
-            pair.second(event, data);
+void GameManager::emitEvent(GameEvent event, const QString& data) {
+    for (auto it = m_eventCallbacks.constBegin(); it != m_eventCallbacks.constEnd(); ++it) {
+        if (it.value()) {
+            it.value()(event, data);
         }
     }
 }

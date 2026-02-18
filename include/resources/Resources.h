@@ -3,11 +3,11 @@
 
 #include "Resource.h"
 #include "Loader.h"
-#include <memory>
-#include <vector>
-#include <map>
-#include <string>
-#include <mutex>
+#include <QSharedPointer>
+#include <QList>
+#include <QMap>
+#include <QString>
+#include <QMutex>
 
 /**
  * @brief Resources singleton for managing resource loading
@@ -48,42 +48,42 @@ public:
      * @brief Register a loader for handling specific resource types
      * @param loader Shared pointer to the Loader
      */
-    void registerLoader(std::shared_ptr<Loader> loader);
+    void registerLoader(QSharedPointer<Loader> loader);
 
     /**
      * @brief Load a resource synchronously
      * @param url The resource URL (e.g., "file://image.png", "qrc:/audio/bgm.mp3")
      * @return Loaded resource, or cached resource if already loaded
      */
-    std::shared_ptr<Resource> load(const std::string& url);
+    QSharedPointer<Resource> load(const QString& url);
 
     /**
      * @brief Load a resource asynchronously
      * @param url The resource URL
      * @param callback Called when loading completes
      */
-    void loadAsync(const std::string& url, LoadCallback callback);
+    void loadAsync(const QString& url, LoadCallback callback);
 
     /**
      * @brief Get a cached resource if it exists
      * @param url The resource URL
      * @return Cached resource, or nullptr if not found
      */
-    std::shared_ptr<Resource> get(const std::string& url) const;
+    QSharedPointer<Resource> get(const QString& url) const;
 
     /**
      * @brief Check if a resource is cached
      * @param url The resource URL
      * @return true if cached, false otherwise
      */
-    bool isCached(const std::string& url) const;
+    bool isCached(const QString& url) const;
 
     /**
      * @brief Unload a resource from cache
      * @param url The resource URL
      * @return true if successful, false if not found
      */
-    bool unload(const std::string& url);
+    bool unload(const QString& url);
 
     /**
      * @brief Clear all cached resources
@@ -106,11 +106,11 @@ private:
     void registerDefaultLoaders();
 
     // Find a loader that can handle the URL
-    std::shared_ptr<Loader> findLoader(const std::string& url) const;
+    QSharedPointer<Loader> findLoader(const QString& url) const;
 
-    std::vector<std::shared_ptr<Loader>> m_loaders;
-    std::map<std::string, std::shared_ptr<Resource>> m_cache;
-    mutable std::mutex m_cacheMutex;  // Protects cache access from multiple threads
+    QList<QSharedPointer<Loader>> m_loaders;
+    QMap<QString, QSharedPointer<Resource>> m_cache;
+    mutable QMutex m_cacheMutex;  // Protects cache access from multiple threads
 };
 
 #endif // RESOURCES_H

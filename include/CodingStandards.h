@@ -15,9 +15,16 @@
  * - std::variant     → Use QVariant instead
  * - std::shared_ptr  → Use QSharedPointer instead
  * - std::unique_ptr  → Use QScopedPointer instead
- * - std::function    → Use std::function (Qt doesn't provide alternative)
  * - std::mutex       → Use QMutex instead
  * - std::thread      → Use QThread instead (preferred)
+ * - std::chrono      → Use QElapsedTimer instead
+ * - std::iostream    → Use QDebug / qDebug() / qWarning() instead
+ * - std::fstream     → Use QFile instead
+ * 
+ * ALLOWED std:: USAGE:
+ * - std::function    → Qt doesn't provide a direct alternative
+ * - Standard exceptions (std::runtime_error, etc.)
+ * - Standard library algorithms (std::find, std::sort, etc.) when needed
  * 
  * REASONS:
  * 1. Consistency with Qt framework conventions
@@ -25,11 +32,7 @@
  * 3. Automatic memory management with Qt's parent-child relationship
  * 4. Better QML integration
  * 5. Cross-platform compatibility
- * 
- * EXCEPTIONS:
- * - Standard library algorithms (std::find, std::sort, etc.) can be used
- * - Standard exceptions (std::runtime_error, etc.) can be used
- * - Standard library utilities where Qt doesn't provide alternatives
+ * 6. Reduced dependency on platform-specific STL implementations
  * 
  * Always prefer Qt equivalents when available!
  * ==========================================================

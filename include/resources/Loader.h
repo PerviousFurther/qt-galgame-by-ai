@@ -2,8 +2,9 @@
 #define LOADER_H
 
 #include "Resource.h"
-#include <memory>
-#include <string>
+#include <QSharedPointer>
+#include <QString>
+#include <QByteArray>
 #include <functional>
 
 /**
@@ -11,7 +12,7 @@
  * @param resource The loaded resource (may be nullptr if loading failed)
  * @param success Whether loading was successful
  */
-using LoadCallback = std::function<void(std::shared_ptr<Resource>, bool)>;
+using LoadCallback = std::function<void(QSharedPointer<Resource>, bool)>;
 
 /**
  * @brief Abstract base class for resource loaders
@@ -36,21 +37,21 @@ public:
      * @param url The resource URL
      * @return true if this loader supports the URL's protocol and format
      */
-    virtual bool canLoad(const std::string& url) const = 0;
+    virtual bool canLoad(const QString& url) const = 0;
 
     /**
      * @brief Load a resource synchronously
      * @param url The resource URL
      * @return Loaded resource, or nullptr if loading failed
      */
-    virtual std::shared_ptr<Resource> loadSync(const std::string& url) = 0;
+    virtual QSharedPointer<Resource> loadSync(const QString& url) = 0;
 
     /**
      * @brief Load a resource asynchronously
      * @param url The resource URL
      * @param callback Called when loading completes (or fails)
      */
-    virtual void loadAsync(const std::string& url, LoadCallback callback) = 0;
+    virtual void loadAsync(const QString& url, LoadCallback callback) = 0;
 
 protected:
     /**
@@ -58,14 +59,14 @@ protected:
      * @param url The URL to parse
      * @return Protocol string, or "file" if no protocol specified
      */
-    static std::string getProtocol(const std::string& url);
+    static QString getProtocol(const QString& url);
 
     /**
      * @brief Extract file extension from URL
      * @param url The URL to parse
      * @return File extension (lowercase, without dot)
      */
-    static std::string getExtension(const std::string& url);
+    static QString getExtension(const QString& url);
 };
 
 /**
@@ -73,17 +74,16 @@ protected:
  */
 class FileLoader : public virtual Loader {
 public:
-    bool canLoad(const std::string& url) const override;
+    bool canLoad(const QString& url) const override;
 
 protected:
     /**
      * @brief Open a file and read its contents
      * @param path File path (protocol already stripped)
      * @param outData Output buffer for file data
-     * @param outSize Output variable for data size
      * @return true if successful
      */
-    bool readFile(const std::string& path, std::vector<char>& outData) const;
+    bool readFile(const QString& path, QByteArray& outData) const;
 };
 
 /**
@@ -91,7 +91,7 @@ protected:
  */
 class QrcLoader : public virtual Loader {
 public:
-    bool canLoad(const std::string& url) const override;
+    bool canLoad(const QString& url) const override;
 
 protected:
     /**
@@ -100,7 +100,7 @@ protected:
      * @param outData Output buffer for resource data
      * @return true if successful
      */
-    bool readQrcResource(const std::string& path, std::vector<char>& outData) const;
+    bool readQrcResource(const QString& path, QByteArray& outData) const;
 };
 
 /**
@@ -108,12 +108,12 @@ protected:
  */
 class FileImageLoader : public FileLoader {
 public:
-    bool canLoad(const std::string& url) const override;
-    std::shared_ptr<Resource> loadSync(const std::string& url) override;
-    void loadAsync(const std::string& url, LoadCallback callback) override;
+    bool canLoad(const QString& url) const override;
+    QSharedPointer<Resource> loadSync(const QString& url) override;
+    void loadAsync(const QString& url, LoadCallback callback) override;
 
 private:
-    bool isImageExtension(const std::string& ext) const;
+    bool isImageExtension(const QString& ext) const;
 };
 
 /**
@@ -121,12 +121,12 @@ private:
  */
 class QrcImageLoader : public QrcLoader {
 public:
-    bool canLoad(const std::string& url) const override;
-    std::shared_ptr<Resource> loadSync(const std::string& url) override;
-    void loadAsync(const std::string& url, LoadCallback callback) override;
+    bool canLoad(const QString& url) const override;
+    QSharedPointer<Resource> loadSync(const QString& url) override;
+    void loadAsync(const QString& url, LoadCallback callback) override;
 
 private:
-    bool isImageExtension(const std::string& ext) const;
+    bool isImageExtension(const QString& ext) const;
 };
 
 #endif // LOADER_H

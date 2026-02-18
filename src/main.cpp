@@ -6,153 +6,148 @@
 #include "factory/Registration.h"
 #include "factory/NativeItemFactory.h"
 #include "resources/Resources.h"
-#include <iostream>
-#include <memory>
-#include <thread>
-#include <chrono>
+#include <QDebug>
+#include <QThread>
 
 int main(int argc, char *argv[]) {
-    std::cout << "Qt Galgame Engine - Visual Novel Development Framework" << std::endl;
-    std::cout << "======================================================" << std::endl;
-    std::cout << std::endl;
+    qDebug() << "Qt Galgame Engine - Visual Novel Development Framework";
+    qDebug() << "======================================================";
+    qDebug() << "";
 
     // Step 1: Initialize Configuration (first step in any application)
-    std::cout << "=== Initializing Configuration ===" << std::endl;
+    qDebug() << "=== Initializing Configuration ===";
     Configuration& config = Configuration::getInstance();
     config.parseCommandLine(argc, argv);
-    config.loadFromFile("resources/config.json");
+    config.loadFromFile(QStringLiteral("resources/config.json"));
     
-    std::cout << "Configuration loaded:" << std::endl;
-    std::cout << "  Window: " << config.getWindowWidth() << "x" << config.getWindowHeight() << std::endl;
-    std::cout << "  Target FPS: " << config.getTargetFPS() << std::endl;
-    std::cout << "  Master Volume: " << config.getMasterVolume() << std::endl;
-    std::cout << std::endl;
+    qDebug() << "Configuration loaded:";
+    qDebug() << "  Window:" << config.getWindowWidth() << "x" << config.getWindowHeight();
+    qDebug() << "  Target FPS:" << config.getTargetFPS();
+    qDebug() << "  Master Volume:" << config.getMasterVolume();
+    qDebug() << "";
 
     // Step 2: Initialize Timer
-    std::cout << "=== Initializing Timer ===" << std::endl;
+    qDebug() << "=== Initializing Timer ===";
     Timer& timer = Timer::getInstance();
     timer.initialize();
     timer.setFixedUpdateInterval(1.0f / 60.0f);  // 60 FPS for fixed updates
-    std::cout << "Timer initialized (fixed update: " << timer.getFixedUpdateInterval() << "s)" << std::endl;
-    std::cout << std::endl;
+    qDebug() << "Timer initialized (fixed update:" << timer.getFixedUpdateInterval() << "s)";
+    qDebug() << "";
 
     // Step 3: Register factories for Item creation
-    std::cout << "=== Registering Factories ===" << std::endl;
+    qDebug() << "=== Registering Factories ===";
     Registration& registration = Registration::getInstance();
-    auto nativeFactory = std::make_shared<NativeItemFactory>();
+    auto nativeFactory = QSharedPointer<NativeItemFactory>::create();
     registration.registerFactory(nativeFactory);
-    std::cout << "Native Item factory registered" << std::endl;
-    std::cout << "Registered types: ";
-    for (const auto& type : registration.getRegisteredTypes()) {
-        std::cout << type << " ";
-    }
-    std::cout << std::endl << std::endl;
+    qDebug() << "Native Item factory registered";
+    qDebug() << "Registered types:" << registration.getRegisteredTypes();
+    qDebug() << "";
 
     // Step 4: Initialize Resources
-    std::cout << "=== Initializing Resources ===" << std::endl;
+    qDebug() << "=== Initializing Resources ===";
     Resources& resources = Resources::getInstance();
-    std::cout << "Resources system initialized with default loaders" << std::endl;
-    std::cout << std::endl;
+    qDebug() << "Resources system initialized with default loaders";
+    qDebug() << "";
 
     // Step 5: Initialize GameManager
-    std::cout << "=== Initializing GameManager ===" << std::endl;
+    qDebug() << "=== Initializing GameManager ===";
     GameManager& gameManager = GameManager::getInstance();
     gameManager.initialize();
-    std::cout << std::endl;
+    qDebug() << "";
 
     // Step 6: Create scenes
-    std::cout << "=== Creating Scenes ===" << std::endl;
+    qDebug() << "=== Creating Scenes ===";
     
     // Create a dialog scene
-    auto dialogScene = std::make_shared<Scene>();
-    dialogScene->setId("dialog_scene");
+    auto dialogScene = QSharedPointer<Scene>::create();
+    dialogScene->setId(QStringLiteral("dialog_scene"));
     
     // Create items using factory
-    PropertyMap bgProps = {{"type", "Item"}, {"id", "background"}, {"name", "Background"}};
-    auto bg = registration.createItem("Native", bgProps);
+    PropertyMap bgProps = {{QStringLiteral("type"), QStringLiteral("Item")}, {QStringLiteral("id"), QStringLiteral("background")}, {QStringLiteral("name"), QStringLiteral("Background")}};
+    auto bg = registration.createItem(QStringLiteral("Native"), bgProps);
     
-    PropertyMap charProps = {{"type", "Item"}, {"id", "character"}, {"name", "Main Character"}};
-    auto character = registration.createItem("Native", charProps);
+    PropertyMap charProps = {{QStringLiteral("type"), QStringLiteral("Item")}, {QStringLiteral("id"), QStringLiteral("character")}, {QStringLiteral("name"), QStringLiteral("Main Character")}};
+    auto character = registration.createItem(QStringLiteral("Native"), charProps);
     
     dialogScene->addItem(bg);
     dialogScene->addItem(character);
     
-    gameManager.addScene("dialog", dialogScene);
-    gameManager.setActiveScene("dialog");
-    std::cout << std::endl;
+    gameManager.addScene(QStringLiteral("dialog"), dialogScene);
+    gameManager.setActiveScene(QStringLiteral("dialog"));
+    qDebug() << "";
 
     // Step 7: Simulate game loop
-    std::cout << "=== Starting Game Loop ===" << std::endl;
+    qDebug() << "=== Starting Game Loop ===";
     gameManager.start();
     
     // Simulate a few frames
     for (int frame = 0; frame < 5; ++frame) {
         timer.update();
         
-        std::cout << "Frame " << frame << ": ";
-        std::cout << "deltaTime=" << timer.getDeltaTime() << "s, ";
-        std::cout << "runtime=" << timer.getRuntime() << "s" << std::endl;
+        qDebug() << "Frame" << frame << ":"
+                 << "deltaTime=" << timer.getDeltaTime() << "s,"
+                 << "runtime=" << timer.getRuntime() << "s";
         
         // Regular update
         gameManager.update();
         
         // Fixed update (if needed)
         if (timer.shouldFixedUpdate()) {
-            std::cout << "  -> Fixed update triggered" << std::endl;
+            qDebug() << "  -> Fixed update triggered";
             gameManager.fixedUpdate();
         }
         
         // Simulate frame delay
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));  // ~60 FPS
+        QThread::msleep(16);  // ~60 FPS
     }
-    std::cout << std::endl;
+    qDebug() << "";
 
     // Step 8: Test resource loading
-    std::cout << "=== Testing Resource Loading ===" << std::endl;
-    std::cout << "Note: Image decoding not yet implemented, showing stub behavior" << std::endl;
+    qDebug() << "=== Testing Resource Loading ===";
+    qDebug() << "Note: Image decoding not yet implemented, showing stub behavior";
     
     // Sync loading
-    auto texture = resources.load("file://resources/test_image.png");
+    auto texture = resources.load(QStringLiteral("file://resources/test_image.png"));
     if (texture) {
-        std::cout << "Loaded texture: " << texture->getUrl() << std::endl;
+        qDebug() << "Loaded texture:" << texture->getUrl();
     }
     
     // Async loading demo
-    std::cout << "Starting async load..." << std::endl;
-    resources.loadAsync("file://resources/test_image2.png", 
-        [](std::shared_ptr<Resource> res, bool success) {
+    qDebug() << "Starting async load...";
+    resources.loadAsync(QStringLiteral("file://resources/test_image2.png"), 
+        [](QSharedPointer<Resource> res, bool success) {
             if (success) {
-                std::cout << "Async load completed: " << res->getUrl() << std::endl;
+                qDebug() << "Async load completed:" << res->getUrl();
             } else {
-                std::cout << "Async load failed" << std::endl;
+                qDebug() << "Async load failed";
             }
         });
     
     // Wait for async load
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::cout << std::endl;
+    QThread::msleep(100);
+    qDebug() << "";
 
     // Step 9: Show stats
-    std::cout << "=== Engine Statistics ===" << std::endl;
-    std::cout << "Total frames: " << timer.getFrameCount() << std::endl;
-    std::cout << "Total runtime: " << timer.getRuntime() << "s" << std::endl;
-    std::cout << "Cached resources: " << resources.getCacheSize() << " bytes" << std::endl;
-    std::cout << "Active scene: " << gameManager.getActiveSceneName() << std::endl;
-    std::cout << std::endl;
+    qDebug() << "=== Engine Statistics ===";
+    qDebug() << "Total frames:" << timer.getFrameCount();
+    qDebug() << "Total runtime:" << timer.getRuntime() << "s";
+    qDebug() << "Cached resources:" << resources.getCacheSize() << "bytes";
+    qDebug() << "Active scene:" << gameManager.getActiveSceneName();
+    qDebug() << "";
 
     gameManager.stop();
     
-    std::cout << "=== Demonstration Completed Successfully! ===" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Architecture summary:" << std::endl;
-    std::cout << "  ✓ Timer singleton for frame timing" << std::endl;
-    std::cout << "  ✓ Configuration singleton for settings" << std::endl;
-    std::cout << "  ✓ Registration singleton for Item factories" << std::endl;
-    std::cout << "  ✓ Resources singleton for asset management" << std::endl;
-    std::cout << "  ✓ GameManager singleton for game flow" << std::endl;
-    std::cout << "  ✓ Scene inheritance support for specialized scenes" << std::endl;
-    std::cout << "  ✓ Item update() and fixedUpdate() methods" << std::endl;
-    std::cout << "  ✓ Async resource loading with callbacks" << std::endl;
+    qDebug() << "=== Demonstration Completed Successfully! ===";
+    qDebug() << "";
+    qDebug() << "Architecture summary:";
+    qDebug() << "  ✓ Timer singleton for frame timing";
+    qDebug() << "  ✓ Configuration singleton for settings";
+    qDebug() << "  ✓ Registration singleton for Item factories";
+    qDebug() << "  ✓ Resources singleton for asset management";
+    qDebug() << "  ✓ GameManager singleton for game flow";
+    qDebug() << "  ✓ Scene inheritance support for specialized scenes";
+    qDebug() << "  ✓ Item update() and fixedUpdate() methods";
+    qDebug() << "  ✓ Async resource loading with callbacks";
 
     return 0;
 }

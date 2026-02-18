@@ -1,7 +1,9 @@
 #include "core/Timer.h"
 
 Timer::Timer()
-    : m_deltaTime(0.0f)
+    : m_lastFrameTimeNs(0)
+    , m_lastFixedUpdateTimeNs(0)
+    , m_deltaTime(0.0f)
     , m_fixedUpdateInterval(1.0f / 60.0f)  // Default 60 FPS for fixed updates
     , m_fixedUpdateAccumulator(0.0f)
     , m_frameCount(0)
@@ -17,9 +19,9 @@ Timer& Timer::getInstance() {
 }
 
 void Timer::initialize() {
-    m_startTime = Clock::now();
-    m_lastFrameTime = m_startTime;
-    m_lastFixedUpdateTime = m_startTime;
+    m_elapsedTimer.start();
+    m_lastFrameTimeNs = m_elapsedTimer.nsecsElapsed();
+    m_lastFixedUpdateTimeNs = m_lastFrameTimeNs;
     m_deltaTime = 0.0f;
     m_frameCount = 0;
     m_fps = 0.0f;
@@ -29,12 +31,11 @@ void Timer::initialize() {
 }
 
 void Timer::update() {
-    TimePoint currentTime = Clock::now();
+    qint64 currentTimeNs = m_elapsedTimer.nsecsElapsed();
     
     // Calculate delta time
-    std::chrono::duration<float> elapsed = currentTime - m_lastFrameTime;
-    m_deltaTime = elapsed.count();
-    m_lastFrameTime = currentTime;
+    m_deltaTime = static_cast<float>(currentTimeNs - m_lastFrameTimeNs) / 1.0e9f;
+    m_lastFrameTimeNs = currentTimeNs;
     
     // Update frame count
     m_frameCount++;
@@ -58,9 +59,7 @@ float Timer::getDeltaTime() const {
 }
 
 float Timer::getRuntime() const {
-    auto currentTime = Clock::now();
-    std::chrono::duration<float> elapsed = currentTime - m_startTime;
-    return elapsed.count();
+    return static_cast<float>(m_elapsedTimer.nsecsElapsed()) / 1.0e9f;
 }
 
 unsigned long long Timer::getFrameCount() const {
@@ -74,7 +73,7 @@ float Timer::getFPS() const {
 bool Timer::shouldFixedUpdate() {
     if (m_fixedUpdateAccumulator >= m_fixedUpdateInterval) {
         m_fixedUpdateAccumulator -= m_fixedUpdateInterval;
-        m_lastFixedUpdateTime = Clock::now();
+        m_lastFixedUpdateTimeNs = m_elapsedTimer.nsecsElapsed();
         return true;
     }
     return false;
