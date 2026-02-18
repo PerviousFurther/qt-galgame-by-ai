@@ -53,6 +53,8 @@ bool Scene::removeItem(const std::string& itemId) {
     auto item = mapIt->second;
     
     // Remove from vector
+    // Note: O(n) linear search. For better performance with large item counts,
+    // consider maintaining indices or using a different data structure.
     auto it = std::find(m_items.begin(), m_items.end(), item);
     if (it != m_items.end()) {
         (*it)->cleanup();
