@@ -83,7 +83,7 @@ float Configuration::getMasterVolume() const {
 }
 
 void Configuration::setMasterVolume(float volume) {
-    setFloat(QStringLiteral("audio.master_volume"), volume);
+    setFloat(QStringLiteral("audio.master_volume"), qBound(0.0f, volume, 1.0f));
 }
 
 float Configuration::getMusicVolume() const {
@@ -91,7 +91,7 @@ float Configuration::getMusicVolume() const {
 }
 
 void Configuration::setMusicVolume(float volume) {
-    setFloat(QStringLiteral("audio.music_volume"), volume);
+    setFloat(QStringLiteral("audio.music_volume"), qBound(0.0f, volume, 1.0f));
 }
 
 float Configuration::getSoundEffectVolume() const {
@@ -99,7 +99,7 @@ float Configuration::getSoundEffectVolume() const {
 }
 
 void Configuration::setSoundEffectVolume(float volume) {
-    setFloat(QStringLiteral("audio.sound_effect_volume"), volume);
+    setFloat(QStringLiteral("audio.sound_effect_volume"), qBound(0.0f, volume, 1.0f));
 }
 
 float Configuration::getVoiceVolume() const {
@@ -107,7 +107,7 @@ float Configuration::getVoiceVolume() const {
 }
 
 void Configuration::setVoiceVolume(float volume) {
-    setFloat(QStringLiteral("audio.voice_volume"), volume);
+    setFloat(QStringLiteral("audio.voice_volume"), qBound(0.0f, volume, 1.0f));
 }
 
 // Window settings
@@ -116,7 +116,7 @@ int Configuration::getWindowWidth() const {
 }
 
 void Configuration::setWindowWidth(int width) {
-    setInt(QStringLiteral("window.width"), width);
+    setInt(QStringLiteral("window.width"), qMax(1, width));
 }
 
 int Configuration::getWindowHeight() const {
@@ -124,7 +124,7 @@ int Configuration::getWindowHeight() const {
 }
 
 void Configuration::setWindowHeight(int height) {
-    setInt(QStringLiteral("window.height"), height);
+    setInt(QStringLiteral("window.height"), qMax(1, height));
 }
 
 bool Configuration::isFullscreen() const {
@@ -141,7 +141,7 @@ int Configuration::getTargetFPS() const {
 }
 
 void Configuration::setTargetFPS(int fps) {
-    setInt(QStringLiteral("render.target_fps"), fps);
+    setInt(QStringLiteral("render.target_fps"), qBound(1, fps, 300));
 }
 
 bool Configuration::isVSyncEnabled() const {

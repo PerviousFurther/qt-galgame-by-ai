@@ -99,7 +99,7 @@ QSharedPointer<Resource> FileImageLoader::loadSync(const QString& url) {
 void FileImageLoader::loadAsync(const QString& url, LoadCallback callback) {
     // Launch async loading in a separate thread
     // Note: We capture url and callback by value to avoid use-after-free
-    QThread::create([url, callback]() {
+    QThread* thread = QThread::create([url, callback]() {
         // Create a temporary loader for this operation
         FileImageLoader tempLoader;
         auto resource = tempLoader.loadSync(url);
@@ -107,7 +107,10 @@ void FileImageLoader::loadAsync(const QString& url, LoadCallback callback) {
         if (callback) {
             callback(resource, success);
         }
-    })->start();
+    });
+    // Auto-delete the thread object when finished to avoid memory leaks
+    QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+    thread->start();
 }
 
 // QrcImageLoader
@@ -143,7 +146,7 @@ QSharedPointer<Resource> QrcImageLoader::loadSync(const QString& url) {
 void QrcImageLoader::loadAsync(const QString& url, LoadCallback callback) {
     // Launch async loading in a separate thread
     // Note: We capture url and callback by value to avoid use-after-free
-    QThread::create([url, callback]() {
+    QThread* thread = QThread::create([url, callback]() {
         // Create a temporary loader for this operation
         QrcImageLoader tempLoader;
         auto resource = tempLoader.loadSync(url);
@@ -151,5 +154,8 @@ void QrcImageLoader::loadAsync(const QString& url, LoadCallback callback) {
         if (callback) {
             callback(resource, success);
         }
-    })->start();
+    });
+    // Auto-delete the thread object when finished to avoid memory leaks
+    QObject::connect(thread, &QThread::finished, thread, &QObject::deleteLater);
+    thread->start();
 }
