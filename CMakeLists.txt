@@ -60,23 +60,4 @@ target_link_libraries(${PROJECT_NAME}
 # Set output directory
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Multimedia)
-
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-    src/scene.h
-    src/scene.cpp
-    src/item.h
-    src/item.cpp
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
-    Qt6::Multimedia
 )

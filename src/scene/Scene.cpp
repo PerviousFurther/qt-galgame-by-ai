@@ -1,5 +1,13 @@
 #include "scene/Scene.h"
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <QUrl>
 
 Scene::Scene() {
 }
@@ -79,17 +87,111 @@ const QList<QSharedPointer<Item>>& Scene::getItems() const {
 }
 
 bool Scene::loadFromJson(const QString& filePath) {
-    // TODO: Implement JSON loading
-    // This is a stub for future implementation
-    qDebug() << "Loading scene from JSON:" << filePath << "(not yet implemented)";
-    return false;
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open JSON scene file:" << filePath;
+        return false;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        qWarning() << "Failed to parse JSON scene file:" << filePath << parseError.errorString();
+        return false;
+    }
+
+    clear();
+
+    const QJsonObject rootObj = doc.object();
+    const QJsonObject sceneObj = rootObj.value("scene").isObject() ? rootObj.value("scene").toObject() : rootObj;
+
+    const QString sceneId = sceneObj.value("id").toString(sceneObj.value("sceneId").toString());
+    if (!sceneId.isEmpty()) {
+        setId(sceneId);
+    }
+
+    const QJsonArray itemsArray = sceneObj.value("items").toArray();
+    for (const QJsonValue& itemValue : itemsArray) {
+        if (!itemValue.isObject()) {
+            continue;
+        }
+
+        const QJsonObject itemObj = itemValue.toObject();
+        auto item = QSharedPointer<Item>::create();
+        item->setId(itemObj.value("id").toString());
+        item->setName(itemObj.value("name").toString());
+
+        if (itemObj.contains("type")) {
+            item->setProperty("type", itemObj.value("type").toVariant());
+        }
+        if (itemObj.contains("className")) {
+            item->setProperty("className", itemObj.value("className").toVariant());
+        }
+
+        const QJsonObject propertiesObj = itemObj.value("properties").toObject();
+        for (auto it = propertiesObj.begin(); it != propertiesObj.end(); ++it) {
+            item->setProperty(it.key(), it.value().toVariant());
+        }
+
+        addItem(item);
+    }
+
+    return true;
 }
 
 bool Scene::loadFromQml(const QString& filePath) {
-    // TODO: Implement QML loading
-    // This is a stub for future implementation
-    qDebug() << "Loading scene from QML:" << filePath << "(not yet implemented)";
-    return false;
+    QQmlEngine engine;
+    QQmlComponent component(&engine, QUrl::fromLocalFile(filePath));
+    if (component.isError()) {
+        qWarning() << "Failed to parse QML scene file:" << filePath << component.errors();
+        return false;
+    }
+
+    QObject* root = component.create();
+    if (!root) {
+        qWarning() << "Failed to create QML scene root object:" << filePath << component.errors();
+        return false;
+    }
+
+    clear();
+
+    if (getId().isEmpty()) {
+        setId(QFileInfo(filePath).baseName());
+    }
+
+    const QList<QObject*> qmlItems = root->findChildren<QObject*>(QString(), Qt::FindChildrenRecursively);
+    QHash<QString, int> typeCounters;
+    for (QObject* qmlItem : qmlItems) {
+        auto item = QSharedPointer<Item>::create();
+        const QString qmlType = QString::fromUtf8(qmlItem->metaObject()->className());
+        QString objectId = qmlItem->objectName();
+        if (objectId.isEmpty()) {
+            const int index = typeCounters.value(qmlType);
+            typeCounters[qmlType] = index + 1;
+            objectId = qmlType + "_" + QString::number(index);
+        }
+        item->setId(objectId);
+        item->setName(qmlType);
+        item->setProperty("qmlType", item->getName());
+
+        const QVariant x = qmlItem->property("x");
+        const QVariant y = qmlItem->property("y");
+        const QVariant width = qmlItem->property("width");
+        const QVariant height = qmlItem->property("height");
+        const QVariant visible = qmlItem->property("visible");
+        const QVariant source = qmlItem->property("source");
+        if (x.isValid()) item->setProperty("x", x);
+        if (y.isValid()) item->setProperty("y", y);
+        if (width.isValid()) item->setProperty("width", width);
+        if (height.isValid()) item->setProperty("height", height);
+        if (visible.isValid()) item->setProperty("visible", visible);
+        if (source.isValid()) item->setProperty("source", source);
+
+        addItem(item);
+    }
+
+    delete root;
+    return true;
 }
 
 void Scene::initialize() {

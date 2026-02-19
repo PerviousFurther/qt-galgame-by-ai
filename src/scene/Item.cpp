@@ -23,6 +23,20 @@ void Item::setName(const QString& name) {
     m_name = name;
 }
 
+void Item::setProperty(const QString& key, const QVariant& value) {
+    if (!key.isEmpty()) {
+        m_properties[key] = value;
+    }
+}
+
+QVariant Item::getProperty(const QString& key) const {
+    return m_properties.value(key);
+}
+
+const QHash<QString, QVariant>& Item::getProperties() const {
+    return m_properties;
+}
+
 void Item::initialize() {
     m_initialized = true;
 }
@@ -40,5 +54,6 @@ void Item::fixedUpdate() {
 }
 
 void Item::cleanup() {
+    m_properties.clear();
     m_initialized = false;
 }

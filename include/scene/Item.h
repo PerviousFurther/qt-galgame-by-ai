@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QSharedPointer>
+#include <QHash>
+#include <QVariant>
 
 /**
  * @brief Base class for all items that can be placed in a scene.
@@ -40,6 +42,26 @@ public:
     void setName(const QString& name);
 
     /**
+     * @brief Set custom property for this item
+     * @param key Property key
+     * @param value Property value
+     */
+    void setProperty(const QString& key, const QVariant& value);
+
+    /**
+     * @brief Get custom property value
+     * @param key Property key
+     * @return Property value, or invalid QVariant if key is missing
+     */
+    QVariant getProperty(const QString& key) const;
+
+    /**
+     * @brief Get all custom properties
+     * @return Hash map of property key-value pairs
+     */
+    const QHash<QString, QVariant>& getProperties() const;
+
+    /**
      * @brief Initialize the item
      * Called when the item is added to a scene
      */
@@ -66,6 +88,7 @@ public:
 protected:
     QString m_id;
     QString m_name;
+    QHash<QString, QVariant> m_properties;
     bool m_initialized;
 };
 
