@@ -14,11 +14,8 @@ public:
     static Resources& getInstance();
 
     void addResource(const QString& name, const QVariant& value);
-    QVariant getResource(const QString& name) const;
 
     QSharedPointer<Loader> getLoader(const QString& name) const;
-    QSharedPointer<Loader> load(const QString& name, bool async = true) const;
-    QSharedPointer<Loader> unload(const QString& name, bool async = true) const;
 
 private:
     Resources();

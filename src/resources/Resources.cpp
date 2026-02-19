@@ -24,36 +24,8 @@ void Resources::addResource(const QString& name, const QVariant& value) {
     resolveLoaderForResource(name, value);
 }
 
-QVariant Resources::getResource(const QString& name) const {
-    return m_resources.value(name);
-}
-
 QSharedPointer<Loader> Resources::getLoader(const QString& name) const {
     return m_resourceLoaders.value(name);
-}
-
-QSharedPointer<Loader> Resources::load(const QString& name, bool async) const {
-    if (!m_resources.contains(name)) {
-        qWarning() << "Resource not found:" << name;
-        return {};
-    }
-    QSharedPointer<Loader> loader = m_resourceLoaders.value(name);
-    if (loader.isNull()) {
-        qWarning() << "Loader not found for resource:" << name;
-        return {};
-    }
-    loader->load({}, async);
-    return loader;
-}
-
-QSharedPointer<Loader> Resources::unload(const QString& name, bool async) const {
-    QSharedPointer<Loader> loader = m_resourceLoaders.value(name);
-    if (loader.isNull()) {
-        qWarning() << "Loader not found for resource:" << name;
-        return {};
-    }
-    loader->unload(async);
-    return loader;
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {

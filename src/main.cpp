@@ -180,21 +180,23 @@ int main(int argc, char *argv[]) {
     resources.addResource("opening_bitmap", "resources/background.png");
     resources.addResource("opening_video", "resources/video/opening.mp4");
     resources.addResource("scene_descriptor", "resources/scene.json");
-    QSharedPointer<Loader> bitmapLoader = resources.load("opening_bitmap", false);
+    QSharedPointer<Loader> bitmapLoader = resources.getLoader("opening_bitmap");
     if (!bitmapLoader.isNull()) {
         QObject::connect(bitmapLoader.data(), &Loader::loadFinished, [](Loader* loader) {
             qDebug() << "Loaded bitmap resource via loader. initialized=" << loader->isInitialized()
                      << "payload=" << loader->get();
         });
-        qDebug() << "Resolved named bitmap loader successfully";
+        bitmapLoader->load({}, false);
+        qDebug() << "Resolved named bitmap loader successfully, load requested";
     }
-    QSharedPointer<Loader> videoLoader = resources.load("opening_video", true);
+    QSharedPointer<Loader> videoLoader = resources.getLoader("opening_video");
     if (!videoLoader.isNull()) {
         QObject::connect(videoLoader.data(), &Loader::loadFinished, [](Loader* loader) {
             qDebug() << "Loaded video resource via loader. initialized=" << loader->isInitialized()
                      << "payload=" << loader->get();
         });
-        qDebug() << "Resolved named video loader successfully";
+        videoLoader->load({}, true);
+        qDebug() << "Resolved named video loader successfully, load requested";
     }
     if (!resources.getLoader("opening_bitmap").isNull()) {
         qDebug() << "Opening bitmap loader initialized:" << resources.getLoader("opening_bitmap")->isInitialized();
