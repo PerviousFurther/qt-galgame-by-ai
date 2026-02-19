@@ -4,7 +4,9 @@
 #include <QObject>
 #include "scene/Scene.h"
 #include <QHash>
+#include <QPointer>
 #include <QSharedPointer>
+#include <QQuickWindow>
 #include <QString>
 #include <QVariant>
 
@@ -102,6 +104,7 @@ public:
      * @brief Stop the game
      */
     Q_INVOKABLE void stop();
+    void handleApplicationStateChange(Qt::ApplicationState state);
 
     /**
      * @brief Get current game state
@@ -160,6 +163,10 @@ public:
      * @param data Optional event data payload
      */
     void emitEvent(GameEvent event, const QVariant& data = {});
+    void attachRenderWindow(QQuickWindow* window);
+
+public slots:
+    void processFrame();
 
 signals:
     void gameEventTriggered(GameEvent event, const QVariant& data);
@@ -176,6 +183,8 @@ private:
     QHash<QString, QSharedPointer<Scene>> m_scenes;
     QSharedPointer<Scene> m_activeScene;
     QString m_activeSceneName;
+    bool m_frameUpdateInProgress;
+    QPointer<QQuickWindow> m_renderWindow;
 };
 
 Q_DECLARE_METATYPE(GameEvent)

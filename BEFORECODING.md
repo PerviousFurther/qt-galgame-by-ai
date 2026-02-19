@@ -6,11 +6,14 @@ It defines what code in this repository should look like.
 ## 1. Language and Standard
 
 - **Use C++20 only**.
-- Prefer modern C++ patterns (`constexpr`, RAII, strong enums, range-for, `std::optional`, etc.).
+- Prefer modern C++ patterns (`constexpr`, RAII, strong enums, range-for, etc.).
 - Prefer Qt signal/slot integration over ad-hoc callback wiring when both are viable.
+- Prefer Qt-provided types/utilities over `std` equivalents in application code.  
+  C++20 requirement is about language features; it does not require using `std` library features everywhere.
 - Templates are allowed, but keep them simple:
   - prefer `concept` for constraints;
   - avoid complex SFINAE-heavy implementations.
+- Avoid lambda usage unless the function is truly one-off and very short.
 
 ## 2. Constants, Static Functions, and Header Boundaries
 

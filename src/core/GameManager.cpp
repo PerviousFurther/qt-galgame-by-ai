@@ -1,11 +1,17 @@
 #include "core/GameManager.h"
+#include "core/Execution.h"
 #include "resources/Resources.h"
 
 #include <QDebug>
 #include <QFileInfo>
 
+namespace {
+constexpr int MaxFixedUpdateStepsPerFrame = 8;
+}
+
 GameManager::GameManager()
     : m_state(State::Stopped)
+    , m_frameUpdateInProgress(false)
 {
 }
 
@@ -113,6 +119,14 @@ void GameManager::stop() {
     }
 }
 
+void GameManager::handleApplicationStateChange(Qt::ApplicationState state) {
+    if (state == Qt::ApplicationActive && m_state == State::Paused) {
+        resume();
+    } else if (state != Qt::ApplicationActive && m_state == State::Running) {
+        pause();
+    }
+}
+
 GameManager::State GameManager::getState() const {
     return m_state;
 }
@@ -192,4 +206,32 @@ const QString& GameManager::getActiveSceneName() const {
 
 void GameManager::emitEvent(GameEvent event, const QVariant& data) {
     emit gameEventTriggered(event, data);
+}
+
+void GameManager::attachRenderWindow(QQuickWindow* window) {
+    if (window == nullptr) {
+        return;
+    }
+    m_renderWindow = window;
+    QObject::connect(m_renderWindow, &QQuickWindow::beforeRendering, this, &GameManager::processFrame, Qt::DirectConnection);
+    m_renderWindow->requestUpdate();
+}
+
+void GameManager::processFrame() {
+    if (m_frameUpdateInProgress) {
+        return;
+    }
+    m_frameUpdateInProgress = true;
+    Execution& execution = Execution::getInstance();
+    execution.update();
+    update();
+    int fixedStepCount = 0;
+    while (execution.shouldFixedUpdate() && fixedStepCount < MaxFixedUpdateStepsPerFrame) {
+        fixedUpdate();
+        ++fixedStepCount;
+    }
+    m_frameUpdateInProgress = false;
+    if (!m_renderWindow.isNull()) {
+        m_renderWindow->requestUpdate();
+    }
 }

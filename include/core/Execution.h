@@ -6,7 +6,6 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QTimer>
-#include <utility>
 
 /**
  * @brief Global execution singleton for timing and task dispatch.
@@ -38,14 +37,14 @@ public:
     void setMaxThreadCount(int threadCount);
 
     template <typename Callable>
-    void dispatchAsyncTask(Callable&& task) {
-        m_threadPool.start(QRunnable::create(std::forward<Callable>(task)));
+    void dispatchAsyncTask(Callable task) {
+        m_threadPool.start(QRunnable::create(task));
     }
 
     template <typename Callable>
-    void dispatchTimedTask(int delayMs, Callable&& task) {
-        QTimer::singleShot(delayMs, [task = std::forward<Callable>(task)]() mutable {
-            Execution::getInstance().dispatchAsyncTask(std::move(task));
+    void dispatchTimedTask(int delayMs, Callable task) {
+        QTimer::singleShot(delayMs, [task]() {
+            Execution::getInstance().dispatchAsyncTask(task);
         });
     }
 
