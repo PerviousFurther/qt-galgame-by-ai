@@ -83,14 +83,14 @@ int main(int argc, char *argv[]) {
 
     // Step 6.1: Demonstrate scene loading from JSON and QML UI files
     std::cout << "=== Loading Scene Definitions ===" << std::endl;
-    auto fileScene = std::make_shared<Scene>();
-    if (fileScene->loadFromJson("resources/scene.json")) {
-        std::cout << "Loaded JSON scene with " << fileScene->getItems().size() << " items" << std::endl;
+    Scene fileScene;
+    if (fileScene.loadFromJson("resources/scene.json")) {
+        std::cout << "Loaded JSON scene with " << fileScene.getItems().size() << " items" << std::endl;
     } else {
         std::cout << "Failed to load JSON scene" << std::endl;
     }
-    if (fileScene->loadFromQml("resources/scene.qml")) {
-        std::cout << "Loaded QML scene with " << fileScene->getItems().size() << " UI items" << std::endl;
+    if (fileScene.loadFromQml("resources/scene.qml")) {
+        std::cout << "Loaded QML scene with " << fileScene.getItems().size() << " UI items" << std::endl;
     } else {
         std::cout << "Failed to load QML scene" << std::endl;
     }
