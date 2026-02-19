@@ -160,13 +160,15 @@ int main(int argc, char *argv[]) {
     // Step 7: Start game loop in Qt event loop
     qDebug() << "=== Starting Game Loop ===";
     gameManager.start();
+    auto* executionSingleton = &Execution::getInstance();
+    auto* gameManagerSingleton = &GameManager::getInstance();
 
     QTimer gameLoopTimer;
-    QObject::connect(&gameLoopTimer, &QTimer::timeout, [&execution, &gameManager]() {
-        execution.update();
-        gameManager.update();
-        if (execution.shouldFixedUpdate()) {
-            gameManager.fixedUpdate();
+    QObject::connect(&gameLoopTimer, &QTimer::timeout, [executionSingleton, gameManagerSingleton]() {
+        executionSingleton->update();
+        gameManagerSingleton->update();
+        if (executionSingleton->shouldFixedUpdate()) {
+            gameManagerSingleton->fixedUpdate();
         }
     });
     gameLoopTimer.start(16);  // ~60 FPS
@@ -206,14 +208,18 @@ int main(int argc, char *argv[]) {
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
     engine.load(QUrl(QStringLiteral("qrc:/scene.qml")));
+    if (engine.rootObjects().isEmpty()) {
+        qWarning() << "Failed to load QML scene: qrc:/scene.qml";
+        return -1;
+    }
 
-    QObject::connect(&app, &QCoreApplication::aboutToQuit, [&execution, &gameManager]() {
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, [executionSingleton, gameManagerSingleton]() {
         qDebug() << "=== Engine Statistics ===";
-        qDebug() << "Total frames:" << execution.getFrameCount();
-        qDebug() << "Total runtime:" << execution.getRuntime() << "s";
-        qDebug() << "Active scene:" << gameManager.getActiveSceneName();
+        qDebug() << "Total frames:" << executionSingleton->getFrameCount();
+        qDebug() << "Total runtime:" << executionSingleton->getRuntime() << "s";
+        qDebug() << "Active scene:" << gameManagerSingleton->getActiveSceneName();
 
-        gameManager.stop();
+        gameManagerSingleton->stop();
 
         qDebug() << "=== Demonstration Completed Successfully! ===";
         qDebug() << "Architecture summary:";
