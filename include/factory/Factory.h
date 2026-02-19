@@ -1,6 +1,5 @@
 #ifndef FACTORY_H
 #define FACTORY_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include <QSharedPointer>

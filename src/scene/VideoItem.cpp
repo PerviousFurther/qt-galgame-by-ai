@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "scene/VideoItem.h"
 
 VideoItem::VideoItem(QObject* parent)

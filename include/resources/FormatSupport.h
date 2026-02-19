@@ -1,6 +1,5 @@
 #ifndef INCLUDE_RESOURCES_FORMATSUPPORT_H
 #define INCLUDE_RESOURCES_FORMATSUPPORT_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QImageReader>
 #include <QSet>

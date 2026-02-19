@@ -1,6 +1,5 @@
 #ifndef LOADER_H
 #define LOADER_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include <QHash>

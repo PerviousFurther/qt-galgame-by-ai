@@ -1,6 +1,5 @@
 #ifndef INCLUDE_RESOURCES_AUDIORESOURCE_H
 #define INCLUDE_RESOURCES_AUDIORESOURCE_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include "resources/Resource.h"
 

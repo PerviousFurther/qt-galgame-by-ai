@@ -1,6 +1,5 @@
 #ifndef INCLUDE_SCENE_ITEM_H
 #define INCLUDE_SCENE_ITEM_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include <QString>

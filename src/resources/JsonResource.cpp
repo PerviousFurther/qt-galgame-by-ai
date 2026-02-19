@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "resources/JsonResource.h"
 
 #include <QReadLocker>

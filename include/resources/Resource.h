@@ -1,6 +1,5 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
 #include <QReadWriteLock>
@@ -16,7 +15,7 @@
  * Resources emit signals when they are loaded or unloaded, allowing
  * Items to respond to resource state changes.
  * 
- * NOTE: Uses Qt containers - see codingstyle.h
+ * NOTE: Repository coding constraints are documented in BEFORECODING.md
  */
 class Resource {
 public:

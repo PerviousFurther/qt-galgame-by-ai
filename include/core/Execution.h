@@ -1,6 +1,5 @@
 #ifndef EXECUTION_H
 #define EXECUTION_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QElapsedTimer>
 #include <QRunnable>

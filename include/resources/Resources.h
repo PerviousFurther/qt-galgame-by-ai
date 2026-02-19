@@ -1,6 +1,5 @@
 #ifndef RESOURCES_H
 #define RESOURCES_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QHash>
 #include <QSharedPointer>

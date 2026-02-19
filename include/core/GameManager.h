@@ -1,6 +1,5 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include "scene/Scene.h"

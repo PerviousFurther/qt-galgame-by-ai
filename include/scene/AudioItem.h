@@ -1,6 +1,5 @@
 #ifndef INCLUDE_SCENE_AUDIOITEM_H
 #define INCLUDE_SCENE_AUDIOITEM_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include "scene/Item.h"
 

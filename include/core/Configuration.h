@@ -1,6 +1,5 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QHash>
 #include <QString>

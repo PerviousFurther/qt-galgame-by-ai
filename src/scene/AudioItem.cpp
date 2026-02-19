@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "scene/AudioItem.h"
 
 AudioItem::AudioItem(QObject* parent)

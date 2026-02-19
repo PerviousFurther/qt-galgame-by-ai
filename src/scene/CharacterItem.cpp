@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "scene/CharacterItem.h"
 
 CharacterItem::CharacterItem(QObject* parent)

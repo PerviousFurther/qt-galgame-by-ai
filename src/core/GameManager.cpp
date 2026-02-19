@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "core/GameManager.h"
 #include "resources/Resources.h"
 

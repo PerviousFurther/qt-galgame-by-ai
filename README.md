@@ -108,7 +108,7 @@ qt-galgame/
 ### Prerequisites
 
 - CMake 3.16 or higher
-- C++17 compatible compiler
+- C++20 compatible compiler
 - Qt6 development packages (Core, Qml, Quick, Gui, Multimedia)
 
 For Ubuntu/Debian, install dependencies with:
