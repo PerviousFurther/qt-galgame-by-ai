@@ -71,7 +71,7 @@ public:
      * @return Shared pointer to the created Item
      * @throws std::runtime_error if properties are invalid or incompatible
      */
-    QSharedPointer<Item> create(const PropertyMap& properties) override;
+    QObject* create(const PropertyMap& properties) override;
 
     /**
      * @brief Get the factory type name

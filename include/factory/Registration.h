@@ -2,10 +2,14 @@
 #define REGISTRATION_H
 
 #include "Factory.h"
+#include "resources/Loader.h"
 #include <QSharedPointer>
 #include <QHash>
 #include <QString>
 #include <QStringList>
+#include <QList>
+
+class Item;
 
 /**
  * @brief Registration singleton for managing Item factories
@@ -33,6 +37,13 @@
  */
 class Registration {
 public:
+    struct LoaderRegistry {
+        QString protocol;
+        QString suffix;
+        QString factoryType;
+        QString loaderType;
+    };
+
     /**
      * @brief Get the singleton instance
      * @return Reference to the Registration singleton
@@ -61,6 +72,7 @@ public:
      * @throws runtime_error if no factory is registered for the type
      */
     QSharedPointer<Item> createItem(const QString& typeName, const PropertyMap& properties);
+    QSharedPointer<Loader> createLoader(const QString& protocol, const QString& suffix, const PropertyMap& properties);
 
     /**
      * @brief Check if a factory is registered for a type
@@ -74,6 +86,8 @@ public:
      * @return List of registered type names
      */
     QStringList getRegisteredTypes() const;
+    bool registerLoader(const LoaderRegistry& loaderRegistry);
+    QList<LoaderRegistry> getRegisteredLoaders() const;
 
 private:
     Registration();
@@ -82,6 +96,7 @@ private:
     Registration& operator=(const Registration&) = delete;
 
     QHash<QString, QSharedPointer<Factory>> m_factories;
+    QList<LoaderRegistry> m_loaderRegistries;
 };
 
 #endif // REGISTRATION_H

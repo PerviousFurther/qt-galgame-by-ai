@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find Qt6 packages - REQUIRED since we use Qt containers throughout
-find_package(Qt6 COMPONENTS Core Qml Quick REQUIRED)
+find_package(Qt6 COMPONENTS Core Qml Quick Gui Multimedia REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -55,6 +55,8 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Core
     Qt6::Qml
     Qt6::Quick
+    Qt6::Gui
+    Qt6::Multimedia
 )
 
 # Set output directory

@@ -1,6 +1,7 @@
 #ifndef ITEM_H
 #define ITEM_H
 
+#include <QObject>
 #include <QString>
 #include <QSharedPointer>
 #include <functional>
@@ -11,9 +12,10 @@
  * Item is the fundamental building block of the galgame engine.
  * Most objects in the scene inherit from this class.
  */
-class Item {
+class Item : public QObject {
+    Q_OBJECT
 public:
-    Item();
+    explicit Item(QObject* parent = nullptr);
     virtual ~Item();
 
     /**
@@ -77,7 +79,7 @@ protected:
 
 class AudioItem : public Item {
 public:
-    AudioItem();
+    explicit AudioItem(QObject* parent = nullptr);
 
     void setSource(const QString& source);
     const QString& getSource() const;
@@ -103,7 +105,7 @@ private:
 
 class VideoItem : public Item {
 public:
-    VideoItem();
+    explicit VideoItem(QObject* parent = nullptr);
 
     void setSource(const QString& source);
     const QString& getSource() const;
@@ -129,7 +131,7 @@ private:
 
 class CharacterItem : public Item {
 public:
-    CharacterItem();
+    explicit CharacterItem(QObject* parent = nullptr);
 
     void setPortrait(const QString& portrait);
     const QString& getPortrait() const;

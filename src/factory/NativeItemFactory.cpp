@@ -1,142 +1,87 @@
 #include "factory/NativeItemFactory.h"
+#include "resources/Loader.h"
 #include "scene/Item.h"
-#include <stdexcept>
+
+#include <QDebug>
 
 NativeItemFactory::NativeItemFactory() {
 }
 
-QSharedPointer<Item> NativeItemFactory::create(const PropertyMap& properties) {
-    // Get the type property to determine which Item to create
-    QString type;
-    if (properties.contains("type")) {
-        if (properties["type"].canConvert<QString>()) {
-            type = properties["type"].toString();
-        } else {
-            throw std::runtime_error("Property 'type' must be a string");
-        }
-    } else {
-        throw std::runtime_error("Property 'type' is required to create an Item");
+QObject* NativeItemFactory::create(const PropertyMap& properties) {
+    if (!properties.contains("type") || !properties["type"].canConvert<QString>()) {
+        qWarning() << "Property 'type' is required and must be a string";
+        return nullptr;
     }
 
-    // ==================== ADD NEW NATIVE ITEM TYPES HERE ====================
-    // Create the appropriate Item based on type
-    
-    auto setCommonProperties = [&properties](const QSharedPointer<Item>& item) {
-        if (properties.contains("id")) {
-            if (properties["id"].canConvert<QString>()) {
-                item->setId(properties["id"].toString());
-            } else {
-                throw std::runtime_error("Property 'id' must be a string");
-            }
-        }
+    const QString type = properties["type"].toString();
 
-        if (properties.contains("name")) {
-            if (properties["name"].canConvert<QString>()) {
-                item->setName(properties["name"].toString());
-            } else {
-                throw std::runtime_error("Property 'name' must be a string");
-            }
+    auto setCommonProperties = [&properties](Item* item) {
+        if (!item) {
+            return;
         }
-    };
-
-    auto setMediaProperties = [&properties](auto& item) {
-        if (properties.contains("source")) {
-            if (properties["source"].canConvert<QString>()) {
-                item->setSource(properties["source"].toString());
-            } else {
-                throw std::runtime_error("Property 'source' must be a string");
-            }
+        if (properties.contains("id") && properties["id"].canConvert<QString>()) {
+            item->setId(properties["id"].toString());
         }
-        if (properties.contains("loop")) {
-            if (properties["loop"].canConvert<bool>()) {
-                item->setLoop(properties["loop"].toBool());
-            } else {
-                throw std::runtime_error("Property 'loop' must be a bool");
-            }
+        if (properties.contains("name") && properties["name"].canConvert<QString>()) {
+            item->setName(properties["name"].toString());
         }
     };
 
     if (type == "Item" || type == "Base") {
-        auto item = QSharedPointer<Item>::create();
+        Item* item = new Item();
         setCommonProperties(item);
         return item;
     }
 
     if (type == "Audio" || type == "AudioPlayer") {
-        auto item = QSharedPointer<AudioItem>::create();
+        auto* item = new AudioItem();
         setCommonProperties(item);
-        setMediaProperties(item);
+        if (properties.contains("source") && properties["source"].canConvert<QString>()) {
+            item->setSource(properties["source"].toString());
+        }
+        if (properties.contains("loop") && properties["loop"].canConvert<bool>()) {
+            item->setLoop(properties["loop"].toBool());
+        }
         return item;
     }
 
     if (type == "Video" || type == "VideoPlayer") {
-        auto item = QSharedPointer<VideoItem>::create();
+        auto* item = new VideoItem();
         setCommonProperties(item);
-        setMediaProperties(item);
+        if (properties.contains("source") && properties["source"].canConvert<QString>()) {
+            item->setSource(properties["source"].toString());
+        }
+        if (properties.contains("loop") && properties["loop"].canConvert<bool>()) {
+            item->setLoop(properties["loop"].toBool());
+        }
         return item;
     }
 
     if (type == "Character" || type == "Sprite") {
-        auto item = QSharedPointer<CharacterItem>::create();
+        auto* item = new CharacterItem();
         setCommonProperties(item);
-        if (properties.contains("source")) {
-            if (properties["source"].canConvert<QString>()) {
-                item->setPortrait(properties["source"].toString());
-            } else {
-                throw std::runtime_error("Property 'source' must be a string");
-            }
+        if (properties.contains("source") && properties["source"].canConvert<QString>()) {
+            item->setPortrait(properties["source"].toString());
         }
-        if (properties.contains("expression")) {
-            if (properties["expression"].canConvert<QString>()) {
-                item->setExpression(properties["expression"].toString());
-            } else {
-                throw std::runtime_error("Property 'expression' must be a string");
-            }
+        if (properties.contains("expression") && properties["expression"].canConvert<QString>()) {
+            item->setExpression(properties["expression"].toString());
         }
-        if (properties.contains("visible")) {
-            if (properties["visible"].canConvert<bool>()) {
-                item->setVisible(properties["visible"].toBool());
-            } else {
-                throw std::runtime_error("Property 'visible' must be a bool");
-            }
+        if (properties.contains("visible") && properties["visible"].canConvert<bool>()) {
+            item->setVisible(properties["visible"].toBool());
         }
         return item;
     }
-    
-    // TODO: Add more native Item types here as they are implemented
-    // Example template:
-    //
-    // if (type == "Image") {
-    //     auto item = QSharedPointer<ImageItem>::create();
-    //     
-    //     if (properties.contains("source")) {
-    //         if (properties["source"].canConvert<QString>()) {
-    //             item->setSource(properties["source"].toString());
-    //         } else {
-    //             throw std::runtime_error("Property 'source' must be a string");
-    //         }
-    //     }
-    //     
-    //     if (properties.contains("x")) {
-    //         if (properties["x"].canConvert<int>()) {
-    //             item->setX(properties["x"].toInt());
-    //         } else {
-    //             throw std::runtime_error("Property 'x' must be an integer");
-    //         }
-    //     }
-    //     
-    //     // Set common properties (id, name)
-    //     if (properties.contains("id")) {
-    //         item->setId(properties["id"].toString());
-    //     }
-    //     
-    //     return item;
-    // }
-    
-    // =========================================================================
 
-    // If we get here, the type is not recognized
-    throw std::runtime_error(("Unknown native Item type: " + type).toStdString());
+    if (type == "BitmapLoader") {
+        return new BitmapLoader();
+    }
+
+    if (type == "VideoLoader") {
+        return new VideoLoader();
+    }
+
+    qWarning() << "Unknown native create type:" << type;
+    return nullptr;
 }
 
 QString NativeItemFactory::getTypeName() const {

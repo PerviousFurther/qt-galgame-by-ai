@@ -1,6 +1,8 @@
 #include "scene/Item.h"
 
-Item::Item() : m_initialized(false) {
+Item::Item(QObject* parent)
+    : QObject(parent)
+    , m_initialized(false) {
 }
 
 Item::~Item() {
@@ -47,8 +49,9 @@ QString Item::getType() const {
     return "Item";
 }
 
-AudioItem::AudioItem()
-    : m_loop(false)
+AudioItem::AudioItem(QObject* parent)
+    : Item(parent)
+    , m_loop(false)
     , m_playing(false)
 {
 }
@@ -99,8 +102,9 @@ QString AudioItem::getType() const {
     return "Audio";
 }
 
-VideoItem::VideoItem()
-    : m_loop(false)
+VideoItem::VideoItem(QObject* parent)
+    : Item(parent)
+    , m_loop(false)
     , m_playing(false)
 {
 }
@@ -151,8 +155,9 @@ QString VideoItem::getType() const {
     return "Video";
 }
 
-CharacterItem::CharacterItem()
-    : m_visible(true)
+CharacterItem::CharacterItem(QObject* parent)
+    : Item(parent)
+    , m_visible(true)
 {
 }
 
