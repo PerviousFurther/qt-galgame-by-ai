@@ -3,7 +3,6 @@
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QHash>
-#include <QMutex>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariant>
@@ -18,7 +17,8 @@ public:
     QVariant getResource(const QString& name) const;
 
     QSharedPointer<Loader> getLoader(const QString& name) const;
-    QVariant load(const QString& name) const;
+    QSharedPointer<Loader> load(const QString& name, bool async = true) const;
+    QSharedPointer<Loader> unload(const QString& name, bool async = true) const;
 
 private:
     Resources();
@@ -31,7 +31,6 @@ private:
     static QString extractProtocol(const QString& value);
     static QString extractSuffix(const QString& value);
 
-    mutable QMutex m_mutex;
     QHash<QString, QVariant> m_resources;
     QHash<QString, QSharedPointer<Loader>> m_resourceLoaders;
 };

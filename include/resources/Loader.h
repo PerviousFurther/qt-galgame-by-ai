@@ -42,12 +42,23 @@ public:
     const QString& getProtocol() const;
     const QString& getSuffix() const;
     void setSourceUrl(const QString& sourceUrl);
-    const QString& getSourceUrl() const;
+    QString getSourceUrl() const;
     bool isInitialized() const;
 
-    virtual QVariant load(const QVariant& source) = 0;
+    Loader& load(const QVariant& source = {}, bool async = true);
+    Loader& unload(bool async = true);
+    QObject* get() const;
+
+    virtual QSharedPointer<Resource> loadImpl(const QString& sourceUrl) = 0;
+    virtual void unloadImpl();
+
     QSharedPointer<Resource> getCachedResource() const;
     QList<QSharedPointer<Loader>> getGeneratedLoaders() const;
+
+signals:
+    void loadFinished(Loader* loader);
+    void unloadFinished(Loader* loader);
+    void loadFailed(const QString& error);
 
 protected:
     void markInitialized();
@@ -61,6 +72,7 @@ private:
     QString m_sourceUrl;
     bool m_initialized;
     mutable QMutex m_initializedMutex{QMutex::NonRecursive};
+    mutable QMutex m_resourceMutex{QMutex::NonRecursive};
     QHash<QString, QSharedPointer<Resource>> m_resourceCache;
     QSharedPointer<Resource> m_lastResource;
     QList<QSharedPointer<Loader>> m_generatedLoaders;
@@ -80,7 +92,7 @@ class BitmapLoader : public ComposedLoader<FileProtocolTag, BitmapSuffixTag> {
 public:
     // Runtime suffix is used for validation while template suffix identifies composed semantic category.
     explicit BitmapLoader(const QString& suffix = "bmp", QObject* parent = nullptr);
-    QVariant load(const QVariant& source) override;
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 
 private:
     QString m_runtimeSuffix;
@@ -91,7 +103,7 @@ class VideoLoader : public ComposedLoader<FileProtocolTag, VideoSuffixTag> {
     Q_OBJECT
 public:
     explicit VideoLoader(QObject* parent = nullptr);
-    QVariant load(const QVariant& source) override;
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 
 private:
     QMediaPlayer* m_mediaPlayer;
@@ -101,7 +113,7 @@ class JsonLoader : public ComposedLoader<FileProtocolTag, JsonSuffixTag> {
     Q_OBJECT
 public:
     explicit JsonLoader(QObject* parent = nullptr);
-    QVariant load(const QVariant& source) override;
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 };
 
 #endif // LOADER_H

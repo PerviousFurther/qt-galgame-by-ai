@@ -5,7 +5,6 @@
 #include "resources/Loader.h"
 
 #include <QDebug>
-#include <QMutexLocker>
 #include <QStringList>
 
 Resources::Resources() {
@@ -31,37 +30,40 @@ void Resources::registerDefaultLoaders() {
 }
 
 void Resources::addResource(const QString& name, const QVariant& value) {
-    QMutexLocker locker(&m_mutex);
     m_resources[name] = value;
     resolveLoaderForResource(name, value);
 }
 
 QVariant Resources::getResource(const QString& name) const {
-    QMutexLocker locker(&m_mutex);
     return m_resources.value(name);
 }
 
 QSharedPointer<Loader> Resources::getLoader(const QString& name) const {
-    QMutexLocker locker(&m_mutex);
     return m_resourceLoaders.value(name);
 }
 
-QVariant Resources::load(const QString& name) const {
-    QSharedPointer<Loader> loader;
-    {
-        QMutexLocker locker(&m_mutex);
-        if (!m_resources.contains(name)) {
-            qWarning() << "Resource not found:" << name;
-            return {};
-        }
-        loader = m_resourceLoaders.value(name);
+QSharedPointer<Loader> Resources::load(const QString& name, bool async) const {
+    if (!m_resources.contains(name)) {
+        qWarning() << "Resource not found:" << name;
+        return {};
     }
-
+    QSharedPointer<Loader> loader = m_resourceLoaders.value(name);
     if (loader.isNull()) {
         qWarning() << "Loader not found for resource:" << name;
         return {};
     }
-    return loader->load(loader->getSourceUrl());
+    loader->load({}, async);
+    return loader;
+}
+
+QSharedPointer<Loader> Resources::unload(const QString& name, bool async) const {
+    QSharedPointer<Loader> loader = m_resourceLoaders.value(name);
+    if (loader.isNull()) {
+        qWarning() << "Loader not found for resource:" << name;
+        return {};
+    }
+    loader->unload(async);
+    return loader;
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {

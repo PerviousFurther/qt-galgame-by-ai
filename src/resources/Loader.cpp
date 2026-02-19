@@ -1,6 +1,7 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "resources/Loader.h"
 
+#include "core/Execution.h"
 #include "factory/Registration.h"
 #include "resources/Resource.h"
 
@@ -13,7 +14,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMediaPlayer>
+#include <QMetaObject>
 #include <QMutexLocker>
+#include <QPointer>
 #include <QUrl>
 
 namespace {
@@ -34,10 +37,15 @@ QUrl toMediaUrl(const QString& path) {
     return QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath());
 }
 
-QString resolveSourcePath(Loader* loader, const QVariant& source) {
-    const QString path = source.isValid() ? source.toString() : loader->getSourceUrl();
-    loader->setSourceUrl(path);
-    return path;
+QString resolveProtocol(const QString& source) {
+    if (source.startsWith("qrc:/") || source.startsWith(":/")) {
+        return "qrc";
+    }
+    const int pos = source.indexOf("://");
+    if (pos >= 0) {
+        return source.left(pos);
+    }
+    return "file";
 }
 }
 
@@ -59,10 +67,12 @@ const QString& Loader::getSuffix() const {
 }
 
 void Loader::setSourceUrl(const QString& sourceUrl) {
+    QMutexLocker locker(&m_resourceMutex);
     m_sourceUrl = sourceUrl;
 }
 
-const QString& Loader::getSourceUrl() const {
+QString Loader::getSourceUrl() const {
+    QMutexLocker locker(&m_resourceMutex);
     return m_sourceUrl;
 }
 
@@ -74,6 +84,106 @@ bool Loader::isInitialized() const {
 void Loader::markInitialized() {
     QMutexLocker locker(&m_initializedMutex);
     m_initialized = true;
+}
+
+Loader& Loader::load(const QVariant& source, bool async) {
+    const QString sourceUrl = source.isValid() ? source.toString() : getSourceUrl();
+    if (sourceUrl.isEmpty()) {
+        emit loadFailed("Loader source URL is empty for " + getProtocol() + ":" + getSuffix());
+        return *this;
+    }
+
+    auto completeLoad = [sourceUrl](Loader* loader) {
+        if (!loader) {
+            return;
+        }
+
+        QSharedPointer<Resource> resource = loader->loadImpl(sourceUrl);
+        if (resource.isNull()) {
+            const QString errorMessage = "Loader failed to parse resource: " + sourceUrl;
+            QPointer<Loader> guarded(loader);
+            QMetaObject::invokeMethod(loader, [guarded, errorMessage]() {
+                if (guarded) {
+                    emit guarded->loadFailed(errorMessage);
+                }
+            }, Qt::QueuedConnection);
+            return;
+        }
+
+        {
+            QMutexLocker locker(&loader->m_resourceMutex);
+            loader->cacheResource(sourceUrl, resource);
+        }
+        loader->markInitialized();
+        QPointer<Loader> guarded(loader);
+        QMetaObject::invokeMethod(loader, [guarded]() {
+            if (guarded) {
+                emit guarded->loadFinished(guarded.data());
+            }
+        }, Qt::QueuedConnection);
+    };
+
+    if (async) {
+        QPointer<Loader> self(this);
+        Execution::getInstance().dispatchAsyncTask([self, completeLoad]() {
+            if (!self) {
+                return;
+            }
+            completeLoad(self.data());
+        });
+    } else {
+        completeLoad(this);
+    }
+    return *this;
+}
+
+Loader& Loader::unload(bool async) {
+    auto completeUnload = [](Loader* loader) {
+        if (!loader) {
+            return;
+        }
+
+        loader->unloadImpl();
+        {
+            QMutexLocker locker(&loader->m_resourceMutex);
+            loader->m_resourceCache.clear();
+            loader->m_lastResource.clear();
+        }
+        {
+            QMutexLocker initializedLocker(&loader->m_initializedMutex);
+            loader->m_initialized = false;
+        }
+        QPointer<Loader> guarded(loader);
+        QMetaObject::invokeMethod(loader, [guarded]() {
+            if (guarded) {
+                emit guarded->unloadFinished(guarded.data());
+            }
+        }, Qt::QueuedConnection);
+    };
+
+    if (async) {
+        QPointer<Loader> self(this);
+        Execution::getInstance().dispatchAsyncTask([self, completeUnload]() {
+            if (!self) {
+                return;
+            }
+            completeUnload(self.data());
+        });
+    } else {
+        completeUnload(this);
+    }
+    return *this;
+}
+
+QObject* Loader::get() const {
+    QMutexLocker locker(&m_resourceMutex);
+    if (m_lastResource.isNull()) {
+        return nullptr;
+    }
+    return m_lastResource->get();
+}
+
+void Loader::unloadImpl() {
 }
 
 void Loader::cacheResource(const QString& sourceUrl, const QSharedPointer<Resource>& resource) {
@@ -89,14 +199,17 @@ QSharedPointer<Resource> Loader::findCachedResource(const QString& sourceUrl) co
 }
 
 QSharedPointer<Resource> Loader::getCachedResource() const {
+    QMutexLocker locker(&m_resourceMutex);
     return m_lastResource;
 }
 
 QList<QSharedPointer<Loader>> Loader::getGeneratedLoaders() const {
+    QMutexLocker locker(&m_resourceMutex);
     return m_generatedLoaders;
 }
 
 void Loader::setGeneratedLoaders(const QList<QSharedPointer<Loader>>& loaders) {
+    QMutexLocker locker(&m_resourceMutex);
     m_generatedLoaders = loaders;
 }
 
@@ -107,42 +220,37 @@ BitmapLoader::BitmapLoader(const QString& suffix, QObject* parent)
 {
 }
 
-QVariant BitmapLoader::load(const QVariant& source) {
-    const QString path = resolveSourcePath(this, source);
-    if (path.isEmpty()) {
-        qWarning() << "BitmapLoader has empty source URL";
-        return {};
-    }
-
+QSharedPointer<Resource> BitmapLoader::loadImpl(const QString& sourceUrl) {
     if (!m_runtimeSuffix.isEmpty()) {
-        const QString pathSuffix = QFileInfo(path).suffix().toLower();
+        const QString pathSuffix = QFileInfo(sourceUrl).suffix().toLower();
         if (!pathSuffix.isEmpty() && pathSuffix != m_runtimeSuffixLower) {
             qWarning() << "BitmapLoader suffix mismatch, expected" << m_runtimeSuffix << "got" << pathSuffix;
             return {};
         }
     }
 
-    QSharedPointer<Resource> cached = findCachedResource(path);
+    QSharedPointer<Resource> cached = findCachedResource(sourceUrl);
     if (!cached.isNull()) {
-        markInitialized();
-        return QVariant::fromValue(cached);
+        return cached;
     }
 
-    const QString qrcPath = normalizeQrcPath(path);
+    const QString qrcPath = normalizeQrcPath(sourceUrl);
     QImageReader reader(qrcPath);
     QImage image = reader.read();
     if (image.isNull()) {
-        qWarning() << "BitmapLoader failed to read image:" << path << reader.errorString();
+        qWarning() << "BitmapLoader failed to read image:" << sourceUrl << reader.errorString();
         return {};
     }
 
-    auto textureResource = QSharedPointer<TextureResource>::create(path);
+    auto textureResource = QSharedPointer<TextureResource>::create(sourceUrl);
     textureResource->setDimensions(image.width(), image.height());
     textureResource->setState(Resource::State::Loaded);
-    cacheResource(path, textureResource);
-    markInitialized();
-    qDebug() << "BitmapLoader loaded image:" << path << "size:" << image.size();
-    return QVariant::fromValue(QSharedPointer<Resource>(textureResource));
+    // Payload object is intentionally parentless and owned by Resource's shared pointer.
+    QObject* payload = new QObject();
+    payload->setProperty("image", image);
+    textureResource->set(payload);
+    qDebug() << "BitmapLoader loaded image:" << sourceUrl << "size:" << image.size();
+    return textureResource;
 }
 
 VideoLoader::VideoLoader(QObject* parent)
@@ -151,36 +259,29 @@ VideoLoader::VideoLoader(QObject* parent)
 {
 }
 
-QVariant VideoLoader::load(const QVariant& source) {
-    const QString path = resolveSourcePath(this, source);
-    if (path.isEmpty()) {
-        qWarning() << "VideoLoader has empty source URL";
-        return {};
-    }
-
-    QSharedPointer<Resource> cached = findCachedResource(path);
+QSharedPointer<Resource> VideoLoader::loadImpl(const QString& sourceUrl) {
+    QSharedPointer<Resource> cached = findCachedResource(sourceUrl);
     if (!cached.isNull()) {
-        markInitialized();
-        return QVariant::fromValue(cached);
+        return cached;
     }
 
-    if (!path.startsWith("qrc:/") && !path.startsWith(":/") && !QFileInfo::exists(path)) {
-        qWarning() << "VideoLoader source file does not exist:" << path;
+    if (!sourceUrl.startsWith("qrc:/") && !sourceUrl.startsWith(":/") && !QFileInfo::exists(sourceUrl)) {
+        qWarning() << "VideoLoader source file does not exist:" << sourceUrl;
         return {};
     }
 
-    const QUrl mediaUrl = toMediaUrl(path);
-
+    const QUrl mediaUrl = toMediaUrl(sourceUrl);
     m_mediaPlayer->setSource(mediaUrl);
-    auto videoResource = QSharedPointer<ChatSessionResource>::create(path);
-    // TODO: Populate real video resource size when metadata extraction is implemented.
+
+    auto videoResource = QSharedPointer<ChatSessionResource>::create(sourceUrl);
     videoResource->setDataSize(0);
     videoResource->setState(Resource::State::Loaded);
-    cacheResource(path, videoResource);
-    markInitialized();
-
+    // Payload object is intentionally parentless and owned by Resource's shared pointer.
+    QObject* payload = new QObject();
+    payload->setProperty("url", mediaUrl);
+    videoResource->set(payload);
     qDebug() << "VideoLoader prepared media source:" << mediaUrl;
-    return QVariant::fromValue(QSharedPointer<Resource>(videoResource));
+    return videoResource;
 }
 
 JsonLoader::JsonLoader(QObject* parent)
@@ -188,22 +289,15 @@ JsonLoader::JsonLoader(QObject* parent)
 {
 }
 
-QVariant JsonLoader::load(const QVariant& source) {
-    const QString path = resolveSourcePath(this, source);
-    if (path.isEmpty()) {
-        qWarning() << "JsonLoader has empty source URL";
-        return {};
-    }
-
-    QSharedPointer<Resource> cached = findCachedResource(path);
+QSharedPointer<Resource> JsonLoader::loadImpl(const QString& sourceUrl) {
+    QSharedPointer<Resource> cached = findCachedResource(sourceUrl);
     if (!cached.isNull()) {
-        markInitialized();
-        return QVariant::fromValue(cached);
+        return cached;
     }
 
-    QFile file(normalizeQrcPath(path));
+    QFile file(normalizeQrcPath(sourceUrl));
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "JsonLoader failed to open:" << path;
+        qWarning() << "JsonLoader failed to open:" << sourceUrl;
         return {};
     }
 
@@ -219,29 +313,11 @@ QVariant JsonLoader::load(const QVariant& source) {
     QList<QSharedPointer<Loader>> generatedLoaders;
     if (doc.isObject()) {
         const QJsonObject rootObject = doc.object();
-        if (!rootObject.contains("loaders") || !rootObject.value("loaders").isArray()) {
-            qWarning() << "JsonLoader expected 'loaders' array in root object";
-            setGeneratedLoaders({});
-            auto sessionResource = QSharedPointer<ChatSessionResource>::create(path);
-            sessionResource->setDataSize(static_cast<size_t>(data.size()));
-            sessionResource->setState(Resource::State::Loaded);
-            cacheResource(path, sessionResource);
-            markInitialized();
-            return QVariant::fromValue(QSharedPointer<Resource>(sessionResource));
-        }
         const QJsonArray loadersArray = rootObject.value("loaders").toArray();
         for (const QJsonValue& value : loadersArray) {
             const QJsonObject obj = value.toObject();
             const QString loaderSource = obj.value("source").toString();
-            const int separator = loaderSource.indexOf("://");
-            QString protocol;
-            if (loaderSource.startsWith("qrc:/") || loaderSource.startsWith(":/")) {
-                protocol = "qrc";
-            } else if (separator >= 0) {
-                protocol = loaderSource.left(separator);
-            } else {
-                protocol = "file";
-            }
+            const QString protocol = resolveProtocol(loaderSource);
             const QString suffix = QFileInfo(loaderSource).suffix().toLower();
             PropertyMap properties;
             properties["source"] = loaderSource;
@@ -253,10 +329,12 @@ QVariant JsonLoader::load(const QVariant& source) {
     }
     setGeneratedLoaders(generatedLoaders);
 
-    auto sessionResource = QSharedPointer<ChatSessionResource>::create(path);
+    auto sessionResource = QSharedPointer<ChatSessionResource>::create(sourceUrl);
     sessionResource->setDataSize(static_cast<size_t>(data.size()));
     sessionResource->setState(Resource::State::Loaded);
-    cacheResource(path, sessionResource);
-    markInitialized();
-    return QVariant::fromValue(QSharedPointer<Resource>(sessionResource));
+    // Payload object is intentionally parentless and owned by Resource's shared pointer.
+    QObject* payload = new QObject();
+    payload->setProperty("json", doc.toJson(QJsonDocument::Compact));
+    sessionResource->set(payload);
+    return sessionResource;
 }

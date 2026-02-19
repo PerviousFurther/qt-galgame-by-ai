@@ -3,7 +3,8 @@
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
-#include <QReadWriteLock>
+#include <QMutex>
+#include <QObject>
 #include <QSharedPointer>
 
 /**
@@ -29,6 +30,8 @@ public:
     Resource(const QString& url);
     Resource(const Resource& other);
     Resource& operator=(const Resource& other);
+    Resource(Resource&& other) noexcept;
+    Resource& operator=(Resource&& other) noexcept;
     virtual ~Resource();
 
     /**
@@ -67,10 +70,14 @@ public:
      */
     void setState(State state);
 
+    QObject* get() const;
+    void set(QObject* object);
+
 protected:
     QString m_url;
     State m_state;
-    mutable QReadWriteLock m_copyLock;
+    QSharedPointer<QObject> m_object;
+    mutable QMutex m_lock;
 };
 
 /**
@@ -83,8 +90,8 @@ public:
 
     size_t getSize() const override;
 
-    int getWidth() const { return m_width; }
-    int getHeight() const { return m_height; }
+    int getWidth() const;
+    int getHeight() const;
     void setDimensions(int width, int height);
 
     // TODO: Add actual texture data storage (e.g., OpenGL texture ID, raw pixel data)
@@ -104,7 +111,7 @@ public:
 
     size_t getSize() const override;
 
-    float getDuration() const { return m_duration; }
+    float getDuration() const;
     void setDuration(float duration);
 
     // TODO: Add actual audio data storage
