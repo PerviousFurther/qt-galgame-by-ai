@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QHash>
 #include <QList>
+#include <QMutex>
 #include <QSharedPointer>
 #include <QString>
 #include <QVariant>
@@ -59,6 +60,7 @@ private:
     QString m_suffix;
     QString m_sourceUrl;
     bool m_initialized;
+    mutable QMutex m_initializedMutex{QMutex::NonRecursive};
     QHash<QString, QSharedPointer<Resource>> m_resourceCache;
     QSharedPointer<Resource> m_lastResource;
     QList<QSharedPointer<Loader>> m_generatedLoaders;

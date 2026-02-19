@@ -13,6 +13,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMediaPlayer>
+#include <QMutexLocker>
 #include <QUrl>
 
 namespace {
@@ -66,10 +67,12 @@ const QString& Loader::getSourceUrl() const {
 }
 
 bool Loader::isInitialized() const {
+    QMutexLocker locker(&m_initializedMutex);
     return m_initialized;
 }
 
 void Loader::markInitialized() {
+    QMutexLocker locker(&m_initializedMutex);
     m_initialized = true;
 }
 
