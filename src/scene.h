@@ -1,5 +1,5 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef SRC_SCENE_H
+#define SRC_SCENE_H
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
@@ -35,4 +35,4 @@ private:
     QString m_id;
 };
 
-#endif // SCENE_H
+#endif // SRC_SCENE_H

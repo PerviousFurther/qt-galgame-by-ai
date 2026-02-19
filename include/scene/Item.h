@@ -1,5 +1,5 @@
-#ifndef ITEM_H
-#define ITEM_H
+#ifndef INCLUDE_SCENE_ITEM_H
+#define INCLUDE_SCENE_ITEM_H
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
@@ -152,4 +152,4 @@ private:
     bool m_visible;
 };
 
-#endif // ITEM_H
+#endif // INCLUDE_SCENE_ITEM_H

@@ -1,5 +1,5 @@
-#ifndef ITEM_H
-#define ITEM_H
+#ifndef SRC_ITEM_H
+#define SRC_ITEM_H
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
@@ -28,4 +28,4 @@ private:
     QString m_className;
 };
 
-#endif // ITEM_H
+#endif // SRC_ITEM_H
