@@ -1,7 +1,11 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "factory/NativeItemFactory.h"
+#include "resources/FormatSupport.h"
 #include "resources/Loader.h"
+#include "scene/AudioItem.h"
+#include "scene/CharacterItem.h"
 #include "scene/Item.h"
+#include "scene/VideoItem.h"
 
 #include <QDebug>
 #include <stdexcept>
@@ -28,17 +32,18 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
         }
         const QString protocol = properties["protocol"].toString();
         const QString suffix = properties["suffix"].toString().toLower();
-        if (protocol != "file" && protocol != "qrc") {
+        if (protocol != "file" && protocol != "qrc" && protocol != "http" && protocol != "https") {
             throw std::runtime_error("Unsupported protocol: " + protocol.toStdString());
         }
-        if (suffix == "bmp" || suffix == "png" || suffix == "jpg" || suffix == "jpeg" || suffix == "webp") {
+        if (supportedImageSuffixes().contains(suffix)) {
             type = "BitmapLoader";
-        } else if (suffix == "mp4") {
-            type = "VideoLoader";
         } else if (suffix == "json") {
             type = "JsonLoader";
+        } else if (suffix == "qml") {
+            type = "QmlLoader";
         } else {
-            throw std::runtime_error("Unsupported suffix: " + suffix.toStdString());
+            qWarning() << "Unrecognized file extension; defaulting to VideoLoader for media playback:" << suffix;
+            type = "VideoLoader";
         }
     } else {
         throw std::runtime_error("Property 'type' is required unless loader protocol/suffix are provided");
@@ -99,11 +104,7 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
     }
 
     if (type == "BitmapLoader") {
-        QString suffix = "bmp";
-        if (properties.contains("suffix") && properties["suffix"].canConvert<QString>()) {
-            suffix = properties["suffix"].toString();
-        }
-        return new BitmapLoader(suffix);
+        return new BitmapLoader();
     }
 
     if (type == "VideoLoader") {
@@ -112,6 +113,10 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
 
     if (type == "JsonLoader") {
         return new JsonLoader();
+    }
+
+    if (type == "QmlLoader") {
+        return new QmlLoader();
     }
 
     qWarning() << "Unknown native create type:" << type;

@@ -17,6 +17,7 @@
  * - Use QThread instead of std::thread where applicable.
  * - Use qDebug/qInfo/qWarning/qCritical instead of iostream logging.
  * - Custom classes intended for QVariant transport should provide Q_DECLARE_METATYPE.
+ * - Prefer one class per header/source pair (e.g., Item subclasses and Resource subclasses should each live in their own files).
  *
  * Notes:
  * - Prefer QObject signal/slot over callback wrappers.

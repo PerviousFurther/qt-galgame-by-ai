@@ -39,7 +39,7 @@ Resource management singleton:
 - Abstract Loader and Resource classes
 - Supports multiple protocols (file://, qrc://)
 - Async loading with callbacks for large files
-- Resource types: TextureResource, AudioResource, ChatSessionResource
+- Resource types: TextureResource, AudioResource, JsonResource, QmlResource, MediaResource
 - Automatic resource caching
 - Memory management with unload capabilities
 

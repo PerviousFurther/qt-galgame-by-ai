@@ -3,7 +3,11 @@
 
 #include "core/Execution.h"
 #include "factory/Registration.h"
-#include "resources/Resource.h"
+#include "resources/FormatSupport.h"
+#include "resources/JsonResource.h"
+#include "resources/MediaResource.h"
+#include "resources/QmlResource.h"
+#include "resources/TextureResource.h"
 
 #include <QDebug>
 #include <QFile>
@@ -47,6 +51,7 @@ QString resolveProtocol(const QString& source) {
     }
     return "file";
 }
+
 }
 
 Loader::Loader(const QString& protocol, const QString& suffix, QObject* parent)
@@ -213,20 +218,20 @@ void Loader::setGeneratedLoaders(const QList<QSharedPointer<Loader>>& loaders) {
     m_generatedLoaders = loaders;
 }
 
-BitmapLoader::BitmapLoader(const QString& suffix, QObject* parent)
-    : ComposedLoader<FileProtocolTag, BitmapSuffixTag>(parent)
-    , m_runtimeSuffix(suffix)
-    , m_runtimeSuffixLower(suffix.toLower())
+BitmapLoader::BitmapLoader(QObject* parent)
+    : Loader("resource", "image", parent)
 {
 }
 
 QSharedPointer<Resource> BitmapLoader::loadImpl(const QString& sourceUrl) {
-    if (!m_runtimeSuffix.isEmpty()) {
-        const QString pathSuffix = QFileInfo(sourceUrl).suffix().toLower();
-        if (!pathSuffix.isEmpty() && pathSuffix != m_runtimeSuffixLower) {
-            qWarning() << "BitmapLoader suffix mismatch, expected" << m_runtimeSuffix << "got" << pathSuffix;
-            return {};
-        }
+    const QString pathSuffix = QFileInfo(sourceUrl).suffix().toLower();
+    if (pathSuffix.isEmpty()) {
+        qWarning() << "BitmapLoader requires file extension to detect image format:" << sourceUrl;
+        return {};
+    }
+    if (!supportedImageSuffixes().contains(pathSuffix)) {
+        qWarning() << "BitmapLoader unsupported image suffix:" << pathSuffix;
+        return {};
     }
 
     QSharedPointer<Resource> cached = findCachedResource(sourceUrl);
@@ -254,7 +259,7 @@ QSharedPointer<Resource> BitmapLoader::loadImpl(const QString& sourceUrl) {
 }
 
 VideoLoader::VideoLoader(QObject* parent)
-    : ComposedLoader<FileProtocolTag, VideoSuffixTag>(parent)
+    : Loader("resource", "media", parent)
     , m_mediaPlayer(new QMediaPlayer(this))
 {
 }
@@ -273,7 +278,7 @@ QSharedPointer<Resource> VideoLoader::loadImpl(const QString& sourceUrl) {
     const QUrl mediaUrl = toMediaUrl(sourceUrl);
     m_mediaPlayer->setSource(mediaUrl);
 
-    auto videoResource = QSharedPointer<ChatSessionResource>::create(sourceUrl);
+    auto videoResource = QSharedPointer<MediaResource>::create(sourceUrl);
     videoResource->setDataSize(0);
     videoResource->setState(Resource::State::Loaded);
     // Payload object is intentionally parentless and owned by Resource's shared pointer.
@@ -285,7 +290,7 @@ QSharedPointer<Resource> VideoLoader::loadImpl(const QString& sourceUrl) {
 }
 
 JsonLoader::JsonLoader(QObject* parent)
-    : ComposedLoader<FileProtocolTag, JsonSuffixTag>(parent)
+    : Loader("resource", "json", parent)
 {
 }
 
@@ -335,12 +340,40 @@ QSharedPointer<Resource> JsonLoader::loadImpl(const QString& sourceUrl) {
     }
     setGeneratedLoaders(generatedLoaders);
 
-    auto sessionResource = QSharedPointer<ChatSessionResource>::create(sourceUrl);
-    sessionResource->setDataSize(static_cast<size_t>(data.size()));
-    sessionResource->setState(Resource::State::Loaded);
+    auto jsonResource = QSharedPointer<JsonResource>::create(sourceUrl);
+    jsonResource->setDataSize(static_cast<size_t>(data.size()));
+    jsonResource->setState(Resource::State::Loaded);
     // Payload object is intentionally parentless and owned by Resource's shared pointer.
     QObject* payload = new QObject();
     payload->setProperty("json", doc.toJson(QJsonDocument::Compact));
-    sessionResource->set(payload);
-    return sessionResource;
+    jsonResource->set(payload);
+    return jsonResource;
+}
+
+QmlLoader::QmlLoader(QObject* parent)
+    : Loader("resource", "qml", parent)
+{
+}
+
+QSharedPointer<Resource> QmlLoader::loadImpl(const QString& sourceUrl) {
+    QSharedPointer<Resource> cached = findCachedResource(sourceUrl);
+    if (!cached.isNull()) {
+        return cached;
+    }
+
+    QFile file(normalizeQrcPath(sourceUrl));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "QmlLoader failed to open:" << sourceUrl;
+        return {};
+    }
+    const QByteArray data = file.readAll();
+    file.close();
+
+    auto qmlResource = QSharedPointer<QmlResource>::create(sourceUrl);
+    qmlResource->setDataSize(static_cast<size_t>(data.size()));
+    qmlResource->setState(Resource::State::Loaded);
+    QObject* payload = new QObject();
+    payload->setProperty("qml", QString::fromUtf8(data));
+    qmlResource->set(payload);
+    return qmlResource;
 }

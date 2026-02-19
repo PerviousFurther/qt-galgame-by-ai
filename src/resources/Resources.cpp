@@ -10,13 +10,6 @@
 #include <QFile>
 #include <QFileInfo>
 
-namespace {
-bool supportsLoaderSuffix(const QString& suffix) {
-    return suffix == "bmp" || suffix == "png" || suffix == "jpg" || suffix == "jpeg" ||
-           suffix == "webp" || suffix == "mp4" || suffix == "json";
-}
-}
-
 Resources::Resources() {
     registerDefaultLoaders();
     registerResourcesFromQrc();
@@ -84,10 +77,6 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
     const QString source = value.toString();
     const QString protocol = extractProtocol(source);
     const QString suffix = extractSuffix(source);
-    if (!supportsLoaderSuffix(suffix)) {
-        m_resourceLoaders.remove(name);
-        return;
-    }
 
     PropertyMap properties;
     properties["source"] = source;
