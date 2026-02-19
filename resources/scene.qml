@@ -4,6 +4,7 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtMultimedia
+import Galgame 1.0
 
 Item {
     id: root
@@ -100,26 +101,26 @@ Item {
 
             Button {
                 text: qsTr("Start Game")
-                onClicked: gameBridge.startGame()
+                onClicked: GameBridge.startGame()
             }
 
             Button {
                 text: qsTr("Pause Game")
-                onClicked: gameBridge.pauseGame()
+                onClicked: GameBridge.pauseGame()
             }
 
             Button {
                 text: qsTr("Resume Game")
-                onClicked: gameBridge.resumeGame()
+                onClicked: GameBridge.resumeGame()
             }
 
             Button {
                 text: qsTr("Stop Game")
-                onClicked: gameBridge.stopGame()
+                onClicked: GameBridge.stopGame()
             }
 
             Text {
-                text: qsTr("State: %1  Scene: %2").arg(gameBridge.gameState).arg(gameBridge.activeScene)
+                text: qsTr("State: %1  Scene: %2").arg(GameBridge.gameState).arg(GameBridge.activeScene)
                 color: "#ffffff"
             }
         }

@@ -7,6 +7,7 @@ It defines what code in this repository should look like.
 
 - **Use C++20 only**.
 - Prefer modern C++ patterns (`constexpr`, RAII, strong enums, range-for, `std::optional`, etc.).
+- Prefer Qt signal/slot integration over ad-hoc callback wiring when both are viable.
 - Templates are allowed, but keep them simple:
   - prefer `concept` for constraints;
   - avoid complex SFINAE-heavy implementations.

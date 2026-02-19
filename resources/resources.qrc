@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>config.json</file>
+        <file>main.qml</file>
         <file>scene.qml</file>
         <file>menu.qml</file>
         <file>scene.json</file>

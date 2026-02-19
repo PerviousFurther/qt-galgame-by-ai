@@ -8,10 +8,12 @@
 #include <QDebug>
 #include <QObject>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
+#include <QQmlEngine>
+#include <QPointer>
+#include <QQuickWindow>
 #include <QString>
-#include <QTimer>
 #include <QUrl>
+#include <qqml.h>
 
 class GameManagerUiBridge : public QObject {
     Q_OBJECT
@@ -70,6 +72,68 @@ private:
     QString m_lastActiveScene;
 };
 
+class ConfigurationUiBridge : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString applicationName READ applicationName CONSTANT)
+    Q_PROPERTY(int targetFps READ targetFps CONSTANT)
+    Q_PROPERTY(int gameLoopIntervalMs READ gameLoopIntervalMs CONSTANT)
+public:
+    explicit ConfigurationUiBridge(QObject* parent = nullptr)
+        : QObject(parent)
+    {
+    }
+
+    QString applicationName() const { return Configuration::getInstance().getApplicationName(); }
+    int targetFps() const { return Configuration::getInstance().getTargetFPS(); }
+    int gameLoopIntervalMs() const { return Configuration::getInstance().getGameLoopIntervalMs(); }
+};
+
+class FrameUpdateDriver : public QObject {
+    Q_OBJECT
+public:
+    FrameUpdateDriver(Execution* execution, GameManager* gameManager, QObject* parent = nullptr)
+        : QObject(parent)
+        , m_execution(execution)
+        , m_gameManager(gameManager)
+    {
+        Q_ASSERT(m_execution != nullptr);
+        Q_ASSERT(m_gameManager != nullptr);
+    }
+
+    void attachWindow(QQuickWindow* window) {
+        if (window == nullptr) {
+            return;
+        }
+        m_window = window;
+        QObject::connect(m_window, &QQuickWindow::afterAnimating, this, &FrameUpdateDriver::onFrame);
+        m_window->requestUpdate();
+    }
+
+public slots:
+    void onFrame() {
+        // afterAnimating is delivered on GUI thread for this window connection; no cross-thread overlap expected.
+        if (m_updateInProgress) {
+            return;
+        }
+        m_updateInProgress = true;
+        m_execution->update();
+        m_gameManager->update();
+        if (m_execution->shouldFixedUpdate()) {
+            m_gameManager->fixedUpdate();
+        }
+        m_updateInProgress = false;
+        if (!m_window.isNull()) {
+            m_window->requestUpdate();
+        }
+    }
+
+private:
+    Execution* m_execution;
+    GameManager* m_gameManager;
+    bool m_updateInProgress{false};
+    QPointer<QQuickWindow> m_window;
+};
+
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
 
@@ -119,6 +183,7 @@ int main(int argc, char *argv[]) {
 
     // Step 6: Bind GameManager to application lifecycle and UI bridge
     auto* gameBridge = new GameManagerUiBridge(&gameManager, &app);
+    auto* configurationBridge = new ConfigurationUiBridge(&app);
     QObject::connect(&app, &QGuiApplication::applicationStateChanged, [&gameManager](Qt::ApplicationState state) {
         if (state == Qt::ApplicationActive && gameManager.getState() == GameManager::State::Paused) {
             gameManager.resume();
@@ -127,20 +192,13 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    // Step 7: Start game loop in Qt event loop
-    qDebug() << "=== Starting Game Loop ===";
-    QTimer gameLoopTimer;
-    QObject::connect(&gameLoopTimer, &QTimer::timeout, [&execution, &gameManager]() {
-        execution.update();
-        gameManager.update();
-        if (execution.shouldFixedUpdate()) {
-            gameManager.fixedUpdate();
-        }
-    });
-    gameLoopTimer.start(config.getGameLoopIntervalMs());
+    // Step 7: Register singletons for QML
+    qmlRegisterSingletonInstance("Galgame", 1, 0, "GameBridge", gameBridge);
+    qmlRegisterSingletonInstance("Galgame", 1, 0, "Configuration", configurationBridge);
+    // GameManager is process-lifetime singleton and this reference remains valid until application shutdown.
+    qmlRegisterSingletonInstance("Galgame", 1, 0, "GameManager", &gameManager);
 
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("gameBridge", gameBridge);
     QObject::connect(
         &engine,
         &QQmlApplicationEngine::objectCreationFailed,
@@ -163,6 +221,19 @@ int main(int argc, char *argv[]) {
     if (engine.rootObjects().isEmpty()) {
         qWarning() << "Failed to load QML scene:" << startupSceneUrl;
         return -1;
+    }
+
+    // Step 8: Start non-overlapping frame-driven game loop on QQuickWindow frames
+    qDebug() << "=== Starting Game Loop ===";
+    auto* frameDriver = new FrameUpdateDriver(&execution, &gameManager, &app);
+    QQuickWindow* rootWindow = nullptr;
+    if (!engine.rootObjects().isEmpty()) {
+        rootWindow = qobject_cast<QQuickWindow*>(engine.rootObjects().first());
+    }
+    if (rootWindow != nullptr) {
+        frameDriver->attachWindow(rootWindow);
+    } else {
+        qWarning() << "Root QML object is not a QQuickWindow; frame loop driver not attached";
     }
 
     QObject::connect(&app, &QCoreApplication::aboutToQuit, [&execution, &gameManager]() {
