@@ -21,7 +21,7 @@ struct QrcProtocolTag {
 };
 
 struct BitmapSuffixTag {
-    static QString value() { return "bitmap"; }
+    static QString value() { return "bmp"; }
 };
 
 struct VideoSuffixTag {
@@ -76,11 +76,13 @@ public:
 class BitmapLoader : public ComposedLoader<FileProtocolTag, BitmapSuffixTag> {
     Q_OBJECT
 public:
+    // Runtime suffix is used for validation while template suffix identifies composed semantic category.
     explicit BitmapLoader(const QString& suffix = "bmp", QObject* parent = nullptr);
     QVariant load(const QVariant& source) override;
 
 private:
     QString m_runtimeSuffix;
+    QString m_runtimeSuffixLower;
 };
 
 class VideoLoader : public ComposedLoader<FileProtocolTag, VideoSuffixTag> {

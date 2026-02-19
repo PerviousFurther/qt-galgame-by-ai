@@ -34,6 +34,7 @@ public:
     /**
      * @brief Get the resource URL
      * @return The URL/path of the resource
+     * @note Returns by value to keep thread-safe copy semantics.
      */
     QString getUrl() const;
 

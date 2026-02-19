@@ -24,10 +24,18 @@ Resource& Resource::operator=(const Resource& other) {
         return *this;
     }
 
-    QReadLocker otherLock(&other.m_copyLock);
-    QWriteLocker thisLock(&m_copyLock);
-    m_url = other.m_url;
-    m_state = other.m_state;
+    QString otherUrl;
+    State otherState = State::Unloaded;
+    {
+        QReadLocker otherLock(&other.m_copyLock);
+        otherUrl = other.m_url;
+        otherState = other.m_state;
+    }
+    {
+        QWriteLocker thisLock(&m_copyLock);
+        m_url = otherUrl;
+        m_state = otherState;
+    }
     return *this;
 }
 
@@ -46,6 +54,7 @@ Resource::State Resource::getState() const {
 }
 
 bool Resource::isLoaded() const {
+    QReadLocker lock(&m_copyLock);
     return m_state == State::Loaded;
 }
 

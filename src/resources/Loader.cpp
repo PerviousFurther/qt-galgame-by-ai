@@ -15,6 +15,31 @@
 #include <QMediaPlayer>
 #include <QUrl>
 
+namespace {
+QString normalizeQrcPath(const QString& path) {
+    if (path.startsWith("qrc:/")) {
+        return ":" + path.mid(4);
+    }
+    return path;
+}
+
+QUrl toMediaUrl(const QString& path) {
+    if (path.startsWith("qrc:/")) {
+        return QUrl(path);
+    }
+    if (path.startsWith(":/")) {
+        return QUrl("qrc" + path);
+    }
+    return QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath());
+}
+
+QString resolveSourcePath(Loader* loader, const QVariant& source) {
+    const QString path = source.isValid() ? source.toString() : loader->getSourceUrl();
+    loader->setSourceUrl(path);
+    return path;
+}
+}
+
 Loader::Loader(const QString& protocol, const QString& suffix, QObject* parent)
     : QObject(parent)
     , m_protocol(protocol)
@@ -75,21 +100,22 @@ void Loader::setGeneratedLoaders(const QList<QSharedPointer<Loader>>& loaders) {
 BitmapLoader::BitmapLoader(const QString& suffix, QObject* parent)
     : ComposedLoader<FileProtocolTag, BitmapSuffixTag>(parent)
     , m_runtimeSuffix(suffix)
+    , m_runtimeSuffixLower(suffix.toLower())
 {
 }
 
 QVariant BitmapLoader::load(const QVariant& source) {
-    const QString path = source.isValid() ? source.toString() : getSourceUrl();
+    const QString path = resolveSourcePath(this, source);
     if (path.isEmpty()) {
         qWarning() << "BitmapLoader has empty source URL";
         return {};
     }
-    setSourceUrl(path);
 
     if (!m_runtimeSuffix.isEmpty()) {
         const QString pathSuffix = QFileInfo(path).suffix().toLower();
-        if (!pathSuffix.isEmpty() && pathSuffix != m_runtimeSuffix.toLower()) {
+        if (!pathSuffix.isEmpty() && pathSuffix != m_runtimeSuffixLower) {
             qWarning() << "BitmapLoader suffix mismatch, expected" << m_runtimeSuffix << "got" << pathSuffix;
+            return {};
         }
     }
 
@@ -99,7 +125,7 @@ QVariant BitmapLoader::load(const QVariant& source) {
         return QVariant::fromValue(cached);
     }
 
-    const QString qrcPath = path.startsWith("qrc:/") ? (":" + path.mid(4)) : path;
+    const QString qrcPath = normalizeQrcPath(path);
     QImageReader reader(qrcPath);
     QImage image = reader.read();
     if (image.isNull()) {
@@ -123,12 +149,11 @@ VideoLoader::VideoLoader(QObject* parent)
 }
 
 QVariant VideoLoader::load(const QVariant& source) {
-    const QString path = source.isValid() ? source.toString() : getSourceUrl();
+    const QString path = resolveSourcePath(this, source);
     if (path.isEmpty()) {
         qWarning() << "VideoLoader has empty source URL";
         return {};
     }
-    setSourceUrl(path);
 
     QSharedPointer<Resource> cached = findCachedResource(path);
     if (!cached.isNull()) {
@@ -136,19 +161,17 @@ QVariant VideoLoader::load(const QVariant& source) {
         return QVariant::fromValue(cached);
     }
 
-    const bool isQrc = path.startsWith("qrc:/") || path.startsWith(":/");
-    if (!isQrc && !QFileInfo::exists(path)) {
+    if (!path.startsWith("qrc:/") && !path.startsWith(":/") && !QFileInfo::exists(path)) {
         qWarning() << "VideoLoader source file does not exist:" << path;
         return {};
     }
 
-    const QUrl mediaUrl = isQrc
-        ? (path.startsWith("qrc:/") ? QUrl(path) : QUrl(QString("qrc") + path))
-        : QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath());
+    const QUrl mediaUrl = toMediaUrl(path);
 
     m_mediaPlayer->setSource(mediaUrl);
     auto videoResource = QSharedPointer<ChatSessionResource>::create(path);
-    videoResource->setDataSize(1);
+    // TODO: Populate real video resource size when metadata extraction is implemented.
+    videoResource->setDataSize(0);
     videoResource->setState(Resource::State::Loaded);
     cacheResource(path, videoResource);
     markInitialized();
@@ -163,12 +186,11 @@ JsonLoader::JsonLoader(QObject* parent)
 }
 
 QVariant JsonLoader::load(const QVariant& source) {
-    const QString path = source.isValid() ? source.toString() : getSourceUrl();
+    const QString path = resolveSourcePath(this, source);
     if (path.isEmpty()) {
         qWarning() << "JsonLoader has empty source URL";
         return {};
     }
-    setSourceUrl(path);
 
     QSharedPointer<Resource> cached = findCachedResource(path);
     if (!cached.isNull()) {
@@ -176,7 +198,7 @@ QVariant JsonLoader::load(const QVariant& source) {
         return QVariant::fromValue(cached);
     }
 
-    QFile file(path.startsWith("qrc:/") ? (":" + path.mid(4)) : path);
+    QFile file(normalizeQrcPath(path));
     if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "JsonLoader failed to open:" << path;
         return {};
@@ -193,12 +215,30 @@ QVariant JsonLoader::load(const QVariant& source) {
 
     QList<QSharedPointer<Loader>> generatedLoaders;
     if (doc.isObject()) {
-        const QJsonArray loadersArray = doc.object().value("loaders").toArray();
+        const QJsonObject rootObject = doc.object();
+        if (!rootObject.contains("loaders") || !rootObject.value("loaders").isArray()) {
+            qWarning() << "JsonLoader expected 'loaders' array in root object";
+            setGeneratedLoaders({});
+            auto sessionResource = QSharedPointer<ChatSessionResource>::create(path);
+            sessionResource->setDataSize(static_cast<size_t>(data.size()));
+            sessionResource->setState(Resource::State::Loaded);
+            cacheResource(path, sessionResource);
+            markInitialized();
+            return QVariant::fromValue(QSharedPointer<Resource>(sessionResource));
+        }
+        const QJsonArray loadersArray = rootObject.value("loaders").toArray();
         for (const QJsonValue& value : loadersArray) {
             const QJsonObject obj = value.toObject();
             const QString loaderSource = obj.value("source").toString();
             const int separator = loaderSource.indexOf("://");
-            const QString protocol = separator >= 0 ? loaderSource.left(separator) : "file";
+            QString protocol;
+            if (loaderSource.startsWith("qrc:/") || loaderSource.startsWith(":/")) {
+                protocol = "qrc";
+            } else if (separator >= 0) {
+                protocol = loaderSource.left(separator);
+            } else {
+                protocol = "file";
+            }
             const QString suffix = QFileInfo(loaderSource).suffix().toLower();
             PropertyMap properties;
             properties["source"] = loaderSource;

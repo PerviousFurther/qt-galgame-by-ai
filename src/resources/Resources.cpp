@@ -61,7 +61,7 @@ QVariant Resources::load(const QString& name) const {
         qWarning() << "Loader not found for resource:" << name;
         return {};
     }
-    return loader->load({});
+    return loader->load(loader->getSourceUrl());
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {
