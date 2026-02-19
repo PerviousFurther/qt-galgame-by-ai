@@ -30,6 +30,12 @@ void Configuration::setDefaults() {
 
     // Execution defaults
     setInt("execution.max_threads", QThread::idealThreadCount());
+
+    // Application bootstrap defaults
+    setApplicationName("qt-galgame-by-ai");
+    setConfigResourceUrl("qrc:/config.json");
+    setStartupSceneUrl("qrc:/scene.qml");
+    setGameLoopIntervalMs(16);  // ~60 FPS (1000ms / 60 ≈ 16.67ms)
 }
 
 bool Configuration::loadFromFile(const QString& filePath) {
@@ -151,6 +157,38 @@ bool Configuration::isVSyncEnabled() const {
 
 void Configuration::setVSyncEnabled(bool enabled) {
     setBool("render.vsync", enabled);
+}
+
+QString Configuration::getApplicationName() const {
+    return getString("app.name", "qt-galgame-by-ai");
+}
+
+void Configuration::setApplicationName(const QString& appName) {
+    setString("app.name", appName);
+}
+
+QString Configuration::getConfigResourceUrl() const {
+    return getString("app.config_resource_url", "qrc:/config.json");
+}
+
+void Configuration::setConfigResourceUrl(const QString& resourceUrl) {
+    setString("app.config_resource_url", resourceUrl);
+}
+
+QString Configuration::getStartupSceneUrl() const {
+    return getString("app.startup_scene_url", "qrc:/scene.qml");
+}
+
+void Configuration::setStartupSceneUrl(const QString& sceneUrl) {
+    setString("app.startup_scene_url", sceneUrl);
+}
+
+int Configuration::getGameLoopIntervalMs() const {
+    return getInt("app.game_loop_interval_ms", 16);
+}
+
+void Configuration::setGameLoopIntervalMs(int intervalMs) {
+    setInt("app.game_loop_interval_ms", intervalMs);
 }
 
 // Generic configuration access

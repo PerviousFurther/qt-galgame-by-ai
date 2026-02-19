@@ -82,6 +82,19 @@ public:
     bool isVSyncEnabled() const;
     void setVSyncEnabled(bool enabled);
 
+    // Application bootstrap settings
+    QString getApplicationName() const;
+    void setApplicationName(const QString& appName);
+
+    QString getConfigResourceUrl() const;
+    void setConfigResourceUrl(const QString& resourceUrl);
+
+    QString getStartupSceneUrl() const;
+    void setStartupSceneUrl(const QString& sceneUrl);
+
+    int getGameLoopIntervalMs() const;
+    void setGameLoopIntervalMs(int intervalMs);
+
     // Generic configuration access
     QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
     void setValue(const QString& key, const QVariant& value);

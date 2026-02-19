@@ -7,7 +7,13 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find Qt6 packages - REQUIRED since we use Qt containers throughout
-find_package(Qt6 COMPONENTS Core Qml Quick Gui Multimedia REQUIRED)
+find_package(Qt6 COMPONENTS Core Qml Quick Gui Multimedia QUIET)
+if (NOT Qt6_FOUND)
+    message(FATAL_ERROR
+        "Qt6 was not found. On Ubuntu, install dependencies with:\n"
+        "  ./scripts/install_qt6_deps_ubuntu.sh\n"
+        "or set Qt6_DIR/CMAKE_PREFIX_PATH to your Qt installation.")
+endif()
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)

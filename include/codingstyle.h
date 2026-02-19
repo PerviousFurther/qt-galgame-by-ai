@@ -18,6 +18,7 @@
  * - Use qDebug/qInfo/qWarning/qCritical instead of iostream logging.
  * - Custom classes intended for QVariant transport should provide Q_DECLARE_METATYPE.
  * - Prefer one class per header/source pair (e.g., Item subclasses and Resource subclasses should each live in their own files).
+ * - Application-level tunables/constants (startup scene URL, loop interval, app name, etc.) should be managed via Configuration instead of hardcoding in main.
  *
  * Notes:
  * - Prefer QObject signal/slot over callback wrappers.

@@ -73,7 +73,6 @@ private:
 
 int main(int argc, char *argv[]) {
     QGuiApplication app(argc, argv);
-    app.setApplicationName("qt-galgame-by-ai");
 
     qDebug() << "Qt Galgame Engine - Visual Novel Development Framework";
     qDebug() << "======================================================";
@@ -82,7 +81,8 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Initializing Configuration ===";
     Configuration& config = Configuration::getInstance();
     config.parseCommandLine(argc, argv);
-    config.loadFromFile("qrc:/config.json");
+    app.setApplicationName(config.getApplicationName());
+    config.loadFromFile(config.getConfigResourceUrl());
     
     qDebug() << "Configuration loaded:";
     qDebug() << "  Window:" << config.getWindowWidth() << "x" << config.getWindowHeight();
@@ -93,7 +93,8 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Initializing Execution ===";
     Execution& execution = Execution::getInstance();
     execution.initialize();
-    execution.setFixedUpdateInterval(1.0f / 60.0f);  // 60 FPS for fixed updates
+    const int targetFps = config.getTargetFPS() > 0 ? config.getTargetFPS() : 60;
+    execution.setFixedUpdateInterval(1.0f / static_cast<float>(targetFps));
     qDebug() << "Execution initialized (fixed update:" << execution.getFixedUpdateInterval()
              << "s, max threads:" << execution.getMaxThreadCount() << ")";
 
@@ -137,7 +138,7 @@ int main(int argc, char *argv[]) {
             gameManager.fixedUpdate();
         }
     });
-    gameLoopTimer.start(16);  // ~60 FPS
+    gameLoopTimer.start(config.getGameLoopIntervalMs());
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("gameBridge", gameBridge);
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    const QString defaultQmlScene = QStringLiteral("qrc:/scene.qml");
+    const QString defaultQmlScene = config.getStartupSceneUrl();
     const QStringList qmlSceneUrls = resources.getResourceUrlsBySuffix("qml");
     QString startupSceneUrl;
     if (qmlSceneUrls.contains(defaultQmlScene)) {
@@ -186,3 +187,5 @@ int main(int argc, char *argv[]) {
 
     return app.exec();
 }
+
+#include "main.moc"

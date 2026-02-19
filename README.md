@@ -109,7 +109,13 @@ qt-galgame/
 
 - CMake 3.16 or higher
 - C++17 compatible compiler
-- Qt6 (Core, Qml, Quick modules) - optional but recommended
+- Qt6 development packages (Core, Qml, Quick, Gui, Multimedia)
+
+For Ubuntu/Debian, install dependencies with:
+
+```bash
+./scripts/install_qt6_deps_ubuntu.sh
+```
 
 ### Build Instructions
 
@@ -128,13 +134,7 @@ cmake --build .
 ./bin/qt-galgame
 ```
 
-### Building without Qt6
-
-The project can be built without Qt6, but some features (QML loading) will be limited:
-
-```bash
-cmake -DQt6_DIR=/path/to/qt6 ..
-```
+If CMake still cannot locate Qt6, set `Qt6_DIR` or `CMAKE_PREFIX_PATH` to your Qt installation path.
 
 ## Usage Example
 

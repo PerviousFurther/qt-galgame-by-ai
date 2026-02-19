@@ -51,8 +51,8 @@ private:
     QString m_suffix;
     QString m_sourceUrl;
     bool m_initialized;
-    mutable QMutex m_initializedMutex{QMutex::NonRecursive};
-    mutable QMutex m_resourceMutex{QMutex::NonRecursive};
+    mutable QMutex m_initializedMutex;
+    mutable QMutex m_resourceMutex;
     QHash<QString, QSharedPointer<Resource>> m_resourceCache;
     QSharedPointer<Resource> m_lastResource;
     QList<QSharedPointer<Loader>> m_generatedLoaders;
