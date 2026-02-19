@@ -2,6 +2,14 @@
 
 A visual novel (galgame) development engine built with C++ and Qt6.
 
+## Coding Contract
+
+Before implementing new code, read and follow:
+
+- `BEFORECODING.md`
+
+This file defines repository coding rules and architectural guidelines.
+
 ## Overview
 
 This project provides a flexible framework for creating visual novels and interactive story-driven games. The engine is designed with a modular singleton-based architecture with support for different scene types (dialog scenes, mini-game scenes, settings scenes).
