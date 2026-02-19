@@ -15,7 +15,7 @@
  * - std::variant     → Use QVariant instead
  * - std::shared_ptr  → Use QSharedPointer instead
  * - std::unique_ptr  → Use QScopedPointer instead
- * - std::function    → Use std::function (Qt doesn't provide alternative)
+ * - Callback logic   → Prefer Qt signals/slots
  * - std::mutex       → Use QMutex instead
  * - std::thread      → Use QThread instead (preferred)
  * 

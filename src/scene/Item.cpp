@@ -75,29 +75,15 @@ bool AudioItem::isLoop() const {
 
 void AudioItem::play() {
     m_playing = true;
-    if (m_playHandler) {
-        m_playHandler();
-    }
+    emit playRequested();
 }
 
 void AudioItem::stop() {
     m_playing = false;
-    if (m_stopHandler) {
-        m_stopHandler();
-    }
+    emit stopRequested();
 }
 
-bool AudioItem::isPlaying() const {
-    return m_playing;
-}
-
-void AudioItem::setPlayHandler(const std::function<void()>& handler) {
-    m_playHandler = handler;
-}
-
-void AudioItem::setStopHandler(const std::function<void()>& handler) {
-    m_stopHandler = handler;
-}
+bool AudioItem::isPlaying() const { return m_playing; }
 
 QString AudioItem::getType() const {
     return "Audio";
@@ -128,29 +114,15 @@ bool VideoItem::isLoop() const {
 
 void VideoItem::play() {
     m_playing = true;
-    if (m_playHandler) {
-        m_playHandler();
-    }
+    emit playRequested();
 }
 
 void VideoItem::stop() {
     m_playing = false;
-    if (m_stopHandler) {
-        m_stopHandler();
-    }
+    emit stopRequested();
 }
 
-bool VideoItem::isPlaying() const {
-    return m_playing;
-}
-
-void VideoItem::setPlayHandler(const std::function<void()>& handler) {
-    m_playHandler = handler;
-}
-
-void VideoItem::setStopHandler(const std::function<void()>& handler) {
-    m_stopHandler = handler;
-}
+bool VideoItem::isPlaying() const { return m_playing; }
 
 QString VideoItem::getType() const {
     return "Video";

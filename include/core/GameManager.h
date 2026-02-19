@@ -2,11 +2,11 @@
 #define GAMEMANAGER_H
 #include "codingstyle.h" // include/codingstyle.h
 
+#include <QObject>
 #include "scene/Scene.h"
 #include <QHash>
 #include <QSharedPointer>
 #include <QString>
-#include <functional>
 
 /**
  * @brief Game event types
@@ -30,8 +30,6 @@ enum class GameEvent {
  * @param event The event type
  * @param data Optional event data (scene name, save slot, etc.)
  */
-using GameEventCallback = std::function<void(GameEvent event, const QString& data)>;
-
 /**
  * @brief GameManager singleton for managing game logic and flow
  * 
@@ -49,7 +47,8 @@ using GameEventCallback = std::function<void(GameEvent event, const QString& dat
  * Note: Scenes that modify singletons (like SettingsScene modifying Configuration)
  * are assumed to run on the main thread without async conflicts.
  */
-class GameManager {
+class GameManager : public QObject {
+    Q_OBJECT
 public:
     enum class State {
         Stopped,
@@ -152,24 +151,14 @@ public:
     // Event system
 
     /**
-     * @brief Register a callback for game events
-     * @param callback Function to call when events occur
-     * @return Event handle for unregistering
-     */
-    int registerEventCallback(GameEventCallback callback);
-
-    /**
-     * @brief Unregister an event callback
-     * @param handle Event handle returned from registerEventCallback
-     */
-    void unregisterEventCallback(int handle);
-
-    /**
      * @brief Emit a game event
      * @param event Event type
      * @param data Optional event data
      */
     void emitEvent(GameEvent event, const QString& data = "");
+
+signals:
+    void gameEventTriggered(GameEvent event, const QString& data);
 
 private:
     GameManager();
@@ -181,9 +170,6 @@ private:
     QHash<QString, QSharedPointer<Scene>> m_scenes;
     QSharedPointer<Scene> m_activeScene;
     QString m_activeSceneName;
-    
-    QHash<int, GameEventCallback> m_eventCallbacks;
-    int m_nextEventHandle;
 };
 
 #endif // GAMEMANAGER_H

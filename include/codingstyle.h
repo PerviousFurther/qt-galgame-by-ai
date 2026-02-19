@@ -18,7 +18,7 @@
  * - Use qDebug/qInfo/qWarning/qCritical instead of iostream logging.
  *
  * Notes:
- * - std::function is acceptable where Qt does not provide a direct replacement.
+ * - Prefer QObject signal/slot over callback wrappers.
  * - Standard exceptions are acceptable where needed.
  */
 

@@ -5,7 +5,6 @@
 
 GameManager::GameManager()
     : m_state(State::Stopped)
-    , m_nextEventHandle(1)
 {
 }
 
@@ -137,21 +136,6 @@ const QString& GameManager::getActiveSceneName() const {
     return m_activeSceneName;
 }
 
-int GameManager::registerEventCallback(GameEventCallback callback) {
-    int handle = m_nextEventHandle++;
-    m_eventCallbacks[handle] = callback;
-    return handle;
-}
-
-void GameManager::unregisterEventCallback(int handle) {
-    m_eventCallbacks.remove(handle);
-}
-
 void GameManager::emitEvent(GameEvent event, const QString& data) {
-    const QList<GameEventCallback> callbacks = m_eventCallbacks.values();
-    for (const GameEventCallback& callback : callbacks) {
-        if (callback) {
-            callback(event, data);
-        }
-    }
+    emit gameEventTriggered(event, data);
 }

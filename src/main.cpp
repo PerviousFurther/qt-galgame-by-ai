@@ -96,12 +96,16 @@ int main(int argc, char *argv[]) {
     dialogScene->addItem(openingVideo);
 
     if (auto audioItem = bgm.dynamicCast<AudioItem>()) {
-        audioItem->setPlayHandler([]() { qDebug() << "BGM play requested"; });
+        QObject::connect(audioItem.data(), &AudioItem::playRequested, []() {
+            qDebug() << "BGM play requested";
+        });
         audioItem->play();
         qDebug() << "Audio item ready:" << audioItem->getSource() << "playing=" << audioItem->isPlaying();
     }
     if (auto videoItem = openingVideo.dynamicCast<VideoItem>()) {
-        videoItem->setPlayHandler([]() { qDebug() << "Video play requested"; });
+        QObject::connect(videoItem.data(), &VideoItem::playRequested, []() {
+            qDebug() << "Video play requested";
+        });
         videoItem->play();
         qDebug() << "Video item ready:" << videoItem->getSource() << "playing=" << videoItem->isPlaying();
     }
