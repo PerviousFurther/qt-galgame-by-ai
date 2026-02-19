@@ -5,6 +5,8 @@
 #include <QString>
 #include <QVariant>
 
+class QMediaPlayer;
+
 class Loader : public QObject {
     Q_OBJECT
 public:
@@ -24,7 +26,7 @@ private:
 class BitmapLoader : public Loader {
     Q_OBJECT
 public:
-    explicit BitmapLoader(QObject* parent = nullptr);
+    explicit BitmapLoader(const QString& suffix = "bmp", QObject* parent = nullptr);
     QVariant load(const QVariant& source) override;
 };
 
@@ -33,6 +35,9 @@ class VideoLoader : public Loader {
 public:
     explicit VideoLoader(QObject* parent = nullptr);
     QVariant load(const QVariant& source) override;
+
+private:
+    QMediaPlayer* m_mediaPlayer;
 };
 
 #endif // LOADER_H

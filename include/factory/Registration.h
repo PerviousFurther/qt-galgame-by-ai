@@ -68,8 +68,7 @@ public:
      * @brief Create an Item using the registered factory
      * @param typeName The type of Item to create
      * @param properties Dictionary of properties from JSON/QML
-     * @return Shared pointer to the created Item
-     * @throws runtime_error if no factory is registered for the type
+     * @return Shared pointer to the created Item, or null on failure
      */
     QSharedPointer<Item> createItem(const QString& typeName, const PropertyMap& properties);
     QSharedPointer<Loader> createLoader(const QString& protocol, const QString& suffix, const PropertyMap& properties);

@@ -22,8 +22,8 @@ const QString& Loader::getSuffix() const {
     return m_suffix;
 }
 
-BitmapLoader::BitmapLoader(QObject* parent)
-    : Loader("file", "bmp", parent)
+BitmapLoader::BitmapLoader(const QString& suffix, QObject* parent)
+    : Loader("file", suffix, parent)
 {
 }
 
@@ -41,17 +41,18 @@ QVariant BitmapLoader::load(const QVariant& source) {
 
 VideoLoader::VideoLoader(QObject* parent)
     : Loader("file", "mp4", parent)
+    , m_mediaPlayer(new QMediaPlayer(this))
 {
 }
 
 QVariant VideoLoader::load(const QVariant& source) {
     const QString path = source.toString();
-    QMediaPlayer player;
-    player.setSource(QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath()));
-    if (player.source().isEmpty()) {
-        qWarning() << "VideoLoader failed to create media source:" << path;
+    const QUrl mediaUrl = QUrl::fromLocalFile(QFileInfo(path).absoluteFilePath());
+    if (!QFileInfo::exists(path)) {
+        qWarning() << "VideoLoader source file does not exist:" << path;
         return {};
     }
-    qDebug() << "VideoLoader prepared media source:" << player.source();
-    return player.source();
+    m_mediaPlayer->setSource(mediaUrl);
+    qDebug() << "VideoLoader prepared media source:" << mediaUrl;
+    return mediaUrl;
 }

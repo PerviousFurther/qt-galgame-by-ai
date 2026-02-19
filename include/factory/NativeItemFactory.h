@@ -68,8 +68,7 @@ public:
     /**
      * @brief Create a native Item from properties
      * @param properties Dictionary of property name-value pairs from JSON/QML
-     * @return Shared pointer to the created Item
-     * @throws std::runtime_error if properties are invalid or incompatible
+     * @return QObject pointer to a created native Item/Loader, or nullptr on invalid data
      */
     QObject* create(const PropertyMap& properties) override;
 

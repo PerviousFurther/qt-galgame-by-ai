@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QMutexLocker>
+#include <QStringList>
 
 Resources::Resources() {
     registerDefaultLoaders();
@@ -17,11 +18,10 @@ Resources& Resources::getInstance() {
 
 void Resources::registerDefaultLoaders() {
     Registration& registration = Registration::getInstance();
-    registration.registerLoader({"file", "bmp", "Native", "BitmapLoader"});
-    registration.registerLoader({"file", "png", "Native", "BitmapLoader"});
-    registration.registerLoader({"file", "jpg", "Native", "BitmapLoader"});
-    registration.registerLoader({"file", "jpeg", "Native", "BitmapLoader"});
-    registration.registerLoader({"file", "webp", "Native", "BitmapLoader"});
+    const QStringList bitmapSuffixes = {"bmp", "png", "jpg", "jpeg", "webp"};
+    for (const QString& suffix : bitmapSuffixes) {
+        registration.registerLoader({"file", suffix, "Native", "BitmapLoader"});
+    }
     registration.registerLoader({"file", "mp4", "Native", "VideoLoader"});
 }
 
@@ -42,17 +42,23 @@ QSharedPointer<Loader> Resources::getLoader(const QString& name) const {
 }
 
 QVariant Resources::load(const QString& name) const {
-    QMutexLocker locker(&m_mutex);
-    if (!m_resources.contains(name)) {
-        qWarning() << "Resource not found:" << name;
-        return {};
+    QSharedPointer<Loader> loader;
+    QVariant value;
+    {
+        QMutexLocker locker(&m_mutex);
+        if (!m_resources.contains(name)) {
+            qWarning() << "Resource not found:" << name;
+            return {};
+        }
+        loader = m_resourceLoaders.value(name);
+        value = m_resources.value(name);
     }
-    QSharedPointer<Loader> loader = m_resourceLoaders.value(name);
+
     if (loader.isNull()) {
         qWarning() << "Loader not found for resource:" << name;
         return {};
     }
-    return loader->load(m_resources.value(name));
+    return loader->load(value);
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {
@@ -79,7 +85,7 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
 
 QString Resources::extractProtocol(const QString& value) {
     const int separatorIndex = value.indexOf("://");
-    if (separatorIndex > 0) {
+    if (separatorIndex >= 0) {
         return value.left(separatorIndex);
     }
     return "file";

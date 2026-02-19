@@ -47,10 +47,10 @@ QSharedPointer<Item> Registration::createItem(const QString& typeName, const Pro
     Item* item = qobject_cast<Item*>(object);
     if (!item) {
         qWarning() << "Factory returned non-Item object for type:" << typeName;
-        delete object;
+        object->deleteLater();
         return {};
     }
-    return QSharedPointer<Item>(item);
+    return QSharedPointer<Item>(item, [](Item* ptr) { delete ptr; });
 }
 
 QSharedPointer<Loader> Registration::createLoader(const QString& protocol, const QString& suffix, const PropertyMap& properties) {
@@ -63,6 +63,7 @@ QSharedPointer<Loader> Registration::createLoader(const QString& protocol, const
 
             PropertyMap finalProperties = properties;
             finalProperties["type"] = loaderRegistry.loaderType;
+            finalProperties["suffix"] = loaderRegistry.suffix;
 
             QObject* object = m_factories[loaderRegistry.factoryType]->create(finalProperties);
             if (!object) {
@@ -72,10 +73,10 @@ QSharedPointer<Loader> Registration::createLoader(const QString& protocol, const
             Loader* loader = qobject_cast<Loader*>(object);
             if (!loader) {
                 qWarning() << "Factory returned non-Loader object:" << loaderRegistry.loaderType;
-                delete object;
+                object->deleteLater();
                 return {};
             }
-            return QSharedPointer<Loader>(loader);
+            return QSharedPointer<Loader>(loader, [](Loader* ptr) { delete ptr; });
         }
     }
 

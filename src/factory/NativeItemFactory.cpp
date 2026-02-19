@@ -16,9 +16,6 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
     const QString type = properties["type"].toString();
 
     auto setCommonProperties = [&properties](Item* item) {
-        if (!item) {
-            return;
-        }
         if (properties.contains("id") && properties["id"].canConvert<QString>()) {
             item->setId(properties["id"].toString());
         }
@@ -28,7 +25,7 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
     };
 
     if (type == "Item" || type == "Base") {
-        Item* item = new Item();
+        auto* item = new Item();
         setCommonProperties(item);
         return item;
     }
@@ -73,7 +70,11 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
     }
 
     if (type == "BitmapLoader") {
-        return new BitmapLoader();
+        QString suffix = "bmp";
+        if (properties.contains("suffix") && properties["suffix"].canConvert<QString>()) {
+            suffix = properties["suffix"].toString();
+        }
+        return new BitmapLoader(suffix);
     }
 
     if (type == "VideoLoader") {

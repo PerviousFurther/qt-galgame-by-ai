@@ -49,7 +49,8 @@ public:
     /**
      * @brief Create an Item from properties
      * @param properties Dictionary of property name-value pairs from JSON/QML
-     * @return QObject pointer to the created object (caller can qobject_cast)
+     * @return QObject pointer to the created object (caller can qobject_cast).
+     *         Ownership is transferred to caller.
      */
     virtual QObject* create(const PropertyMap& properties) = 0;
 
