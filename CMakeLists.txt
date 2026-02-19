@@ -22,7 +22,7 @@ set(SOURCES
     src/main.cpp
     src/scene/Item.cpp
     src/scene/Scene.cpp
-    src/core/Timer.cpp
+    src/core/Execution.cpp
     src/core/Configuration.cpp
     src/core/GameManager.cpp
     src/factory/Registration.cpp
@@ -36,7 +36,7 @@ set(SOURCES
 set(HEADERS
     include/scene/Item.h
     include/scene/Scene.h
-    include/core/Timer.h
+    include/core/Execution.h
     include/core/Configuration.h
     include/core/GameManager.h
     include/factory/Factory.h

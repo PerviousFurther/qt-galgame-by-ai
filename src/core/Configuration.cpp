@@ -1,6 +1,7 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "core/Configuration.h"
 #include <QDebug>
+#include <QThread>
 
 Configuration::Configuration() {
     setDefaults();
@@ -26,6 +27,9 @@ void Configuration::setDefaults() {
     // Render defaults
     setTargetFPS(60);
     setVSyncEnabled(true);
+
+    // Execution defaults
+    setInt("execution.max_threads", QThread::idealThreadCount());
 }
 
 bool Configuration::loadFromFile(const QString& filePath) {

@@ -1,7 +1,7 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "scene/Scene.h"
 #include "scene/Item.h"
-#include "core/Timer.h"
+#include "core/Execution.h"
 #include "core/Configuration.h"
 #include "core/GameManager.h"
 #include "factory/Registration.h"
@@ -26,12 +26,13 @@ int main(int argc, char *argv[]) {
     qDebug() << "  Target FPS:" << config.getTargetFPS();
     qDebug() << "  Master Volume:" << config.getMasterVolume();
 
-    // Step 2: Initialize Timer
-    qDebug() << "=== Initializing Timer ===";
-    Timer& timer = Timer::getInstance();
-    timer.initialize();
-    timer.setFixedUpdateInterval(1.0f / 60.0f);  // 60 FPS for fixed updates
-    qDebug() << "Timer initialized (fixed update:" << timer.getFixedUpdateInterval() << "s)";
+    // Step 2: Initialize Execution
+    qDebug() << "=== Initializing Execution ===";
+    Execution& execution = Execution::getInstance();
+    execution.initialize();
+    execution.setFixedUpdateInterval(1.0f / 60.0f);  // 60 FPS for fixed updates
+    qDebug() << "Execution initialized (fixed update:" << execution.getFixedUpdateInterval()
+             << "s, max threads:" << execution.getMaxThreadCount() << ")";
 
     // Step 3: Register factories for Item creation
     qDebug() << "=== Registering Factories ===";
@@ -120,15 +121,15 @@ int main(int argc, char *argv[]) {
     
     // Simulate a few frames
     for (int frame = 0; frame < 5; ++frame) {
-        timer.update();
+        execution.update();
         
-        qDebug() << "Frame" << frame << ":" << "deltaTime=" << timer.getDeltaTime() << "runtime=" << timer.getRuntime();
+        qDebug() << "Frame" << frame << ":" << "deltaTime=" << execution.getDeltaTime() << "runtime=" << execution.getRuntime();
         
         // Regular update
         gameManager.update();
         
         // Fixed update (if needed)
-        if (timer.shouldFixedUpdate()) {
+        if (execution.shouldFixedUpdate()) {
             qDebug() << "  -> Fixed update triggered";
             gameManager.fixedUpdate();
         }
@@ -155,15 +156,15 @@ int main(int argc, char *argv[]) {
 
     // Step 9: Show stats
     qDebug() << "=== Engine Statistics ===";
-    qDebug() << "Total frames:" << timer.getFrameCount();
-    qDebug() << "Total runtime:" << timer.getRuntime() << "s";
+    qDebug() << "Total frames:" << execution.getFrameCount();
+    qDebug() << "Total runtime:" << execution.getRuntime() << "s";
     qDebug() << "Active scene:" << gameManager.getActiveSceneName();
 
     gameManager.stop();
     
     qDebug() << "=== Demonstration Completed Successfully! ===";
     qDebug() << "Architecture summary:";
-    qDebug() << "  ✓ Timer singleton for frame timing";
+    qDebug() << "  ✓ Execution singleton for timing and task dispatch";
     qDebug() << "  ✓ Configuration singleton for settings";
     qDebug() << "  ✓ Registration singleton for Item factories";
     qDebug() << "  ✓ Resources singleton for named loader asset management";

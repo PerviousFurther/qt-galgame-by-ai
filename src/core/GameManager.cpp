@@ -1,6 +1,5 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "core/GameManager.h"
-#include "core/Timer.h"
 #include <QDebug>
 
 GameManager::GameManager()

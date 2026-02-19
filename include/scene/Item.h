@@ -50,14 +50,14 @@ public:
 
     /**
      * @brief Update the item state
-     * Called every frame. Use Timer::getInstance().getDeltaTime() to get delta time.
+     * Called every frame. Use Execution::getInstance().getDeltaTime() to get delta time.
      */
     virtual void update();
 
     /**
      * @brief Fixed update for physics and time-critical operations
      * Called at fixed intervals (e.g., for mini-games like Snake).
-     * Use Timer::getInstance().getFixedUpdateInterval() to get the interval.
+     * Use Execution::getInstance().getFixedUpdateInterval() to get the interval.
      */
     virtual void fixedUpdate();
 

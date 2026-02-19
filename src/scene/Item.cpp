@@ -33,13 +33,13 @@ void Item::initialize() {
 void Item::update() {
     // Base implementation does nothing
     // Derived classes can override to implement specific behavior
-    // Use Timer::getInstance().getDeltaTime() to get delta time in seconds
+    // Use Execution::getInstance().getDeltaTime() to get delta time in seconds
 }
 
 void Item::fixedUpdate() {
     // Base implementation does nothing
     // Derived classes can override for fixed-interval updates (physics, mini-games)
-    // Use Timer::getInstance().getFixedUpdateInterval() to get the interval
+    // Use Execution::getInstance().getFixedUpdateInterval() to get the interval
 }
 
 void Item::cleanup() {
