@@ -148,9 +148,10 @@ void GameManager::unregisterEventCallback(int handle) {
 }
 
 void GameManager::emitEvent(GameEvent event, const QString& data) {
-    for (auto it = m_eventCallbacks.constBegin(); it != m_eventCallbacks.constEnd(); ++it) {
-        if (it.value()) {
-            it.value()(event, data);
+    const QList<GameEventCallback> callbacks = m_eventCallbacks.values();
+    for (const GameEventCallback& callback : callbacks) {
+        if (callback) {
+            callback(event, data);
         }
     }
 }

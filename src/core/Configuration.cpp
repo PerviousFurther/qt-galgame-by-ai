@@ -47,15 +47,13 @@ void Configuration::parseCommandLine(int argc, char* argv[]) {
             
             // Try to parse as different types
             bool converted = false;
-            if (value.contains('.')) {
+            const int intValue = value.toInt(&converted);
+            if (converted) {
+                setInt(key, intValue);
+            } else {
                 const float floatValue = value.toFloat(&converted);
                 if (converted) {
                     setFloat(key, floatValue);
-                }
-            } else {
-                const int intValue = value.toInt(&converted);
-                if (converted) {
-                    setInt(key, intValue);
                 }
             }
 

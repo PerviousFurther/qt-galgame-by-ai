@@ -1,6 +1,10 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "core/Timer.h"
 
+namespace {
+constexpr double NanosecondsToSeconds = 1e-9;
+}
+
 Timer::Timer()
     : m_deltaTime(0.0f)
     , m_fixedUpdateInterval(1.0f / 60.0f)  // Default 60 FPS for fixed updates
@@ -32,7 +36,7 @@ void Timer::initialize() {
 void Timer::update() {
     const qint64 currentNs = m_runtimeTimer.nsecsElapsed();
     const qint64 elapsedNs = currentNs - m_lastFrameNs;
-    m_deltaTime = static_cast<float>(elapsedNs / 1000000000.0);
+    m_deltaTime = static_cast<float>(elapsedNs * NanosecondsToSeconds);
     m_lastFrameNs = currentNs;
     
     // Update frame count
@@ -57,7 +61,7 @@ float Timer::getDeltaTime() const {
 }
 
 float Timer::getRuntime() const {
-    return static_cast<float>(m_runtimeTimer.nsecsElapsed() / 1000000000.0);
+    return static_cast<float>(m_runtimeTimer.nsecsElapsed() * NanosecondsToSeconds);
 }
 
 unsigned long long Timer::getFrameCount() const {

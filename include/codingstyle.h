@@ -12,7 +12,7 @@
  * - Use QString/QByteArray instead of std::string.
  * - Use QList/QVector instead of std::vector.
  * - Use QHash/QMap instead of std::map.
- * - Use QSharedPointer/QScopedPointer instead of std smart pointers.
+ * - Use QSharedPointer/QScopedPointer instead of standard smart pointers (std::shared_ptr/std::unique_ptr).
  * - Use QMutex/QReadWriteLock instead of std::mutex where applicable.
  * - Use QThread instead of std::thread where applicable.
  * - Use qDebug/qInfo/qWarning/qCritical instead of iostream logging.
