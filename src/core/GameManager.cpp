@@ -1,6 +1,9 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "core/GameManager.h"
+#include "resources/Resources.h"
+
 #include <QDebug>
+#include <QFileInfo>
 
 GameManager::GameManager()
     : m_state(State::Stopped)
@@ -15,6 +18,33 @@ GameManager& GameManager::getInstance() {
 void GameManager::initialize() {
     qDebug() << "GameManager initialized";
     m_state = State::Stopped;
+    loadScenesFromResources();
+    if (m_activeScene.isNull() && !m_scenes.isEmpty()) {
+        setActiveScene(m_scenes.constBegin().key());
+    }
+}
+
+void GameManager::loadScenesFromResources() {
+    Resources& resources = Resources::getInstance();
+    const QStringList sceneUrls = resources.getResourceUrlsBySuffix("json") +
+                                  resources.getResourceUrlsBySuffix("qml");
+    for (const QString& sceneUrl : sceneUrls) {
+        const QString sceneName = QFileInfo(sceneUrl).completeBaseName();
+        if (sceneName.isEmpty() || m_scenes.contains(sceneName)) {
+            continue;
+        }
+        QSharedPointer<Scene> scene = QSharedPointer<Scene>::create();
+        scene->setId(sceneName);
+        const QString suffix = QFileInfo(sceneUrl).suffix().toLower();
+        const bool loaded = (suffix == "json") ? scene->loadFromJson(sceneUrl)
+                                               : scene->loadFromQml(sceneUrl);
+        if (!loaded) {
+            qWarning() << "Failed to load scene from resource:" << sceneUrl;
+            continue;
+        }
+        addScene(sceneName, scene);
+        emitEvent(GameEvent::SceneLoaded, sceneName);
+    }
 }
 
 void GameManager::update() {

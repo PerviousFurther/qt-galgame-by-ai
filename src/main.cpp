@@ -1,12 +1,9 @@
 #include "codingstyle.h" // include/codingstyle.h
-#include "scene/Scene.h"
-#include "scene/Item.h"
 #include "core/Execution.h"
 #include "core/Configuration.h"
 #include "core/GameManager.h"
 #include "factory/Registration.h"
 #include "factory/NativeItemFactory.h"
-#include "resources/Loader.h"
 #include "resources/Resources.h"
 #include <QGuiApplication>
 #include <QDebug>
@@ -25,7 +22,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Initializing Configuration ===";
     Configuration& config = Configuration::getInstance();
     config.parseCommandLine(argc, argv);
-    config.loadFromFile("resources/config.json");
+    config.loadFromFile("qrc:/config.json");
     
     qDebug() << "Configuration loaded:";
     qDebug() << "  Window:" << config.getWindowWidth() << "x" << config.getWindowHeight();
@@ -60,104 +57,7 @@ int main(int argc, char *argv[]) {
     GameManager& gameManager = GameManager::getInstance();
     gameManager.initialize();
 
-    // Step 6: Create scenes
-    qDebug() << "=== Creating Scenes ===";
-    
-    // Create a dialog scene
-    auto dialogScene = QSharedPointer<Scene>::create();
-    dialogScene->setId("dialog_scene");
-    
-    // Create items using factory
-    PropertyMap bgProps = {{"type", "Item"}, {"id", "background"}, {"name", "Background"}};
-    auto bgObject = registration.create("Native", bgProps);
-    if (bgObject.isNull()) {
-        qWarning() << "Failed to create background object";
-        return 1;
-    }
-    auto bg = bgObject.dynamicCast<Item>();
-    if (bg.isNull()) {
-        qWarning() << "Background object is not Item";
-        return 1;
-    }
-    
-    PropertyMap charProps = {
-        {"type", "Character"},
-        {"id", "character"},
-        {"name", "Main Character"},
-        {"source", "resources/character.png"},
-        {"expression", "neutral"}
-    };
-    auto characterObject = registration.create("Native", charProps);
-    if (characterObject.isNull()) {
-        qWarning() << "Failed to create character object";
-        return 1;
-    }
-    auto character = characterObject.dynamicCast<Item>();
-    if (character.isNull()) {
-        qWarning() << "Character object is not Item";
-        return 1;
-    }
-
-    PropertyMap bgmProps = {
-        {"type", "Audio"},
-        {"id", "bgm"},
-        {"name", "Background Music"},
-        {"source", "resources/audio/opening.mp3"},
-        {"loop", true}
-    };
-    auto bgmObject = registration.create("Native", bgmProps);
-    if (bgmObject.isNull()) {
-        qWarning() << "Failed to create bgm object";
-        return 1;
-    }
-    auto bgm = bgmObject.dynamicCast<Item>();
-    if (bgm.isNull()) {
-        qWarning() << "BGM object is not Item";
-        return 1;
-    }
-
-    PropertyMap videoProps = {
-        {"type", "Video"},
-        {"id", "opening_video"},
-        {"name", "Opening Video"},
-        {"source", "resources/video/opening.mp4"},
-        {"loop", false}
-    };
-    auto openingVideoObject = registration.create("Native", videoProps);
-    if (openingVideoObject.isNull()) {
-        qWarning() << "Failed to create opening video object";
-        return 1;
-    }
-    auto openingVideo = openingVideoObject.dynamicCast<Item>();
-    if (openingVideo.isNull()) {
-        qWarning() << "Opening video object is not Item";
-        return 1;
-    }
-    
-    dialogScene->addItem(bg);
-    dialogScene->addItem(character);
-    dialogScene->addItem(bgm);
-    dialogScene->addItem(openingVideo);
-
-    if (auto audioItem = bgm.dynamicCast<AudioItem>()) {
-        QObject::connect(audioItem.data(), &AudioItem::playRequested, []() {
-            qDebug() << "BGM play requested";
-        });
-        audioItem->play();
-        qDebug() << "Audio item ready:" << audioItem->getSource() << "playing=" << audioItem->isPlaying();
-    }
-    if (auto videoItem = openingVideo.dynamicCast<VideoItem>()) {
-        QObject::connect(videoItem.data(), &VideoItem::playRequested, []() {
-            qDebug() << "Video play requested";
-        });
-        videoItem->play();
-        qDebug() << "Video item ready:" << videoItem->getSource() << "playing=" << videoItem->isPlaying();
-    }
-    
-    gameManager.addScene("dialog", dialogScene);
-    gameManager.setActiveScene("dialog");
-
-    // Step 7: Start game loop in Qt event loop
+    // Step 6: Start game loop in Qt event loop
     qDebug() << "=== Starting Game Loop ===";
     gameManager.start();
     auto* executionSingleton = &Execution::getInstance();
@@ -173,33 +73,6 @@ int main(int argc, char *argv[]) {
     });
     gameLoopTimer.start(16);  // ~60 FPS
 
-    // Step 8: Test resource loading
-    qDebug() << "=== Testing Resource Loading ===";
-    resources.addResource("opening_bitmap", "resources/background.png");
-    resources.addResource("opening_video", "resources/video/opening.mp4");
-    resources.addResource("scene_descriptor", "resources/scene.json");
-    QSharedPointer<Loader> bitmapLoader = resources.getLoader("opening_bitmap");
-    if (!bitmapLoader.isNull()) {
-        QObject::connect(bitmapLoader.data(), &Loader::loadFinished, [](Loader* loader) {
-            qDebug() << "Loaded bitmap resource via loader. initialized=" << loader->isInitialized()
-                     << "payload=" << loader->get();
-        });
-        bitmapLoader->load({}, false);
-        qDebug() << "Resolved named bitmap loader successfully, load requested";
-    }
-    QSharedPointer<Loader> videoLoader = resources.getLoader("opening_video");
-    if (!videoLoader.isNull()) {
-        QObject::connect(videoLoader.data(), &Loader::loadFinished, [](Loader* loader) {
-            qDebug() << "Loaded video resource via loader. initialized=" << loader->isInitialized()
-                     << "payload=" << loader->get();
-        });
-        videoLoader->load({}, true);
-        qDebug() << "Resolved named video loader successfully, load requested";
-    }
-    if (!resources.getLoader("opening_bitmap").isNull()) {
-        qDebug() << "Opening bitmap loader initialized:" << resources.getLoader("opening_bitmap")->isInitialized();
-    }
-
     QQmlApplicationEngine engine;
     QObject::connect(
         &engine,
@@ -207,9 +80,17 @@ int main(int argc, char *argv[]) {
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
-    engine.load(QUrl(QStringLiteral("qrc:/scene.qml")));
+    const QStringList qmlSceneUrls = resources.getResourceUrlsBySuffix("qml");
+    const QString startupSceneUrl = qmlSceneUrls.contains("qrc:/scene.qml")
+                                        ? QStringLiteral("qrc:/scene.qml")
+                                        : (qmlSceneUrls.isEmpty() ? QString() : qmlSceneUrls.first());
+    if (startupSceneUrl.isEmpty()) {
+        qWarning() << "No QML scene found in resources";
+        return -1;
+    }
+    engine.load(QUrl(startupSceneUrl));
     if (engine.rootObjects().isEmpty()) {
-        qWarning() << "Failed to load QML scene: qrc:/scene.qml";
+        qWarning() << "Failed to load QML scene:" << startupSceneUrl;
         return -1;
     }
 

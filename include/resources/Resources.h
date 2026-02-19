@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QSharedPointer>
 #include <QString>
+#include <QStringList>
 #include <QVariant>
 
 class Loader;
@@ -16,6 +17,8 @@ public:
     void addResource(const QString& name, const QVariant& value);
 
     QSharedPointer<Loader> getLoader(const QString& name) const;
+    QVariant getResource(const QString& name) const;
+    QStringList getResourceUrlsBySuffix(const QString& suffix) const;
 
 private:
     Resources();
@@ -24,7 +27,10 @@ private:
     Resources& operator=(const Resources&) = delete;
 
     void registerDefaultLoaders();
+    void registerResourcesFromQrc();
     void resolveLoaderForResource(const QString& name, const QVariant& value);
+    static QString normalizeResourcePath(const QString& value);
+    static bool resourceExists(const QString& value);
     static QString extractProtocol(const QString& value);
     static QString extractSuffix(const QString& value);
 

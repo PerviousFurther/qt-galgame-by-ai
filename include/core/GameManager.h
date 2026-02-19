@@ -68,6 +68,7 @@ public:
      * Should be called once at application start, after Configuration is loaded
      */
     void initialize();
+    void loadScenesFromResources();
 
     /**
      * @brief Update game logic

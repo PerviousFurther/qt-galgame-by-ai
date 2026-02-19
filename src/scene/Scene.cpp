@@ -1,6 +1,22 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "scene/Scene.h"
+#include "factory/Registration.h"
+
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
+namespace {
+QString normalizeScenePath(const QString& filePath) {
+    if (filePath.startsWith("qrc:/")) {
+        return ":" + filePath.mid(4);
+    }
+    return filePath;
+}
+}
 
 Scene::Scene() {
 }
@@ -80,17 +96,61 @@ const QList<QSharedPointer<Item>>& Scene::getItems() const {
 }
 
 bool Scene::loadFromJson(const QString& filePath) {
-    // TODO: Implement JSON loading
-    // This is a stub for future implementation
-    qDebug() << "Loading scene from JSON:" << filePath << "(not yet implemented)";
-    return false;
+    QFile file(normalizeScenePath(filePath));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open scene JSON:" << filePath;
+        return false;
+    }
+    const QByteArray data = file.readAll();
+    file.close();
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(data, &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+        qWarning() << "Failed to parse scene JSON:" << filePath << parseError.errorString();
+        return false;
+    }
+
+    const QJsonObject root = document.object();
+    const QJsonObject sceneObject = root.value("scene").toObject();
+    const QString parsedId = sceneObject.value("id").toString();
+    if (!parsedId.isEmpty()) {
+        setId(parsedId);
+    } else if (m_id.isEmpty()) {
+        setId(QFileInfo(filePath).completeBaseName());
+    }
+
+    const QJsonArray items = sceneObject.value("items").toArray();
+    for (const QJsonValue& value : items) {
+        const QJsonObject itemObject = value.toObject();
+        PropertyMap properties;
+        properties["type"] = itemObject.value("type").toString("Item");
+        properties["id"] = itemObject.value("id").toString();
+        properties["name"] = itemObject.value("name").toString();
+        const QJsonObject itemProperties = itemObject.value("properties").toObject();
+        for (auto it = itemProperties.begin(); it != itemProperties.end(); ++it) {
+            properties[it.key()] = it.value().toVariant();
+        }
+        const QSharedPointer<QObject> object = Registration::getInstance().create("Native", properties);
+        const QSharedPointer<Item> item = object.dynamicCast<Item>();
+        if (!item.isNull()) {
+            addItem(item);
+        }
+    }
+
+    return true;
 }
 
 bool Scene::loadFromQml(const QString& filePath) {
-    // TODO: Implement QML loading
-    // This is a stub for future implementation
-    qDebug() << "Loading scene from QML:" << filePath << "(not yet implemented)";
-    return false;
+    const QString normalizedPath = normalizeScenePath(filePath);
+    if (!QFile::exists(normalizedPath)) {
+        qWarning() << "Scene QML does not exist:" << filePath;
+        return false;
+    }
+    if (m_id.isEmpty()) {
+        setId(QFileInfo(filePath).completeBaseName());
+    }
+    return true;
 }
 
 void Scene::initialize() {
