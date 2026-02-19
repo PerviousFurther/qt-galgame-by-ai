@@ -5,8 +5,11 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QQueue>
+#include <QQuickItem>
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <QScopedPointer>
 #include <QUrl>
 
 Scene::Scene() {
@@ -147,7 +150,7 @@ bool Scene::loadFromQml(const QString& filePath) {
         return false;
     }
 
-    QObject* root = component.create();
+    QScopedPointer<QObject> root(component.create());
     if (!root) {
         qWarning() << "Failed to create QML scene root object:" << filePath << component.errors();
         return false;
@@ -155,19 +158,33 @@ bool Scene::loadFromQml(const QString& filePath) {
 
     clear();
 
-    if (getId().isEmpty()) {
-        setId(QFileInfo(filePath).baseName());
+    setId(QFileInfo(filePath).baseName());
+
+    QList<QQuickItem*> qmlItems;
+    if (auto* rootItem = qobject_cast<QQuickItem*>(root.data())) {
+        QQueue<QQuickItem*> pendingItems;
+        for (QQuickItem* child : rootItem->childItems()) {
+            pendingItems.enqueue(child);
+        }
+
+        while (!pendingItems.isEmpty()) {
+            QQuickItem* currentItem = pendingItems.dequeue();
+            qmlItems.append(currentItem);
+            const QList<QQuickItem*> childItems = currentItem->childItems();
+            for (QQuickItem* child : childItems) {
+                pendingItems.enqueue(child);
+            }
+        }
     }
 
-    const QList<QObject*> qmlItems = root->findChildren<QObject*>(QString(), Qt::FindChildrenRecursively);
     QHash<QString, int> typeCounters;
-    for (QObject* qmlItem : qmlItems) {
+    for (QQuickItem* qmlItem : qmlItems) {
         auto item = QSharedPointer<Item>::create();
         const QString qmlType = QString::fromUtf8(qmlItem->metaObject()->className());
         QString objectId = qmlItem->objectName();
         if (objectId.isEmpty()) {
-            const int index = typeCounters.value(qmlType);
-            typeCounters[qmlType] = index + 1;
+            const int index = typeCounters.value(qmlType) + 1;
+            typeCounters[qmlType] = index;
             objectId = qmlType + "_" + QString::number(index);
         }
         item->setId(objectId);
@@ -189,8 +206,6 @@ bool Scene::loadFromQml(const QString& filePath) {
 
         addItem(item);
     }
-
-    delete root;
     return true;
 }
 
