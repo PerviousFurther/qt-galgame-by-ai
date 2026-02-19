@@ -321,7 +321,9 @@ QSharedPointer<Resource> JsonLoader::loadImpl(const QString& sourceUrl) {
             const QString suffix = QFileInfo(loaderSource).suffix().toLower();
             PropertyMap properties;
             properties["source"] = loaderSource;
-            QSharedPointer<QObject> object = Registration::getInstance().createObjectByRegistry(protocol, suffix, properties);
+            properties["protocol"] = protocol;
+            properties["suffix"] = suffix;
+            QSharedPointer<QObject> object = Registration::getInstance().create("Native", properties);
             if (object.isNull()) {
                 continue;
             }

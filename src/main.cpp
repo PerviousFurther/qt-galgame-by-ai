@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     
     // Create items using factory
     PropertyMap bgProps = {{"type", "Item"}, {"id", "background"}, {"name", "Background"}};
-    auto bgObject = registration.createObject("Native", bgProps);
+    auto bgObject = registration.create("Native", bgProps);
     if (bgObject.isNull()) {
         qWarning() << "Failed to create background object";
         return 1;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
         {"source", "resources/character.png"},
         {"expression", "neutral"}
     };
-    auto characterObject = registration.createObject("Native", charProps);
+    auto characterObject = registration.create("Native", charProps);
     if (characterObject.isNull()) {
         qWarning() << "Failed to create character object";
         return 1;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
         {"source", "resources/audio/opening.mp3"},
         {"loop", true}
     };
-    auto bgmObject = registration.createObject("Native", bgmProps);
+    auto bgmObject = registration.create("Native", bgmProps);
     if (bgmObject.isNull()) {
         qWarning() << "Failed to create bgm object";
         return 1;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         {"source", "resources/video/opening.mp4"},
         {"loop", false}
     };
-    auto openingVideoObject = registration.createObject("Native", videoProps);
+    auto openingVideoObject = registration.create("Native", videoProps);
     if (openingVideoObject.isNull()) {
         qWarning() << "Failed to create opening video object";
         return 1;
@@ -179,7 +179,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Testing Resource Loading ===";
     resources.addResource("opening_bitmap", "resources/background.png");
     resources.addResource("opening_video", "resources/video/opening.mp4");
-    resources.addResource("scene_descriptor", "qrc:/scene.json");
+    resources.addResource("scene_descriptor", "resources/scene.json");
     QSharedPointer<Loader> bitmapLoader = resources.load("opening_bitmap", false);
     if (!bitmapLoader.isNull()) {
         QObject::connect(bitmapLoader.data(), &Loader::loadFinished, [](Loader* loader) {

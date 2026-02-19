@@ -33,7 +33,7 @@ bool Registration::unregisterFactory(const QString& typeName) {
     return true;
 }
 
-QSharedPointer<QObject> Registration::createObject(const QString& typeName, const PropertyMap& properties) {
+QSharedPointer<QObject> Registration::create(const QString& typeName, const PropertyMap& properties) {
     if (!m_factories.contains(typeName)) {
         qWarning() << "No factory registered for type:" << typeName;
         return {};
@@ -47,55 +47,10 @@ QSharedPointer<QObject> Registration::createObject(const QString& typeName, cons
     return QSharedPointer<QObject>(object, [](QObject* ptr) { delete ptr; });
 }
 
-QSharedPointer<QObject> Registration::createObjectByRegistry(const QString& protocol, const QString& suffix, const PropertyMap& properties) {
-    for (const LoaderRegistry& loaderRegistry : m_loaderRegistries) {
-        if (loaderRegistry.protocol == protocol && loaderRegistry.suffix == suffix) {
-            if (!m_factories.contains(loaderRegistry.factoryType)) {
-                qWarning() << "Factory not found for loader registry:" << loaderRegistry.factoryType;
-                return {};
-            }
-
-            PropertyMap finalProperties = properties;
-            finalProperties["type"] = loaderRegistry.loaderType;
-            finalProperties["suffix"] = loaderRegistry.suffix;
-
-            QObject* object = m_factories[loaderRegistry.factoryType]->create(finalProperties);
-            if (!object) {
-                return {};
-            }
-
-            return QSharedPointer<QObject>(object, [](QObject* ptr) { delete ptr; });
-        }
-    }
-
-    qWarning() << "No loader registry found for protocol/suffix:" << protocol << suffix;
-    return {};
-}
-
 bool Registration::hasFactory(const QString& typeName) const {
     return m_factories.contains(typeName);
 }
 
 QStringList Registration::getRegisteredTypes() const {
     return m_factories.keys();
-}
-
-bool Registration::registerLoader(const LoaderRegistry& loaderRegistry) {
-    if (loaderRegistry.protocol.isEmpty() || loaderRegistry.suffix.isEmpty() ||
-        loaderRegistry.factoryType.isEmpty() || loaderRegistry.loaderType.isEmpty()) {
-        return false;
-    }
-
-    for (const LoaderRegistry& existing : m_loaderRegistries) {
-        if (existing.protocol == loaderRegistry.protocol &&
-            existing.suffix == loaderRegistry.suffix) {
-            return false;
-        }
-    }
-    m_loaderRegistries.append(loaderRegistry);
-    return true;
-}
-
-QList<Registration::LoaderRegistry> Registration::getRegisteredLoaders() const {
-    return m_loaderRegistries;
 }

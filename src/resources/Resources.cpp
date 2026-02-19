@@ -5,7 +5,6 @@
 #include "resources/Loader.h"
 
 #include <QDebug>
-#include <QStringList>
 
 Resources::Resources() {
     registerDefaultLoaders();
@@ -17,16 +16,7 @@ Resources& Resources::getInstance() {
 }
 
 void Resources::registerDefaultLoaders() {
-    Registration& registration = Registration::getInstance();
-    const QStringList bitmapSuffixes = {"bmp", "png", "jpg", "jpeg", "webp"};
-    for (const QString& suffix : bitmapSuffixes) {
-        registration.registerLoader({"file", suffix, "Native", "BitmapLoader"});
-        registration.registerLoader({"qrc", suffix, "Native", "BitmapLoader"});
-    }
-    registration.registerLoader({"file", "mp4", "Native", "VideoLoader"});
-    registration.registerLoader({"qrc", "mp4", "Native", "VideoLoader"});
-    registration.registerLoader({"file", "json", "Native", "JsonLoader"});
-    registration.registerLoader({"qrc", "json", "Native", "JsonLoader"});
+    // Unified creation flow: loader selection comes from PropertyMap (protocol/suffix/type/source).
 }
 
 void Resources::addResource(const QString& name, const QVariant& value) {
@@ -79,7 +69,9 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
     PropertyMap properties;
     properties["source"] = source;
 
-    QSharedPointer<QObject> object = Registration::getInstance().createObjectByRegistry(protocol, suffix, properties);
+    properties["protocol"] = protocol;
+    properties["suffix"] = suffix;
+    QSharedPointer<QObject> object = Registration::getInstance().create("Native", properties);
     if (object.isNull()) {
         qWarning() << "Unable to create object for resource loader:" << name << source;
         m_resourceLoaders.remove(name);

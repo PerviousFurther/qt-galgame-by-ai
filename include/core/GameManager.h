@@ -154,7 +154,7 @@ public:
     /**
      * @brief Emit a game event
      * @param event Event type
-     * @param data Optional event data
+     * @param data Optional event data payload
      */
     void emitEvent(GameEvent event, const QVariant& data = {});
 

@@ -4,17 +4,45 @@
 #include "scene/Item.h"
 
 #include <QDebug>
+#include <stdexcept>
 
 NativeItemFactory::NativeItemFactory() {
 }
 
 QObject* NativeItemFactory::create(const PropertyMap& properties) {
-    if (!properties.contains("type") || !properties["type"].canConvert<QString>()) {
-        qWarning() << "Property 'type' is required and must be a string";
-        return nullptr;
+    QString type;
+    if (properties.contains("type")) {
+        if (!properties["type"].canConvert<QString>()) {
+            throw std::runtime_error("Property 'type' must be a string");
+        }
+        type = properties["type"].toString();
+    } else if (properties.contains("protocol") || properties.contains("suffix")) {
+        if (!properties.contains("protocol") || !properties.contains("suffix")) {
+            throw std::runtime_error("Both 'protocol' and 'suffix' are required for loader inference");
+        }
+        if (!properties["protocol"].canConvert<QString>()) {
+            throw std::runtime_error("Property 'protocol' must be a string");
+        }
+        if (!properties["suffix"].canConvert<QString>()) {
+            throw std::runtime_error("Property 'suffix' must be a string");
+        }
+        const QString protocol = properties["protocol"].toString();
+        const QString suffix = properties["suffix"].toString().toLower();
+        if (protocol != "file" && protocol != "qrc") {
+            throw std::runtime_error("Unsupported protocol: " + protocol.toStdString());
+        }
+        if (suffix == "bmp" || suffix == "png" || suffix == "jpg" || suffix == "jpeg" || suffix == "webp") {
+            type = "BitmapLoader";
+        } else if (suffix == "mp4") {
+            type = "VideoLoader";
+        } else if (suffix == "json") {
+            type = "JsonLoader";
+        } else {
+            throw std::runtime_error("Unsupported suffix: " + suffix.toStdString());
+        }
+    } else {
+        throw std::runtime_error("Property 'type' is required unless loader protocol/suffix are provided");
     }
-
-    const QString type = properties["type"].toString();
 
     auto setCommonProperties = [&properties](Item* item) {
         if (properties.contains("id") && properties["id"].canConvert<QString>()) {

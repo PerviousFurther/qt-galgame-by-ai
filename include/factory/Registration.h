@@ -7,7 +7,6 @@
 #include <QHash>
 #include <QString>
 #include <QStringList>
-#include <QList>
 
 /**
  * @brief Registration singleton for managing Item factories
@@ -27,7 +26,7 @@
  * props["source"] = "image.png";
  * props["x"] = 100;
  * props["y"] = 200;
- * auto object = Registration::getInstance().createObject("Image", props);
+ * auto object = Registration::getInstance().create("Image", props);
  * if (!object.isNull()) {
  *     auto item = object.dynamicCast<Item>();
  *     if (!item.isNull()) {
@@ -41,13 +40,6 @@
  */
 class Registration {
 public:
-    struct LoaderRegistry {
-        QString protocol;
-        QString suffix;
-        QString factoryType;
-        QString loaderType;
-    };
-
     /**
      * @brief Get the singleton instance
      * @return Reference to the Registration singleton
@@ -68,8 +60,7 @@ public:
      */
     bool unregisterFactory(const QString& typeName);
 
-    QSharedPointer<QObject> createObject(const QString& typeName, const PropertyMap& properties);
-    QSharedPointer<QObject> createObjectByRegistry(const QString& protocol, const QString& suffix, const PropertyMap& properties);
+    QSharedPointer<QObject> create(const QString& typeName, const PropertyMap& properties);
 
     /**
      * @brief Check if a factory is registered for a type
@@ -83,8 +74,6 @@ public:
      * @return List of registered type names
      */
     QStringList getRegisteredTypes() const;
-    bool registerLoader(const LoaderRegistry& loaderRegistry);
-    QList<LoaderRegistry> getRegisteredLoaders() const;
 
 private:
     Registration();
@@ -93,7 +82,6 @@ private:
     Registration& operator=(const Registration&) = delete;
 
     QHash<QString, QSharedPointer<Factory>> m_factories;
-    QList<LoaderRegistry> m_loaderRegistries;
 };
 
 #endif // REGISTRATION_H
