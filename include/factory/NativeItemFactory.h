@@ -1,5 +1,6 @@
 #ifndef NATIVEITEMFACTORY_H
 #define NATIVEITEMFACTORY_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include "factory/Factory.h"
 
@@ -68,10 +69,9 @@ public:
     /**
      * @brief Create a native Item from properties
      * @param properties Dictionary of property name-value pairs from JSON/QML
-     * @return Shared pointer to the created Item
-     * @throws std::runtime_error if properties are invalid or incompatible
+     * @return QObject pointer to a created native Item/Loader, or nullptr on invalid data
      */
-    QSharedPointer<Item> create(const PropertyMap& properties) override;
+    QObject* create(const PropertyMap& properties) override;
 
     /**
      * @brief Get the factory type name

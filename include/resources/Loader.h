@@ -1,132 +1,121 @@
 #ifndef LOADER_H
 #define LOADER_H
+#include "codingstyle.h" // include/codingstyle.h
 
-#include "Resource.h"
-#include <memory>
-#include <string>
-#include <functional>
+#include <QObject>
+#include <QHash>
+#include <QList>
+#include <QMutex>
+#include <QSharedPointer>
+#include <QString>
+#include <QVariant>
 
-/**
- * @brief Callback type for async loading completion
- * @param resource The loaded resource (may be nullptr if loading failed)
- * @param success Whether loading was successful
- */
-using LoadCallback = std::function<void(std::shared_ptr<Resource>, bool)>;
+class QMediaPlayer;
+class Resource;
 
-/**
- * @brief Abstract base class for resource loaders
- * 
- * Loaders handle loading resources from different protocols (file://, qrc://, etc.)
- * and file formats (images, audio, etc.). They support both synchronous and
- * asynchronous loading.
- * 
- * Loaders can be specialized through multiple inheritance to handle combinations
- * of protocols and formats:
- * - FileImageLoader (file:// + images)
- * - QrcImageLoader (qrc:// + images)
- * - FileAudioLoader (file:// + audio)
- * - etc.
- */
-class Loader {
-public:
-    virtual ~Loader() = default;
-
-    /**
-     * @brief Check if this loader can handle the given URL
-     * @param url The resource URL
-     * @return true if this loader supports the URL's protocol and format
-     */
-    virtual bool canLoad(const std::string& url) const = 0;
-
-    /**
-     * @brief Load a resource synchronously
-     * @param url The resource URL
-     * @return Loaded resource, or nullptr if loading failed
-     */
-    virtual std::shared_ptr<Resource> loadSync(const std::string& url) = 0;
-
-    /**
-     * @brief Load a resource asynchronously
-     * @param url The resource URL
-     * @param callback Called when loading completes (or fails)
-     */
-    virtual void loadAsync(const std::string& url, LoadCallback callback) = 0;
-
-protected:
-    /**
-     * @brief Extract protocol from URL (e.g., "file", "qrc")
-     * @param url The URL to parse
-     * @return Protocol string, or "file" if no protocol specified
-     */
-    static std::string getProtocol(const std::string& url);
-
-    /**
-     * @brief Extract file extension from URL
-     * @param url The URL to parse
-     * @return File extension (lowercase, without dot)
-     */
-    static std::string getExtension(const std::string& url);
+struct FileProtocolTag {
+    static QString value() { return "file"; }
 };
 
-/**
- * @brief Base class for loaders that support the file:// protocol
- */
-class FileLoader : public virtual Loader {
-public:
-    bool canLoad(const std::string& url) const override;
-
-protected:
-    /**
-     * @brief Open a file and read its contents
-     * @param path File path (protocol already stripped)
-     * @param outData Output buffer for file data
-     * @param outSize Output variable for data size
-     * @return true if successful
-     */
-    bool readFile(const std::string& path, std::vector<char>& outData) const;
+struct QrcProtocolTag {
+    static QString value() { return "qrc"; }
 };
 
-/**
- * @brief Base class for loaders that support the qrc:// protocol (Qt resources)
- */
-class QrcLoader : public virtual Loader {
-public:
-    bool canLoad(const std::string& url) const override;
-
-protected:
-    /**
-     * @brief Read data from Qt resource system
-     * @param path Resource path (protocol already stripped)
-     * @param outData Output buffer for resource data
-     * @return true if successful
-     */
-    bool readQrcResource(const std::string& path, std::vector<char>& outData) const;
+struct BitmapSuffixTag {
+    static QString value() { return "bmp"; }
 };
 
-/**
- * @brief Loader for image files from file:// protocol
- */
-class FileImageLoader : public FileLoader {
+struct VideoSuffixTag {
+    static QString value() { return "mp4"; }
+};
+
+struct JsonSuffixTag {
+    static QString value() { return "json"; }
+};
+
+class Loader : public QObject {
+    Q_OBJECT
 public:
-    bool canLoad(const std::string& url) const override;
-    std::shared_ptr<Resource> loadSync(const std::string& url) override;
-    void loadAsync(const std::string& url, LoadCallback callback) override;
+    explicit Loader(const QString& protocol, const QString& suffix, QObject* parent = nullptr);
+    ~Loader() override = default;
+
+    const QString& getProtocol() const;
+    const QString& getSuffix() const;
+    void setSourceUrl(const QString& sourceUrl);
+    QString getSourceUrl() const;
+    bool isInitialized() const;
+
+    Loader& load(const QVariant& source = {}, bool async = true);
+    Loader& unload(bool async = true);
+    QObject* get() const;
+
+    virtual QSharedPointer<Resource> loadImpl(const QString& sourceUrl) = 0;
+    virtual void unloadImpl();
+
+    QSharedPointer<Resource> getCachedResource() const;
+    QList<QSharedPointer<Loader>> getGeneratedLoaders() const;
+
+signals:
+    void loadFinished(Loader* loader);
+    void unloadFinished(Loader* loader);
+    void loadFailed(const QString& error);
+
+protected:
+    void markInitialized();
+    void cacheResource(const QString& sourceUrl, const QSharedPointer<Resource>& resource);
+    QSharedPointer<Resource> findCachedResource(const QString& sourceUrl) const;
+    void setGeneratedLoaders(const QList<QSharedPointer<Loader>>& loaders);
 
 private:
-    bool isImageExtension(const std::string& ext) const;
+    QString m_protocol;
+    QString m_suffix;
+    QString m_sourceUrl;
+    bool m_initialized;
+    mutable QMutex m_initializedMutex{QMutex::NonRecursive};
+    mutable QMutex m_resourceMutex{QMutex::NonRecursive};
+    QHash<QString, QSharedPointer<Resource>> m_resourceCache;
+    QSharedPointer<Resource> m_lastResource;
+    QList<QSharedPointer<Loader>> m_generatedLoaders;
 };
 
-/**
- * @brief Loader for image files from qrc:// protocol
- */
-class QrcImageLoader : public QrcLoader {
+template <typename ProtocolTag, typename SuffixTag>
+class ComposedLoader : public Loader {
 public:
-    bool canLoad(const std::string& url) const override;
-    std::shared_ptr<Resource> loadSync(const std::string& url) override;
-    void loadAsync(const std::string& url, LoadCallback callback) override;
+    explicit ComposedLoader(QObject* parent = nullptr)
+        : Loader(ProtocolTag::value(), SuffixTag::value(), parent)
+    {
+    }
+};
+
+class BitmapLoader : public ComposedLoader<FileProtocolTag, BitmapSuffixTag> {
+    Q_OBJECT
+public:
+    // Runtime suffix is used for validation while template suffix identifies composed semantic category.
+    explicit BitmapLoader(const QString& suffix = "bmp", QObject* parent = nullptr);
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 
 private:
-    bool isImageExtension(const std::string& ext) const;
+    QString m_runtimeSuffix;
+    QString m_runtimeSuffixLower;
 };
+
+class VideoLoader : public ComposedLoader<FileProtocolTag, VideoSuffixTag> {
+    Q_OBJECT
+public:
+    explicit VideoLoader(QObject* parent = nullptr);
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
+
+private:
+    QMediaPlayer* m_mediaPlayer;
+};
+
+class JsonLoader : public ComposedLoader<FileProtocolTag, JsonSuffixTag> {
+    Q_OBJECT
+public:
+    explicit JsonLoader(QObject* parent = nullptr);
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
+};
+
+Q_DECLARE_METATYPE(QSharedPointer<Loader>)
 
 #endif // LOADER_H

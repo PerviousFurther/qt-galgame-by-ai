@@ -1,5 +1,6 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef INCLUDE_SCENE_SCENE_H
+#define INCLUDE_SCENE_SCENE_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include "Item.h"
 #include <QList>
@@ -103,4 +104,4 @@ private:
     QHash<QString, QSharedPointer<Item>> m_itemMap;
 };
 
-#endif // SCENE_H
+#endif // INCLUDE_SCENE_SCENE_H

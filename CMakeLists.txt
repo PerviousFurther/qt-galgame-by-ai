@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find Qt6 packages - REQUIRED since we use Qt containers throughout
-find_package(Qt6 COMPONENTS Core Qml Quick REQUIRED)
+find_package(Qt6 COMPONENTS Core Qml Quick Gui Multimedia REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -22,7 +22,7 @@ set(SOURCES
     src/main.cpp
     src/scene/Item.cpp
     src/scene/Scene.cpp
-    src/core/Timer.cpp
+    src/core/Execution.cpp
     src/core/Configuration.cpp
     src/core/GameManager.cpp
     src/factory/Registration.cpp
@@ -36,7 +36,7 @@ set(SOURCES
 set(HEADERS
     include/scene/Item.h
     include/scene/Scene.h
-    include/core/Timer.h
+    include/core/Execution.h
     include/core/Configuration.h
     include/core/GameManager.h
     include/factory/Factory.h
@@ -55,28 +55,11 @@ target_link_libraries(${PROJECT_NAME}
     Qt6::Core
     Qt6::Qml
     Qt6::Quick
+    Qt6::Gui
+    Qt6::Multimedia
 )
 
 # Set output directory
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Multimedia)
-
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-    src/scene.h
-    src/scene.cpp
-    src/item.h
-    src/item.cpp
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Widgets
-    Qt6::Multimedia
 )

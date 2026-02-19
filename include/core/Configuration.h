@@ -1,9 +1,10 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
+#include "codingstyle.h" // include/codingstyle.h
 
-#include <string>
-#include <map>
-#include <memory>
+#include <QHash>
+#include <QString>
+#include <QVariant>
 
 /**
  * @brief Configuration singleton for managing application settings
@@ -35,7 +36,7 @@ public:
      * @param filePath Path to the JSON configuration file
      * @return true if successful, false otherwise
      */
-    bool loadFromFile(const std::string& filePath);
+    bool loadFromFile(const QString& filePath);
 
     /**
      * @brief Parse command line arguments
@@ -49,7 +50,7 @@ public:
      * @param filePath Path to save the configuration
      * @return true if successful, false otherwise
      */
-    bool saveToFile(const std::string& filePath) const;
+    bool saveToFile(const QString& filePath) const;
 
     // Audio settings
     float getMasterVolume() const;
@@ -82,17 +83,20 @@ public:
     void setVSyncEnabled(bool enabled);
 
     // Generic configuration access
-    std::string getString(const std::string& key, const std::string& defaultValue = "") const;
-    void setString(const std::string& key, const std::string& value);
+    QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
+    void setValue(const QString& key, const QVariant& value);
 
-    int getInt(const std::string& key, int defaultValue = 0) const;
-    void setInt(const std::string& key, int value);
+    QString getString(const QString& key, const QString& defaultValue = "") const;
+    void setString(const QString& key, const QString& value);
 
-    float getFloat(const std::string& key, float defaultValue = 0.0f) const;
-    void setFloat(const std::string& key, float value);
+    int getInt(const QString& key, int defaultValue = 0) const;
+    void setInt(const QString& key, int value);
 
-    bool getBool(const std::string& key, bool defaultValue = false) const;
-    void setBool(const std::string& key, bool value);
+    float getFloat(const QString& key, float defaultValue = 0.0f) const;
+    void setFloat(const QString& key, float value);
+
+    bool getBool(const QString& key, bool defaultValue = false) const;
+    void setBool(const QString& key, bool value);
 
 private:
     Configuration();
@@ -103,10 +107,7 @@ private:
     // Default values
     void setDefaults();
 
-    std::map<std::string, std::string> m_stringValues;
-    std::map<std::string, int> m_intValues;
-    std::map<std::string, float> m_floatValues;
-    std::map<std::string, bool> m_boolValues;
+    QHash<QString, QVariant> m_values;
 };
 
 #endif // CONFIGURATION_H

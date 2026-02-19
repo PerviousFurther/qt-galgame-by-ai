@@ -1,7 +1,11 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
+#include <QReadWriteLock>
+#include <QObject>
+#include <QSharedPointer>
 
 /**
  * @brief Base class for loaded resources
@@ -12,7 +16,7 @@
  * Resources emit signals when they are loaded or unloaded, allowing
  * Items to respond to resource state changes.
  * 
- * NOTE: Uses Qt containers - see CodingStandards.h
+ * NOTE: Uses Qt containers - see codingstyle.h
  */
 class Resource {
 public:
@@ -24,13 +28,18 @@ public:
     };
 
     Resource(const QString& url);
+    Resource(const Resource& other);
+    Resource& operator=(const Resource& other);
+    Resource(Resource&& other) noexcept;
+    Resource& operator=(Resource&& other) noexcept;
     virtual ~Resource();
 
     /**
      * @brief Get the resource URL
      * @return The URL/path of the resource
+     * @note Returns by value to keep thread-safe copy semantics.
      */
-    const QString& getUrl() const;
+    QString getUrl() const;
 
     /**
      * @brief Get the current state of the resource
@@ -61,9 +70,14 @@ public:
      */
     void setState(State state);
 
+    QObject* get() const;
+    void set(QObject* object);
+
 protected:
     QString m_url;
     State m_state;
+    QSharedPointer<QObject> m_object;
+    mutable QReadWriteLock m_lock;
 };
 
 /**
@@ -76,8 +90,8 @@ public:
 
     size_t getSize() const override;
 
-    int getWidth() const { return m_width; }
-    int getHeight() const { return m_height; }
+    int getWidth() const;
+    int getHeight() const;
     void setDimensions(int width, int height);
 
     // TODO: Add actual texture data storage (e.g., OpenGL texture ID, raw pixel data)
@@ -97,7 +111,7 @@ public:
 
     size_t getSize() const override;
 
-    float getDuration() const { return m_duration; }
+    float getDuration() const;
     void setDuration(float duration);
 
     // TODO: Add actual audio data storage
@@ -118,11 +132,14 @@ public:
     virtual ~ChatSessionResource() = default;
 
     size_t getSize() const override;
+    void setDataSize(size_t dataSize);
 
     // TODO: Add dialog tree/chat session data structures
 
 private:
     size_t m_dataSize;
 };
+
+Q_DECLARE_METATYPE(QSharedPointer<Resource>)
 
 #endif // RESOURCE_H

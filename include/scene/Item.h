@@ -1,6 +1,8 @@
-#ifndef ITEM_H
-#define ITEM_H
+#ifndef INCLUDE_SCENE_ITEM_H
+#define INCLUDE_SCENE_ITEM_H
+#include "codingstyle.h" // include/codingstyle.h
 
+#include <QObject>
 #include <QString>
 #include <QSharedPointer>
 
@@ -10,9 +12,10 @@
  * Item is the fundamental building block of the galgame engine.
  * Most objects in the scene inherit from this class.
  */
-class Item {
+class Item : public QObject {
+    Q_OBJECT
 public:
-    Item();
+    explicit Item(QObject* parent = nullptr);
     virtual ~Item();
 
     /**
@@ -47,14 +50,14 @@ public:
 
     /**
      * @brief Update the item state
-     * Called every frame. Use Timer::getInstance().getDeltaTime() to get delta time.
+     * Called every frame. Use Execution::getInstance().getDeltaTime() to get delta time.
      */
     virtual void update();
 
     /**
      * @brief Fixed update for physics and time-critical operations
      * Called at fixed intervals (e.g., for mini-games like Snake).
-     * Use Timer::getInstance().getFixedUpdateInterval() to get the interval.
+     * Use Execution::getInstance().getFixedUpdateInterval() to get the interval.
      */
     virtual void fixedUpdate();
 
@@ -63,10 +66,92 @@ public:
      */
     virtual void cleanup();
 
+    /**
+     * @brief Get the runtime type name of this Item.
+     */
+    virtual QString getType() const;
+
 protected:
     QString m_id;
     QString m_name;
     bool m_initialized;
 };
 
-#endif // ITEM_H
+class AudioItem : public Item {
+    Q_OBJECT
+public:
+    explicit AudioItem(QObject* parent = nullptr);
+
+    void setSource(const QString& source);
+    const QString& getSource() const;
+
+    void setLoop(bool loop);
+    bool isLoop() const;
+
+    void play();
+    void stop();
+    bool isPlaying() const;
+
+    QString getType() const override;
+
+signals:
+    void playRequested();
+    void stopRequested();
+
+private:
+    QString m_source;
+    bool m_loop;
+    bool m_playing;
+};
+
+class VideoItem : public Item {
+    Q_OBJECT
+public:
+    explicit VideoItem(QObject* parent = nullptr);
+
+    void setSource(const QString& source);
+    const QString& getSource() const;
+
+    void setLoop(bool loop);
+    bool isLoop() const;
+
+    void play();
+    void stop();
+    bool isPlaying() const;
+
+    QString getType() const override;
+
+signals:
+    void playRequested();
+    void stopRequested();
+
+private:
+    QString m_source;
+    bool m_loop;
+    bool m_playing;
+};
+
+class CharacterItem : public Item {
+public:
+    explicit CharacterItem(QObject* parent = nullptr);
+
+    void setPortrait(const QString& portrait);
+    const QString& getPortrait() const;
+
+    void setExpression(const QString& expression);
+    const QString& getExpression() const;
+
+    void setVisible(bool visible);
+    bool isVisible() const;
+
+    QString getType() const override;
+
+private:
+    QString m_portrait;
+    QString m_expression;
+    bool m_visible;
+};
+
+Q_DECLARE_METATYPE(QSharedPointer<Item>)
+
+#endif // INCLUDE_SCENE_ITEM_H

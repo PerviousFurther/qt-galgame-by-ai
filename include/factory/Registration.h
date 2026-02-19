@@ -1,5 +1,6 @@
 #ifndef REGISTRATION_H
 #define REGISTRATION_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include "Factory.h"
 #include <QSharedPointer>
@@ -25,7 +26,13 @@
  * props["source"] = "image.png";
  * props["x"] = 100;
  * props["y"] = 200;
- * auto item = Registration::getInstance().createItem("Image", props);
+ * auto object = Registration::getInstance().create("Image", props);
+ * if (!object.isNull()) {
+ *     auto item = object.dynamicCast<Item>();
+ *     if (!item.isNull()) {
+ *         // use item
+ *     }
+ * }
  * 
  * // Unregister when no longer needed
  * Registration::getInstance().unregisterFactory("Image");
@@ -53,14 +60,7 @@ public:
      */
     bool unregisterFactory(const QString& typeName);
 
-    /**
-     * @brief Create an Item using the registered factory
-     * @param typeName The type of Item to create
-     * @param properties Dictionary of properties from JSON/QML
-     * @return Shared pointer to the created Item
-     * @throws runtime_error if no factory is registered for the type
-     */
-    QSharedPointer<Item> createItem(const QString& typeName, const PropertyMap& properties);
+    QSharedPointer<QObject> create(const QString& typeName, const PropertyMap& properties);
 
     /**
      * @brief Check if a factory is registered for a type

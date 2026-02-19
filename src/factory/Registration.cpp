@@ -1,5 +1,7 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "factory/Registration.h"
-#include <stdexcept>
+
+#include <QDebug>
 
 Registration::Registration() {
 }
@@ -10,13 +12,11 @@ Registration& Registration::getInstance() {
 }
 
 bool Registration::registerFactory(QSharedPointer<Factory> factory) {
-    if (!factory) {
+    if (factory.isNull()) {
         return false;
     }
 
-    QString typeName = factory->getTypeName();
-    
-    // Check if factory already exists
+    const QString typeName = factory->getTypeName();
     if (m_factories.contains(typeName)) {
         return false;
     }
@@ -29,17 +29,22 @@ bool Registration::unregisterFactory(const QString& typeName) {
     if (!m_factories.contains(typeName)) {
         return false;
     }
-
     m_factories.remove(typeName);
     return true;
 }
 
-QSharedPointer<Item> Registration::createItem(const QString& typeName, const PropertyMap& properties) {
+QSharedPointer<QObject> Registration::create(const QString& typeName, const PropertyMap& properties) {
     if (!m_factories.contains(typeName)) {
-        throw std::runtime_error(("No factory registered for type: " + typeName).toStdString());
+        qWarning() << "No factory registered for type:" << typeName;
+        return {};
     }
 
-    return m_factories[typeName]->create(properties);
+    QObject* object = m_factories[typeName]->create(properties);
+    if (!object) {
+        return {};
+    }
+
+    return QSharedPointer<QObject>(object, [](QObject* ptr) { delete ptr; });
 }
 
 bool Registration::hasFactory(const QString& typeName) const {

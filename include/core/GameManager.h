@@ -1,12 +1,13 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
+#include "codingstyle.h" // include/codingstyle.h
 
+#include <QObject>
 #include "scene/Scene.h"
-#include <memory>
-#include <map>
-#include <string>
-#include <vector>
-#include <functional>
+#include <QHash>
+#include <QSharedPointer>
+#include <QString>
+#include <QVariant>
 
 /**
  * @brief Game event types
@@ -30,8 +31,6 @@ enum class GameEvent {
  * @param event The event type
  * @param data Optional event data (scene name, save slot, etc.)
  */
-using GameEventCallback = std::function<void(GameEvent event, const std::string& data)>;
-
 /**
  * @brief GameManager singleton for managing game logic and flow
  * 
@@ -49,7 +48,8 @@ using GameEventCallback = std::function<void(GameEvent event, const std::string&
  * Note: Scenes that modify singletons (like SettingsScene modifying Configuration)
  * are assumed to run on the main thread without async conflicts.
  */
-class GameManager {
+class GameManager : public QObject {
+    Q_OBJECT
 public:
     enum class State {
         Stopped,
@@ -114,62 +114,52 @@ public:
      * @param name Scene name/identifier
      * @param scene Shared pointer to the scene
      */
-    void addScene(const std::string& name, std::shared_ptr<Scene> scene);
+    void addScene(const QString& name, QSharedPointer<Scene> scene);
 
     /**
      * @brief Remove a scene from the manager
      * @param name Scene name
      * @return true if successful, false if not found
      */
-    bool removeScene(const std::string& name);
+    bool removeScene(const QString& name);
 
     /**
      * @brief Get a scene by name
      * @param name Scene name
      * @return Shared pointer to the scene, or nullptr if not found
      */
-    std::shared_ptr<Scene> getScene(const std::string& name) const;
+    QSharedPointer<Scene> getScene(const QString& name) const;
 
     /**
      * @brief Set the active scene
      * @param name Scene name
      * @return true if successful, false if scene not found
      */
-    bool setActiveScene(const std::string& name);
+    bool setActiveScene(const QString& name);
 
     /**
      * @brief Get the currently active scene
      * @return Active scene, or nullptr if none
      */
-    std::shared_ptr<Scene> getActiveScene() const;
+    QSharedPointer<Scene> getActiveScene() const;
 
     /**
      * @brief Get the name of the active scene
      * @return Active scene name, or empty string if none
      */
-    const std::string& getActiveSceneName() const;
+    const QString& getActiveSceneName() const;
 
     // Event system
 
     /**
-     * @brief Register a callback for game events
-     * @param callback Function to call when events occur
-     * @return Event handle for unregistering
-     */
-    int registerEventCallback(GameEventCallback callback);
-
-    /**
-     * @brief Unregister an event callback
-     * @param handle Event handle returned from registerEventCallback
-     */
-    void unregisterEventCallback(int handle);
-
-    /**
      * @brief Emit a game event
      * @param event Event type
-     * @param data Optional event data
+     * @param data Optional event data payload
      */
-    void emitEvent(GameEvent event, const std::string& data = "");
+    void emitEvent(GameEvent event, const QVariant& data = {});
+
+signals:
+    void gameEventTriggered(GameEvent event, const QVariant& data);
 
 private:
     GameManager();
@@ -178,12 +168,11 @@ private:
     GameManager& operator=(const GameManager&) = delete;
 
     State m_state;
-    std::map<std::string, std::shared_ptr<Scene>> m_scenes;
-    std::shared_ptr<Scene> m_activeScene;
-    std::string m_activeSceneName;
-    
-    std::map<int, GameEventCallback> m_eventCallbacks;
-    int m_nextEventHandle;
+    QHash<QString, QSharedPointer<Scene>> m_scenes;
+    QSharedPointer<Scene> m_activeScene;
+    QString m_activeSceneName;
 };
+
+Q_DECLARE_METATYPE(GameEvent)
 
 #endif // GAMEMANAGER_H

@@ -1,13 +1,12 @@
 #ifndef FACTORY_H
 #define FACTORY_H
+#include "codingstyle.h" // include/codingstyle.h
 
+#include <QObject>
 #include <QSharedPointer>
 #include <QString>
 #include <QHash>
 #include <QVariant>
-
-// Forward declaration
-class Item;
 
 /**
  * @brief Type alias for property map that can be passed from JSON/QML
@@ -32,8 +31,8 @@ using PropertyMap = QHash<QString, QVariant>;
  * @code
  * class ImageItemFactory : public Factory {
  * public:
- *     QSharedPointer<Item> create(const PropertyMap& properties) override {
- *         auto item = QSharedPointer<ImageItem>::create();
+ *     QObject* create(const PropertyMap& properties) override {
+ *         auto* item = new ImageItem();
  *         // Parse properties and configure item
  *         if (properties.contains("source")) {
  *             QString source = properties.value("source").toString();
@@ -51,10 +50,10 @@ public:
     /**
      * @brief Create an Item from properties
      * @param properties Dictionary of property name-value pairs from JSON/QML
-     * @return Shared pointer to the created Item
-     * @throws runtime_error if properties are invalid or incompatible
+     * @return QObject pointer to the created object (caller can qobject_cast).
+     *         Ownership is transferred to caller.
      */
-    virtual QSharedPointer<Item> create(const PropertyMap& properties) = 0;
+    virtual QObject* create(const PropertyMap& properties) = 0;
 
     /**
      * @brief Get the type name this factory creates
