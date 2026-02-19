@@ -42,3 +42,116 @@ void Item::fixedUpdate() {
 void Item::cleanup() {
     m_initialized = false;
 }
+
+QString Item::getType() const {
+    return "Item";
+}
+
+AudioItem::AudioItem()
+    : m_loop(false)
+    , m_playing(false)
+{
+}
+
+void AudioItem::setSource(const QString& source) {
+    m_source = source;
+}
+
+const QString& AudioItem::getSource() const {
+    return m_source;
+}
+
+void AudioItem::setLoop(bool loop) {
+    m_loop = loop;
+}
+
+bool AudioItem::isLoop() const {
+    return m_loop;
+}
+
+void AudioItem::play() {
+    m_playing = true;
+}
+
+void AudioItem::stop() {
+    m_playing = false;
+}
+
+bool AudioItem::isPlaying() const {
+    return m_playing;
+}
+
+QString AudioItem::getType() const {
+    return "Audio";
+}
+
+VideoItem::VideoItem()
+    : m_loop(false)
+    , m_playing(false)
+{
+}
+
+void VideoItem::setSource(const QString& source) {
+    m_source = source;
+}
+
+const QString& VideoItem::getSource() const {
+    return m_source;
+}
+
+void VideoItem::setLoop(bool loop) {
+    m_loop = loop;
+}
+
+bool VideoItem::isLoop() const {
+    return m_loop;
+}
+
+void VideoItem::play() {
+    m_playing = true;
+}
+
+void VideoItem::stop() {
+    m_playing = false;
+}
+
+bool VideoItem::isPlaying() const {
+    return m_playing;
+}
+
+QString VideoItem::getType() const {
+    return "Video";
+}
+
+CharacterItem::CharacterItem()
+    : m_visible(true)
+{
+}
+
+void CharacterItem::setPortrait(const QString& portrait) {
+    m_portrait = portrait;
+}
+
+const QString& CharacterItem::getPortrait() const {
+    return m_portrait;
+}
+
+void CharacterItem::setExpression(const QString& expression) {
+    m_expression = expression;
+}
+
+const QString& CharacterItem::getExpression() const {
+    return m_expression;
+}
+
+void CharacterItem::setVisible(bool visible) {
+    m_visible = visible;
+}
+
+bool CharacterItem::isVisible() const {
+    return m_visible;
+}
+
+QString CharacterItem::getType() const {
+    return "Character";
+}

@@ -71,11 +71,48 @@ int main(int argc, char *argv[]) {
     PropertyMap bgProps = {{"type", "Item"}, {"id", "background"}, {"name", "Background"}};
     auto bg = registration.createItem("Native", bgProps);
     
-    PropertyMap charProps = {{"type", "Item"}, {"id", "character"}, {"name", "Main Character"}};
+    PropertyMap charProps = {
+        {"type", "Character"},
+        {"id", "character"},
+        {"name", "Main Character"},
+        {"source", "resources/character.png"},
+        {"expression", "neutral"}
+    };
     auto character = registration.createItem("Native", charProps);
+
+    PropertyMap bgmProps = {
+        {"type", "Audio"},
+        {"id", "bgm"},
+        {"name", "Background Music"},
+        {"source", "resources/audio/opening.mp3"},
+        {"loop", true}
+    };
+    auto bgm = registration.createItem("Native", bgmProps);
+
+    PropertyMap videoProps = {
+        {"type", "Video"},
+        {"id", "opening_video"},
+        {"name", "Opening Video"},
+        {"source", "resources/video/opening.mp4"},
+        {"loop", false}
+    };
+    auto openingVideo = registration.createItem("Native", videoProps);
     
     dialogScene->addItem(bg);
     dialogScene->addItem(character);
+    dialogScene->addItem(bgm);
+    dialogScene->addItem(openingVideo);
+
+    if (auto audioItem = bgm.dynamicCast<AudioItem>()) {
+        audioItem->play();
+        std::cout << "Audio item ready: " << audioItem->getSource().toStdString()
+                  << ", playing=" << audioItem->isPlaying() << std::endl;
+    }
+    if (auto videoItem = openingVideo.dynamicCast<VideoItem>()) {
+        videoItem->play();
+        std::cout << "Video item ready: " << videoItem->getSource().toStdString()
+                  << ", playing=" << videoItem->isPlaying() << std::endl;
+    }
     
     gameManager.addScene("dialog", dialogScene);
     gameManager.setActiveScene("dialog");
@@ -156,4 +193,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

@@ -63,10 +63,80 @@ public:
      */
     virtual void cleanup();
 
+    /**
+     * @brief Get the runtime type name of this Item.
+     */
+    virtual QString getType() const;
+
 protected:
     QString m_id;
     QString m_name;
     bool m_initialized;
+};
+
+class AudioItem : public Item {
+public:
+    AudioItem();
+
+    void setSource(const QString& source);
+    const QString& getSource() const;
+
+    void setLoop(bool loop);
+    bool isLoop() const;
+
+    void play();
+    void stop();
+    bool isPlaying() const;
+
+    QString getType() const override;
+
+private:
+    QString m_source;
+    bool m_loop;
+    bool m_playing;
+};
+
+class VideoItem : public Item {
+public:
+    VideoItem();
+
+    void setSource(const QString& source);
+    const QString& getSource() const;
+
+    void setLoop(bool loop);
+    bool isLoop() const;
+
+    void play();
+    void stop();
+    bool isPlaying() const;
+
+    QString getType() const override;
+
+private:
+    QString m_source;
+    bool m_loop;
+    bool m_playing;
+};
+
+class CharacterItem : public Item {
+public:
+    CharacterItem();
+
+    void setPortrait(const QString& portrait);
+    const QString& getPortrait() const;
+
+    void setExpression(const QString& expression);
+    const QString& getExpression() const;
+
+    void setVisible(bool visible);
+    bool isVisible() const;
+
+    QString getType() const override;
+
+private:
+    QString m_portrait;
+    QString m_expression;
+    bool m_visible;
 };
 
 #endif // ITEM_H
