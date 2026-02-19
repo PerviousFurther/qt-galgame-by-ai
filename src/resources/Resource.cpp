@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resource.h"
 
 #include <QReadLocker>
@@ -110,75 +109,4 @@ QObject* Resource::get() const {
 void Resource::set(QObject* object) {
     QWriteLocker lock(&m_lock);
     m_object.reset(object);
-}
-
-TextureResource::TextureResource(const QString& url)
-    : Resource(url)
-    , m_width(0)
-    , m_height(0)
-{
-}
-
-size_t TextureResource::getSize() const {
-    QReadLocker lock(&m_lock);
-    if (m_state != State::Loaded) {
-        return 0;
-    }
-    return static_cast<size_t>(m_width * m_height * 4);
-}
-
-int TextureResource::getWidth() const {
-    QReadLocker lock(&m_lock);
-    return m_width;
-}
-
-int TextureResource::getHeight() const {
-    QReadLocker lock(&m_lock);
-    return m_height;
-}
-
-void TextureResource::setDimensions(int width, int height) {
-    QWriteLocker lock(&m_lock);
-    m_width = width;
-    m_height = height;
-}
-
-AudioResource::AudioResource(const QString& url)
-    : Resource(url)
-    , m_duration(0.0f)
-{
-}
-
-size_t AudioResource::getSize() const {
-    QReadLocker lock(&m_lock);
-    if (m_state != State::Loaded) {
-        return 0;
-    }
-    return static_cast<size_t>(44100 * 2 * 2 * m_duration);
-}
-
-float AudioResource::getDuration() const {
-    QReadLocker lock(&m_lock);
-    return m_duration;
-}
-
-void AudioResource::setDuration(float duration) {
-    QWriteLocker lock(&m_lock);
-    m_duration = duration;
-}
-
-ChatSessionResource::ChatSessionResource(const QString& url)
-    : Resource(url)
-    , m_dataSize(0)
-{
-}
-
-size_t ChatSessionResource::getSize() const {
-    QReadLocker lock(&m_lock);
-    return m_dataSize;
-}
-
-void ChatSessionResource::setDataSize(size_t dataSize) {
-    QWriteLocker lock(&m_lock);
-    m_dataSize = dataSize;
 }

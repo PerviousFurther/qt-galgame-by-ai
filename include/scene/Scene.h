@@ -1,6 +1,5 @@
 #ifndef INCLUDE_SCENE_SCENE_H
 #define INCLUDE_SCENE_SCENE_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include "Item.h"
 #include <QList>

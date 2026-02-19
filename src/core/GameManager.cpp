@@ -1,9 +1,17 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "core/GameManager.h"
+#include "core/Execution.h"
+#include "resources/Resources.h"
+
 #include <QDebug>
+#include <QFileInfo>
+
+namespace {
+constexpr int MaxFixedUpdateStepsPerFrame = 8;
+}
 
 GameManager::GameManager()
     : m_state(State::Stopped)
+    , m_frameUpdateInProgress(false)
 {
 }
 
@@ -15,6 +23,42 @@ GameManager& GameManager::getInstance() {
 void GameManager::initialize() {
     qDebug() << "GameManager initialized";
     m_state = State::Stopped;
+    loadScenesFromResources();
+    if (m_activeScene.isNull() && !m_scenes.isEmpty()) {
+        setActiveScene(m_scenes.constBegin().key());
+    }
+}
+
+void GameManager::loadScenesFromResources() {
+    Resources& resources = Resources::getInstance();
+    const QStringList sceneUrls = resources.getResourceUrlsBySuffix("json") +
+                                  resources.getResourceUrlsBySuffix("qml");
+    for (const QString& sceneUrl : sceneUrls) {
+        const QFileInfo sceneInfo(sceneUrl);
+        const QString sceneName = sceneInfo.completeBaseName();
+        const QString suffix = sceneInfo.suffix().toLower();
+        if (sceneName.isEmpty()) {
+            continue;
+        }
+        if (suffix != "json" && suffix != "qml") {
+            continue;
+        }
+        QString sceneKey = sceneName + "_" + suffix;
+        int suffixIndex = 1;
+        while (m_scenes.contains(sceneKey)) {
+            sceneKey = sceneName + "_" + suffix + "_" + QString::number(suffixIndex++);
+        }
+        QSharedPointer<Scene> scene = QSharedPointer<Scene>::create();
+        scene->setId(sceneName);
+        const bool loaded = (suffix == "json") ? scene->loadFromJson(sceneUrl)
+                                               : scene->loadFromQml(sceneUrl);
+        if (!loaded) {
+            qWarning() << "Failed to load scene from resource:" << sceneUrl;
+            continue;
+        }
+        addScene(sceneKey, scene);
+        emitEvent(GameEvent::SceneLoaded, sceneKey);
+    }
 }
 
 void GameManager::update() {
@@ -43,6 +87,7 @@ void GameManager::start() {
     if (m_state == State::Stopped) {
         m_state = State::Running;
         emitEvent(GameEvent::GameStarted);
+        emit gameStateChanged();
         qDebug() << "Game started";
     }
 }
@@ -51,6 +96,7 @@ void GameManager::pause() {
     if (m_state == State::Running) {
         m_state = State::Paused;
         emitEvent(GameEvent::GamePaused);
+        emit gameStateChanged();
         qDebug() << "Game paused";
     }
 }
@@ -59,6 +105,7 @@ void GameManager::resume() {
     if (m_state == State::Paused) {
         m_state = State::Running;
         emitEvent(GameEvent::GameResumed);
+        emit gameStateChanged();
         qDebug() << "Game resumed";
     }
 }
@@ -67,12 +114,33 @@ void GameManager::stop() {
     if (m_state != State::Stopped) {
         m_state = State::Stopped;
         emitEvent(GameEvent::GameEnded);
+        emit gameStateChanged();
         qDebug() << "Game stopped";
+    }
+}
+
+void GameManager::handleApplicationStateChange(Qt::ApplicationState state) {
+    if (state == Qt::ApplicationActive && m_state == State::Paused) {
+        resume();
+    } else if (state != Qt::ApplicationActive && m_state == State::Running) {
+        pause();
     }
 }
 
 GameManager::State GameManager::getState() const {
     return m_state;
+}
+
+QString GameManager::getGameState() const {
+    switch (m_state) {
+    case State::Running:
+        return QStringLiteral("Running");
+    case State::Paused:
+        return QStringLiteral("Paused");
+    case State::Stopped:
+    default:
+        return QStringLiteral("Stopped");
+    }
 }
 
 void GameManager::addScene(const QString& name, QSharedPointer<Scene> scene) {
@@ -122,6 +190,7 @@ bool GameManager::setActiveScene(const QString& name) {
     m_activeScene->initialize();
     
     emitEvent(GameEvent::SceneChanged, name);
+    emit activeSceneChanged();
     qDebug() << "Active scene set to:" << name;
     
     return true;
@@ -137,4 +206,32 @@ const QString& GameManager::getActiveSceneName() const {
 
 void GameManager::emitEvent(GameEvent event, const QVariant& data) {
     emit gameEventTriggered(event, data);
+}
+
+void GameManager::attachRenderWindow(QQuickWindow* window) {
+    if (window == nullptr) {
+        return;
+    }
+    m_renderWindow = window;
+    QObject::connect(m_renderWindow, &QQuickWindow::beforeRendering, this, &GameManager::processFrame, Qt::DirectConnection);
+    m_renderWindow->requestUpdate();
+}
+
+void GameManager::processFrame() {
+    if (m_frameUpdateInProgress) {
+        return;
+    }
+    m_frameUpdateInProgress = true;
+    Execution& execution = Execution::getInstance();
+    execution.update();
+    update();
+    int fixedStepCount = 0;
+    while (execution.shouldFixedUpdate() && fixedStepCount < MaxFixedUpdateStepsPerFrame) {
+        fixedUpdate();
+        ++fixedStepCount;
+    }
+    m_frameUpdateInProgress = false;
+    if (!m_renderWindow.isNull()) {
+        m_renderWindow->requestUpdate();
+    }
 }

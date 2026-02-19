@@ -1,13 +1,17 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resources.h"
 
 #include "factory/Registration.h"
 #include "resources/Loader.h"
 
+#include <QDir>
+#include <QDirIterator>
 #include <QDebug>
+#include <QFile>
+#include <QFileInfo>
 
 Resources::Resources() {
     registerDefaultLoaders();
+    registerResourcesFromQrc();
 }
 
 Resources& Resources::getInstance() {
@@ -20,12 +24,47 @@ void Resources::registerDefaultLoaders() {
 }
 
 void Resources::addResource(const QString& name, const QVariant& value) {
+    if (value.canConvert<QString>()) {
+        const QString resourceValue = value.toString();
+        if (!resourceExists(resourceValue)) {
+            qWarning() << "Resource path does not exist:" << resourceValue;
+            return;
+        }
+    }
     m_resources[name] = value;
     resolveLoaderForResource(name, value);
 }
 
 QSharedPointer<Loader> Resources::getLoader(const QString& name) const {
     return m_resourceLoaders.value(name);
+}
+
+QVariant Resources::getResource(const QString& name) const {
+    return m_resources.value(name);
+}
+
+QStringList Resources::getResourceUrlsBySuffix(const QString& suffix) const {
+    QStringList urls;
+    const QString suffixLower = suffix.toLower();
+    for (auto it = m_resources.constBegin(); it != m_resources.constEnd(); ++it) {
+        if (!it.value().canConvert<QString>()) {
+            continue;
+        }
+        const QString url = it.value().toString();
+        if (extractSuffix(url) == suffixLower) {
+            urls.append(url);
+        }
+    }
+    return urls;
+}
+
+void Resources::registerResourcesFromQrc() {
+    QDirIterator it(":/", QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString qrcPath = it.next();
+        const QString qrcUrl = normalizeResourcePath(qrcPath);
+        addResource(qrcUrl, qrcUrl);
+    }
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {
@@ -57,6 +96,26 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
     }
     loader->setSourceUrl(source);
     m_resourceLoaders[name] = loader;
+}
+
+QString Resources::normalizeResourcePath(const QString& value) {
+    if (value.startsWith("qrc:/")) {
+        return value;
+    }
+    if (value.startsWith(":/")) {
+        return "qrc" + value;
+    }
+    return value;
+}
+
+bool Resources::resourceExists(const QString& value) {
+    if (value.startsWith("qrc:/")) {
+        return QFile::exists(":" + value.mid(4));
+    }
+    if (value.startsWith(":/")) {
+        return QFile::exists(value);
+    }
+    return QFileInfo::exists(value);
 }
 
 QString Resources::extractProtocol(const QString& value) {

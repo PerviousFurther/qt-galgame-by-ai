@@ -1,11 +1,12 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include "scene/Scene.h"
 #include <QHash>
+#include <QPointer>
 #include <QSharedPointer>
+#include <QQuickWindow>
 #include <QString>
 #include <QVariant>
 
@@ -50,6 +51,8 @@ enum class GameEvent {
  */
 class GameManager : public QObject {
     Q_OBJECT
+    Q_PROPERTY(QString gameState READ getGameState NOTIFY gameStateChanged)
+    Q_PROPERTY(QString activeScene READ getActiveSceneName NOTIFY activeSceneChanged)
 public:
     enum class State {
         Stopped,
@@ -68,6 +71,7 @@ public:
      * Should be called once at application start, after Configuration is loaded
      */
     void initialize();
+    void loadScenesFromResources();
 
     /**
      * @brief Update game logic
@@ -84,28 +88,30 @@ public:
     /**
      * @brief Start the game
      */
-    void start();
+    Q_INVOKABLE void start();
 
     /**
      * @brief Pause the game
      */
-    void pause();
+    Q_INVOKABLE void pause();
 
     /**
      * @brief Resume the game
      */
-    void resume();
+    Q_INVOKABLE void resume();
 
     /**
      * @brief Stop the game
      */
-    void stop();
+    Q_INVOKABLE void stop();
+    void handleApplicationStateChange(Qt::ApplicationState state);
 
     /**
      * @brief Get current game state
      * @return Current state
      */
     State getState() const;
+    QString getGameState() const;
 
     // Scene management
     
@@ -157,9 +163,15 @@ public:
      * @param data Optional event data payload
      */
     void emitEvent(GameEvent event, const QVariant& data = {});
+    void attachRenderWindow(QQuickWindow* window);
+
+public slots:
+    void processFrame();
 
 signals:
     void gameEventTriggered(GameEvent event, const QVariant& data);
+    void gameStateChanged();
+    void activeSceneChanged();
 
 private:
     GameManager();
@@ -171,6 +183,8 @@ private:
     QHash<QString, QSharedPointer<Scene>> m_scenes;
     QSharedPointer<Scene> m_activeScene;
     QString m_activeSceneName;
+    bool m_frameUpdateInProgress;
+    QPointer<QQuickWindow> m_renderWindow;
 };
 
 Q_DECLARE_METATYPE(GameEvent)

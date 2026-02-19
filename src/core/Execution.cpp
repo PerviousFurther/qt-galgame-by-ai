@@ -1,4 +1,3 @@
-#include "codingstyle.h" // include/codingstyle.h
 #include "core/Execution.h"
 
 #include "core/Configuration.h"

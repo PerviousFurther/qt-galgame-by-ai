@@ -1,6 +1,5 @@
 #ifndef LOADER_H
 #define LOADER_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include <QHash>
@@ -12,26 +11,6 @@
 
 class QMediaPlayer;
 class Resource;
-
-struct FileProtocolTag {
-    static QString value() { return "file"; }
-};
-
-struct QrcProtocolTag {
-    static QString value() { return "qrc"; }
-};
-
-struct BitmapSuffixTag {
-    static QString value() { return "bmp"; }
-};
-
-struct VideoSuffixTag {
-    static QString value() { return "mp4"; }
-};
-
-struct JsonSuffixTag {
-    static QString value() { return "json"; }
-};
 
 class Loader : public QObject {
     Q_OBJECT
@@ -71,35 +50,21 @@ private:
     QString m_suffix;
     QString m_sourceUrl;
     bool m_initialized;
-    mutable QMutex m_initializedMutex{QMutex::NonRecursive};
-    mutable QMutex m_resourceMutex{QMutex::NonRecursive};
+    mutable QMutex m_initializedMutex;
+    mutable QMutex m_resourceMutex;
     QHash<QString, QSharedPointer<Resource>> m_resourceCache;
     QSharedPointer<Resource> m_lastResource;
     QList<QSharedPointer<Loader>> m_generatedLoaders;
 };
 
-template <typename ProtocolTag, typename SuffixTag>
-class ComposedLoader : public Loader {
-public:
-    explicit ComposedLoader(QObject* parent = nullptr)
-        : Loader(ProtocolTag::value(), SuffixTag::value(), parent)
-    {
-    }
-};
-
-class BitmapLoader : public ComposedLoader<FileProtocolTag, BitmapSuffixTag> {
+class BitmapLoader : public Loader {
     Q_OBJECT
 public:
-    // Runtime suffix is used for validation while template suffix identifies composed semantic category.
-    explicit BitmapLoader(const QString& suffix = "bmp", QObject* parent = nullptr);
+    explicit BitmapLoader(QObject* parent = nullptr);
     QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
-
-private:
-    QString m_runtimeSuffix;
-    QString m_runtimeSuffixLower;
 };
 
-class VideoLoader : public ComposedLoader<FileProtocolTag, VideoSuffixTag> {
+class VideoLoader : public Loader {
     Q_OBJECT
 public:
     explicit VideoLoader(QObject* parent = nullptr);
@@ -109,10 +74,17 @@ private:
     QMediaPlayer* m_mediaPlayer;
 };
 
-class JsonLoader : public ComposedLoader<FileProtocolTag, JsonSuffixTag> {
+class JsonLoader : public Loader {
     Q_OBJECT
 public:
     explicit JsonLoader(QObject* parent = nullptr);
+    QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
+};
+
+class QmlLoader : public Loader {
+    Q_OBJECT
+public:
+    explicit QmlLoader(QObject* parent = nullptr);
     QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 };
 

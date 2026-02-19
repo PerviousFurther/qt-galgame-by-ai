@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
-#include "codingstyle.h" // include/codingstyle.h
 
+#include <QObject>
 #include <QHash>
 #include <QString>
 #include <QVariant>
@@ -23,7 +23,12 @@
  * Note: This class is not thread-safe. Settings modifications from UI
  * should occur on the main thread.
  */
-class Configuration {
+class Configuration : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString applicationName READ getApplicationName WRITE setApplicationName NOTIFY applicationNameChanged)
+    Q_PROPERTY(int targetFps READ getTargetFPS WRITE setTargetFPS NOTIFY targetFpsChanged)
+    Q_PROPERTY(int gameLoopIntervalMs READ getGameLoopIntervalMs WRITE setGameLoopIntervalMs NOTIFY gameLoopIntervalMsChanged)
+    Q_PROPERTY(QString startupSceneUrl READ getStartupSceneUrl WRITE setStartupSceneUrl NOTIFY startupSceneUrlChanged)
 public:
     /**
      * @brief Get the singleton instance
@@ -82,6 +87,19 @@ public:
     bool isVSyncEnabled() const;
     void setVSyncEnabled(bool enabled);
 
+    // Application bootstrap settings
+    QString getApplicationName() const;
+    void setApplicationName(const QString& appName);
+
+    QString getConfigResourceUrl() const;
+    void setConfigResourceUrl(const QString& resourceUrl);
+
+    QString getStartupSceneUrl() const;
+    void setStartupSceneUrl(const QString& sceneUrl);
+
+    int getGameLoopIntervalMs() const;
+    void setGameLoopIntervalMs(int intervalMs);
+
     // Generic configuration access
     QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
     void setValue(const QString& key, const QVariant& value);
@@ -97,6 +115,12 @@ public:
 
     bool getBool(const QString& key, bool defaultValue = false) const;
     void setBool(const QString& key, bool value);
+
+signals:
+    void applicationNameChanged();
+    void targetFpsChanged();
+    void gameLoopIntervalMsChanged();
+    void startupSceneUrlChanged();
 
 private:
     Configuration();

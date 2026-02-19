@@ -2,6 +2,14 @@
 
 A visual novel (galgame) development engine built with C++ and Qt6.
 
+## Coding Contract
+
+Before implementing new code, read and follow:
+
+- `BEFORECODING.md`
+
+This file defines repository coding rules and architectural guidelines.
+
 ## Overview
 
 This project provides a flexible framework for creating visual novels and interactive story-driven games. The engine is designed with a modular singleton-based architecture with support for different scene types (dialog scenes, mini-game scenes, settings scenes).
@@ -39,7 +47,7 @@ Resource management singleton:
 - Abstract Loader and Resource classes
 - Supports multiple protocols (file://, qrc://)
 - Async loading with callbacks for large files
-- Resource types: TextureResource, AudioResource, ChatSessionResource
+- Resource types: TextureResource, AudioResource, JsonResource, QmlResource, MediaResource
 - Automatic resource caching
 - Memory management with unload capabilities
 
@@ -108,8 +116,14 @@ qt-galgame/
 ### Prerequisites
 
 - CMake 3.16 or higher
-- C++17 compatible compiler
-- Qt6 (Core, Qml, Quick modules) - optional but recommended
+- C++20 compatible compiler
+- Qt6 development packages (Core, Qml, Quick, Gui, Multimedia)
+
+For Ubuntu/Debian, install dependencies with:
+
+```bash
+./scripts/install_qt6_deps_ubuntu.sh
+```
 
 ### Build Instructions
 
@@ -128,13 +142,7 @@ cmake --build .
 ./bin/qt-galgame
 ```
 
-### Building without Qt6
-
-The project can be built without Qt6, but some features (QML loading) will be limited:
-
-```bash
-cmake -DQt6_DIR=/path/to/qt6 ..
-```
+If CMake still cannot locate Qt6, set `Qt6_DIR` or `CMAKE_PREFIX_PATH` to your Qt installation path.
 
 ## Usage Example
 

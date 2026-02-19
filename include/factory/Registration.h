@@ -1,6 +1,5 @@
 #ifndef REGISTRATION_H
 #define REGISTRATION_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include "Factory.h"
 #include <QSharedPointer>

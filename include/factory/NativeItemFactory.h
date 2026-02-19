@@ -1,6 +1,5 @@
 #ifndef NATIVEITEMFACTORY_H
 #define NATIVEITEMFACTORY_H
-#include "codingstyle.h" // include/codingstyle.h
 
 #include "factory/Factory.h"
 
