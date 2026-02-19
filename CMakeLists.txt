@@ -20,6 +20,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Source files
 set(SOURCES
     src/main.cpp
+    resources/resources.qrc
     src/scene/Item.cpp
     src/scene/Scene.cpp
     src/core/Execution.cpp

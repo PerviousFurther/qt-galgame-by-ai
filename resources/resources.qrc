@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>scene.qml</file>
+        <file>menu.qml</file>
+    </qresource>
+</RCC>

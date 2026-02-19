@@ -8,11 +8,16 @@
 #include "factory/NativeItemFactory.h"
 #include "resources/Loader.h"
 #include "resources/Resources.h"
+#include <QGuiApplication>
 #include <QDebug>
 #include <QObject>
-#include <QThread>
+#include <QQmlApplicationEngine>
+#include <QTimer>
+#include <QUrl>
 
 int main(int argc, char *argv[]) {
+    QGuiApplication app(argc, argv);
+
     qDebug() << "Qt Galgame Engine - Visual Novel Development Framework";
     qDebug() << "======================================================";
 
@@ -152,28 +157,19 @@ int main(int argc, char *argv[]) {
     gameManager.addScene("dialog", dialogScene);
     gameManager.setActiveScene("dialog");
 
-    // Step 7: Simulate game loop
+    // Step 7: Start game loop in Qt event loop
     qDebug() << "=== Starting Game Loop ===";
     gameManager.start();
-    
-    // Simulate a few frames
-    for (int frame = 0; frame < 5; ++frame) {
+
+    QTimer gameLoopTimer;
+    QObject::connect(&gameLoopTimer, &QTimer::timeout, [&execution, &gameManager]() {
         execution.update();
-        
-        qDebug() << "Frame" << frame << ":" << "deltaTime=" << execution.getDeltaTime() << "runtime=" << execution.getRuntime();
-        
-        // Regular update
         gameManager.update();
-        
-        // Fixed update (if needed)
         if (execution.shouldFixedUpdate()) {
-            qDebug() << "  -> Fixed update triggered";
             gameManager.fixedUpdate();
         }
-        
-        // Simulate frame delay
-        QThread::msleep(16);  // ~60 FPS
-    }
+    });
+    gameLoopTimer.start(16);  // ~60 FPS
 
     // Step 8: Test resource loading
     qDebug() << "=== Testing Resource Loading ===";
@@ -202,23 +198,33 @@ int main(int argc, char *argv[]) {
         qDebug() << "Opening bitmap loader initialized:" << resources.getLoader("opening_bitmap")->isInitialized();
     }
 
-    // Step 9: Show stats
-    qDebug() << "=== Engine Statistics ===";
-    qDebug() << "Total frames:" << execution.getFrameCount();
-    qDebug() << "Total runtime:" << execution.getRuntime() << "s";
-    qDebug() << "Active scene:" << gameManager.getActiveSceneName();
+    QQmlApplicationEngine engine;
+    QObject::connect(
+        &engine,
+        &QQmlApplicationEngine::objectCreationFailed,
+        &app,
+        []() { QCoreApplication::exit(-1); },
+        Qt::QueuedConnection);
+    engine.load(QUrl(QStringLiteral("qrc:/scene.qml")));
 
-    gameManager.stop();
-    
-    qDebug() << "=== Demonstration Completed Successfully! ===";
-    qDebug() << "Architecture summary:";
-    qDebug() << "  ✓ Execution singleton for timing and task dispatch";
-    qDebug() << "  ✓ Configuration singleton for settings";
-    qDebug() << "  ✓ Registration singleton for Item factories";
-    qDebug() << "  ✓ Resources singleton for named loader asset management";
-    qDebug() << "  ✓ GameManager singleton for game flow";
-    qDebug() << "  ✓ Scene inheritance support for specialized scenes";
-    qDebug() << "  ✓ Item update() and fixedUpdate() methods";
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, [&execution, &gameManager]() {
+        qDebug() << "=== Engine Statistics ===";
+        qDebug() << "Total frames:" << execution.getFrameCount();
+        qDebug() << "Total runtime:" << execution.getRuntime() << "s";
+        qDebug() << "Active scene:" << gameManager.getActiveSceneName();
 
-    return 0;
+        gameManager.stop();
+
+        qDebug() << "=== Demonstration Completed Successfully! ===";
+        qDebug() << "Architecture summary:";
+        qDebug() << "  ✓ Execution singleton for timing and task dispatch";
+        qDebug() << "  ✓ Configuration singleton for settings";
+        qDebug() << "  ✓ Registration singleton for Item factories";
+        qDebug() << "  ✓ Resources singleton for named loader asset management";
+        qDebug() << "  ✓ GameManager singleton for game flow";
+        qDebug() << "  ✓ Scene inheritance support for specialized scenes";
+        qDebug() << "  ✓ Item update() and fixedUpdate() methods";
+    });
+
+    return app.exec();
 }
