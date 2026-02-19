@@ -97,6 +97,31 @@ Item {
                 text: qsTr("Toggle Portrait Expression")
                 onClicked: root.happyExpression = !root.happyExpression
             }
+
+            Button {
+                text: qsTr("Start Game")
+                onClicked: gameBridge.startGame()
+            }
+
+            Button {
+                text: qsTr("Pause Game")
+                onClicked: gameBridge.pauseGame()
+            }
+
+            Button {
+                text: qsTr("Resume Game")
+                onClicked: gameBridge.resumeGame()
+            }
+
+            Button {
+                text: qsTr("Stop Game")
+                onClicked: gameBridge.stopGame()
+            }
+
+            Text {
+                text: qsTr("State: %1  Scene: %2").arg(gameBridge.gameState).arg(gameBridge.activeScene)
+                color: "#ffffff"
+            }
         }
     }
 }
