@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "factory/Registration.h"
 #include "scene/Item.h"
 

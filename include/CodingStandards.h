@@ -38,7 +38,6 @@
 #ifndef CODINGSTANDARDS_H
 #define CODINGSTANDARDS_H
 
-// This header is intentionally empty - it serves as documentation
-// Include this file at the top of new files to see the coding standards
+#include "codingstyle.h" // include/codingstyle.h
 
 #endif // CODINGSTANDARDS_H

@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "scene/Item.h"
 
 Item::Item(QObject* parent)

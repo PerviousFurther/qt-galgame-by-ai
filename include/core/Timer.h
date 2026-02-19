@@ -1,7 +1,8 @@
 #ifndef TIMER_H
 #define TIMER_H
+#include "codingstyle.h" // include/codingstyle.h
 
-#include <chrono>
+#include <QElapsedTimer>
 
 /**
  * @brief Global timer singleton for managing frame timing and updates
@@ -87,12 +88,9 @@ private:
     Timer(const Timer&) = delete;
     Timer& operator=(const Timer&) = delete;
 
-    using Clock = std::chrono::high_resolution_clock;
-    using TimePoint = std::chrono::time_point<Clock>;
-
-    TimePoint m_startTime;
-    TimePoint m_lastFrameTime;
-    TimePoint m_lastFixedUpdateTime;
+    QElapsedTimer m_runtimeTimer;
+    qint64 m_lastFrameNs;
+    qint64 m_lastFixedUpdateNs;
     
     float m_deltaTime;
     float m_fixedUpdateInterval;

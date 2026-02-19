@@ -1,7 +1,6 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "core/Configuration.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <QDebug>
 
 Configuration::Configuration() {
     setDefaults();
@@ -29,49 +28,51 @@ void Configuration::setDefaults() {
     setVSyncEnabled(true);
 }
 
-bool Configuration::loadFromFile(const std::string& filePath) {
+bool Configuration::loadFromFile(const QString& filePath) {
     // TODO: Implement JSON parsing
     // For now, this is a stub that will be implemented when JSON library is added
-    std::cout << "Loading configuration from: " << filePath << " (JSON parsing not yet implemented)" << std::endl;
+    qDebug() << "Loading configuration from:" << filePath << "(JSON parsing not yet implemented)";
     return false;
 }
 
 void Configuration::parseCommandLine(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
+        const QString arg = QString::fromUtf8(argv[i]);
         
         // Parse --key=value format
-        size_t pos = arg.find('=');
-        if (pos != std::string::npos && arg.substr(0, 2) == "--") {
-            std::string key = arg.substr(2, pos - 2);
-            std::string value = arg.substr(pos + 1);
+        const int pos = arg.indexOf('=');
+        if (pos >= 0 && arg.startsWith("--")) {
+            const QString key = arg.mid(2, pos - 2);
+            const QString value = arg.mid(pos + 1);
             
             // Try to parse as different types
-            try {
-                // Check if it's a number
-                if (value.find('.') != std::string::npos) {
-                    setFloat(key, std::stof(value));
-                } else {
-                    setInt(key, std::stoi(value));
+            bool converted = false;
+            if (value.contains('.')) {
+                const float floatValue = value.toFloat(&converted);
+                if (converted) {
+                    setFloat(key, floatValue);
                 }
-            } catch (const std::invalid_argument& e) {
-                // If not a number, treat as string
+            } else {
+                const int intValue = value.toInt(&converted);
+                if (converted) {
+                    setInt(key, intValue);
+                }
+            }
+
+            if (!converted) {
                 if (value == "true" || value == "false") {
                     setBool(key, value == "true");
                 } else {
                     setString(key, value);
                 }
-            } catch (const std::out_of_range& e) {
-                std::cerr << "Warning: Command line argument value out of range: " << arg << std::endl;
-                setString(key, value);  // Fall back to string
             }
         }
     }
 }
 
-bool Configuration::saveToFile(const std::string& filePath) const {
+bool Configuration::saveToFile(const QString& filePath) const {
     // TODO: Implement JSON serialization
-    std::cout << "Saving configuration to: " << filePath << " (JSON serialization not yet implemented)" << std::endl;
+    qDebug() << "Saving configuration to:" << filePath << "(JSON serialization not yet implemented)";
     return false;
 }
 
@@ -151,38 +152,34 @@ void Configuration::setVSyncEnabled(bool enabled) {
 }
 
 // Generic configuration access
-std::string Configuration::getString(const std::string& key, const std::string& defaultValue) const {
-    auto it = m_stringValues.find(key);
-    return (it != m_stringValues.end()) ? it->second : defaultValue;
+QString Configuration::getString(const QString& key, const QString& defaultValue) const {
+    return m_stringValues.value(key, defaultValue);
 }
 
-void Configuration::setString(const std::string& key, const std::string& value) {
+void Configuration::setString(const QString& key, const QString& value) {
     m_stringValues[key] = value;
 }
 
-int Configuration::getInt(const std::string& key, int defaultValue) const {
-    auto it = m_intValues.find(key);
-    return (it != m_intValues.end()) ? it->second : defaultValue;
+int Configuration::getInt(const QString& key, int defaultValue) const {
+    return m_intValues.value(key, defaultValue);
 }
 
-void Configuration::setInt(const std::string& key, int value) {
+void Configuration::setInt(const QString& key, int value) {
     m_intValues[key] = value;
 }
 
-float Configuration::getFloat(const std::string& key, float defaultValue) const {
-    auto it = m_floatValues.find(key);
-    return (it != m_floatValues.end()) ? it->second : defaultValue;
+float Configuration::getFloat(const QString& key, float defaultValue) const {
+    return m_floatValues.value(key, defaultValue);
 }
 
-void Configuration::setFloat(const std::string& key, float value) {
+void Configuration::setFloat(const QString& key, float value) {
     m_floatValues[key] = value;
 }
 
-bool Configuration::getBool(const std::string& key, bool defaultValue) const {
-    auto it = m_boolValues.find(key);
-    return (it != m_boolValues.end()) ? it->second : defaultValue;
+bool Configuration::getBool(const QString& key, bool defaultValue) const {
+    return m_boolValues.value(key, defaultValue);
 }
 
-void Configuration::setBool(const std::string& key, bool value) {
+void Configuration::setBool(const QString& key, bool value) {
     m_boolValues[key] = value;
 }

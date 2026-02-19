@@ -1,5 +1,6 @@
 #ifndef ITEM_H
 #define ITEM_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include <QObject>
 #include <QString>

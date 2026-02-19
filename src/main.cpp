@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "scene/Scene.h"
 #include "scene/Item.h"
 #include "core/Timer.h"
@@ -7,8 +8,7 @@
 #include "factory/NativeItemFactory.h"
 #include "resources/Resources.h"
 #include <QDebug>
-#include <thread>
-#include <chrono>
+#include <QThread>
 
 int main(int argc, char *argv[]) {
     qDebug() << "Qt Galgame Engine - Visual Novel Development Framework";
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Creating Scenes ===";
     
     // Create a dialog scene
-    auto dialogScene = std::make_shared<Scene>();
+    auto dialogScene = QSharedPointer<Scene>::create();
     dialogScene->setId("dialog_scene");
     
     // Create items using factory
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
         }
         
         // Simulate frame delay
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));  // ~60 FPS
+        QThread::msleep(16);  // ~60 FPS
     }
 
     // Step 8: Test resource loading
@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Engine Statistics ===";
     qDebug() << "Total frames:" << timer.getFrameCount();
     qDebug() << "Total runtime:" << timer.getRuntime() << "s";
-    qDebug() << "Active scene:" << QString::fromStdString(gameManager.getActiveSceneName());
+    qDebug() << "Active scene:" << gameManager.getActiveSceneName();
 
     gameManager.stop();
     

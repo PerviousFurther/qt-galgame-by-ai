@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resource.h"
 
 // Resource base class

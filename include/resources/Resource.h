@@ -1,5 +1,6 @@
 #ifndef RESOURCE_H
 #define RESOURCE_H
+#include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
 

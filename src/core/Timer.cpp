@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "core/Timer.h"
 
 Timer::Timer()
@@ -17,9 +18,9 @@ Timer& Timer::getInstance() {
 }
 
 void Timer::initialize() {
-    m_startTime = Clock::now();
-    m_lastFrameTime = m_startTime;
-    m_lastFixedUpdateTime = m_startTime;
+    m_runtimeTimer.start();
+    m_lastFrameNs = m_runtimeTimer.nsecsElapsed();
+    m_lastFixedUpdateNs = m_lastFrameNs;
     m_deltaTime = 0.0f;
     m_frameCount = 0;
     m_fps = 0.0f;
@@ -29,12 +30,10 @@ void Timer::initialize() {
 }
 
 void Timer::update() {
-    TimePoint currentTime = Clock::now();
-    
-    // Calculate delta time
-    std::chrono::duration<float> elapsed = currentTime - m_lastFrameTime;
-    m_deltaTime = elapsed.count();
-    m_lastFrameTime = currentTime;
+    const qint64 currentNs = m_runtimeTimer.nsecsElapsed();
+    const qint64 elapsedNs = currentNs - m_lastFrameNs;
+    m_deltaTime = static_cast<float>(elapsedNs / 1000000000.0);
+    m_lastFrameNs = currentNs;
     
     // Update frame count
     m_frameCount++;
@@ -58,9 +57,7 @@ float Timer::getDeltaTime() const {
 }
 
 float Timer::getRuntime() const {
-    auto currentTime = Clock::now();
-    std::chrono::duration<float> elapsed = currentTime - m_startTime;
-    return elapsed.count();
+    return static_cast<float>(m_runtimeTimer.nsecsElapsed() / 1000000000.0);
 }
 
 unsigned long long Timer::getFrameCount() const {
@@ -74,7 +71,7 @@ float Timer::getFPS() const {
 bool Timer::shouldFixedUpdate() {
     if (m_fixedUpdateAccumulator >= m_fixedUpdateInterval) {
         m_fixedUpdateAccumulator -= m_fixedUpdateInterval;
-        m_lastFixedUpdateTime = Clock::now();
+        m_lastFixedUpdateNs = m_runtimeTimer.nsecsElapsed();
         return true;
     }
     return false;

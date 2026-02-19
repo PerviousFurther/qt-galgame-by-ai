@@ -1,3 +1,4 @@
+#include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resources.h"
 
 #include "factory/Registration.h"
