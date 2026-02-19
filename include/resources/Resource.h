@@ -3,7 +3,7 @@
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
-#include <QMutex>
+#include <QReadWriteLock>
 #include <QObject>
 #include <QSharedPointer>
 
@@ -77,7 +77,7 @@ protected:
     QString m_url;
     State m_state;
     QSharedPointer<QObject> m_object;
-    mutable QMutex m_lock;
+    mutable QReadWriteLock m_lock;
 };
 
 /**

@@ -1,7 +1,8 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resource.h"
 
-#include <QMutexLocker>
+#include <QReadLocker>
+#include <QWriteLocker>
 
 Resource::Resource(const QString& url)
     : m_url(url)
@@ -15,7 +16,7 @@ Resource::Resource(const Resource& other)
     , m_state(State::Unloaded)
     , m_object()
 {
-    QMutexLocker lock(&other.m_lock);
+    QWriteLocker lock(&other.m_lock);
     m_url = other.m_url;
     m_state = other.m_state;
     m_object = other.m_object;
@@ -28,10 +29,8 @@ Resource& Resource::operator=(const Resource& other) {
 
     Resource* first = this < &other ? this : const_cast<Resource*>(&other);
     Resource* second = this < &other ? const_cast<Resource*>(&other) : this;
-    // Lock in address order to avoid deadlock during concurrent cross-assignment.
-    // This assumes object addresses are comparable in-process for a deterministic lock order.
-    first->m_lock.lock();
-    second->m_lock.lock();
+    first->m_lock.lockForWrite();
+    second->m_lock.lockForWrite();
 
     m_url = other.m_url;
     m_state = other.m_state;
@@ -47,9 +46,8 @@ Resource::Resource(Resource&& other) noexcept
     , m_state(State::Unloaded)
     , m_object()
 {
-    // Destination object is still under construction and not yet published to other threads,
-    // so only source lock is needed here.
-    QMutexLocker lock(&other.m_lock);
+    // Destination object is still under construction and not yet published to other threads.
+    QWriteLocker lock(&other.m_lock);
     m_url = other.m_url;
     m_state = other.m_state;
     m_object = other.m_object;
@@ -62,10 +60,8 @@ Resource& Resource::operator=(Resource&& other) noexcept {
 
     Resource* first = this < &other ? this : &other;
     Resource* second = this < &other ? &other : this;
-    // Lock in address order to avoid deadlock during concurrent cross-move.
-    // This assumes object addresses are comparable in-process for a deterministic lock order.
-    first->m_lock.lock();
-    second->m_lock.lock();
+    first->m_lock.lockForWrite();
+    second->m_lock.lockForWrite();
 
     m_url = other.m_url;
     m_state = other.m_state;
@@ -81,38 +77,38 @@ Resource::~Resource() {
 }
 
 QString Resource::getUrl() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_url;
 }
 
 Resource::State Resource::getState() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_state;
 }
 
 bool Resource::isLoaded() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_state == State::Loaded;
 }
 
 void Resource::unload() {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_state = State::Unloaded;
     m_object.clear();
 }
 
 void Resource::setState(State state) {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_state = state;
 }
 
 QObject* Resource::get() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_object.data();
 }
 
 void Resource::set(QObject* object) {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_object.reset(object);
 }
 
@@ -124,7 +120,7 @@ TextureResource::TextureResource(const QString& url)
 }
 
 size_t TextureResource::getSize() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     if (m_state != State::Loaded) {
         return 0;
     }
@@ -132,17 +128,17 @@ size_t TextureResource::getSize() const {
 }
 
 int TextureResource::getWidth() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_width;
 }
 
 int TextureResource::getHeight() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_height;
 }
 
 void TextureResource::setDimensions(int width, int height) {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_width = width;
     m_height = height;
 }
@@ -154,7 +150,7 @@ AudioResource::AudioResource(const QString& url)
 }
 
 size_t AudioResource::getSize() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     if (m_state != State::Loaded) {
         return 0;
     }
@@ -162,12 +158,12 @@ size_t AudioResource::getSize() const {
 }
 
 float AudioResource::getDuration() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_duration;
 }
 
 void AudioResource::setDuration(float duration) {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_duration = duration;
 }
 
@@ -178,11 +174,11 @@ ChatSessionResource::ChatSessionResource(const QString& url)
 }
 
 size_t ChatSessionResource::getSize() const {
-    QMutexLocker lock(&m_lock);
+    QReadLocker lock(&m_lock);
     return m_dataSize;
 }
 
 void ChatSessionResource::setDataSize(size_t dataSize) {
-    QMutexLocker lock(&m_lock);
+    QWriteLocker lock(&m_lock);
     m_dataSize = dataSize;
 }
