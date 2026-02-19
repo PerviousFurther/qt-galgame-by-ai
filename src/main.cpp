@@ -80,10 +80,14 @@ int main(int argc, char *argv[]) {
         &app,
         []() { QCoreApplication::exit(-1); },
         Qt::QueuedConnection);
+    const QString defaultQmlScene = QStringLiteral("qrc:/scene.qml");
     const QStringList qmlSceneUrls = resources.getResourceUrlsBySuffix("qml");
-    const QString startupSceneUrl = qmlSceneUrls.contains("qrc:/scene.qml")
-                                        ? QStringLiteral("qrc:/scene.qml")
-                                        : (qmlSceneUrls.isEmpty() ? QString() : qmlSceneUrls.first());
+    QString startupSceneUrl;
+    if (qmlSceneUrls.contains(defaultQmlScene)) {
+        startupSceneUrl = defaultQmlScene;
+    } else if (!qmlSceneUrls.isEmpty()) {
+        startupSceneUrl = qmlSceneUrls.first();
+    }
     if (startupSceneUrl.isEmpty()) {
         qWarning() << "No QML scene found in resources";
         return -1;

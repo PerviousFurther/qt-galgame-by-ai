@@ -32,11 +32,12 @@ void Resources::registerDefaultLoaders() {
 }
 
 void Resources::addResource(const QString& name, const QVariant& value) {
-    if (value.canConvert<QString>() && !resourceExists(value.toString())) {
-        qWarning() << "Resource path does not exist:" << value.toString();
-        m_resources.remove(name);
-        m_resourceLoaders.remove(name);
-        return;
+    if (value.canConvert<QString>()) {
+        const QString resourceValue = value.toString();
+        if (!resourceExists(resourceValue)) {
+            qWarning() << "Resource path does not exist:" << resourceValue;
+            return;
+        }
     }
     m_resources[name] = value;
     resolveLoaderForResource(name, value);

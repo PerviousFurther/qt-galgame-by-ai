@@ -29,21 +29,30 @@ void GameManager::loadScenesFromResources() {
     const QStringList sceneUrls = resources.getResourceUrlsBySuffix("json") +
                                   resources.getResourceUrlsBySuffix("qml");
     for (const QString& sceneUrl : sceneUrls) {
-        const QString sceneName = QFileInfo(sceneUrl).completeBaseName();
-        if (sceneName.isEmpty() || m_scenes.contains(sceneName)) {
+        const QFileInfo sceneInfo(sceneUrl);
+        const QString sceneName = sceneInfo.completeBaseName();
+        const QString suffix = sceneInfo.suffix().toLower();
+        if (sceneName.isEmpty()) {
             continue;
+        }
+        if (suffix != "json" && suffix != "qml") {
+            continue;
+        }
+        QString sceneKey = sceneName + "_" + suffix;
+        int suffixIndex = 1;
+        while (m_scenes.contains(sceneKey)) {
+            sceneKey = sceneName + "_" + suffix + "_" + QString::number(suffixIndex++);
         }
         QSharedPointer<Scene> scene = QSharedPointer<Scene>::create();
         scene->setId(sceneName);
-        const QString suffix = QFileInfo(sceneUrl).suffix().toLower();
         const bool loaded = (suffix == "json") ? scene->loadFromJson(sceneUrl)
                                                : scene->loadFromQml(sceneUrl);
         if (!loaded) {
             qWarning() << "Failed to load scene from resource:" << sceneUrl;
             continue;
         }
-        addScene(sceneName, scene);
-        emitEvent(GameEvent::SceneLoaded, sceneName);
+        addScene(sceneKey, scene);
+        emitEvent(GameEvent::SceneLoaded, sceneKey);
     }
 }
 

@@ -123,8 +123,12 @@ bool Scene::loadFromJson(const QString& filePath) {
     const QJsonArray items = sceneObject.value("items").toArray();
     for (const QJsonValue& value : items) {
         const QJsonObject itemObject = value.toObject();
+        const QString itemType = itemObject.value("type").toString();
+        if (itemType.isEmpty()) {
+            qWarning() << "Scene item missing type in scene:" << m_id << "- falling back to Item";
+        }
         PropertyMap properties;
-        properties["type"] = itemObject.value("type").toString("Item");
+        properties["type"] = itemType.isEmpty() ? QStringLiteral("Item") : itemType;
         properties["id"] = itemObject.value("id").toString();
         properties["name"] = itemObject.value("name").toString();
         const QJsonObject itemProperties = itemObject.value("properties").toObject();
@@ -135,6 +139,10 @@ bool Scene::loadFromJson(const QString& filePath) {
         const QSharedPointer<Item> item = object.dynamicCast<Item>();
         if (!item.isNull()) {
             addItem(item);
+        } else {
+            qWarning() << "Failed to create scene item: scene=" << m_id
+                       << ", itemId=" << itemObject.value("id").toString()
+                       << ", type=" << properties["type"].toString();
         }
     }
 
