@@ -101,26 +101,26 @@ Item {
 
             Button {
                 text: qsTr("Start Game")
-                onClicked: GameBridge.startGame()
+                onClicked: GameManager.start()
             }
 
             Button {
                 text: qsTr("Pause Game")
-                onClicked: GameBridge.pauseGame()
+                onClicked: GameManager.pause()
             }
 
             Button {
                 text: qsTr("Resume Game")
-                onClicked: GameBridge.resumeGame()
+                onClicked: GameManager.resume()
             }
 
             Button {
                 text: qsTr("Stop Game")
-                onClicked: GameBridge.stopGame()
+                onClicked: GameManager.stop()
             }
 
             Text {
-                text: qsTr("State: %1  Scene: %2").arg(GameBridge.gameState).arg(GameBridge.activeScene)
+                text: qsTr("State: %1  Scene: %2").arg(GameManager.gameState).arg(GameManager.activeScene)
                 color: "#ffffff"
             }
         }

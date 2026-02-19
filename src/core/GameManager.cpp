@@ -81,6 +81,7 @@ void GameManager::start() {
     if (m_state == State::Stopped) {
         m_state = State::Running;
         emitEvent(GameEvent::GameStarted);
+        emit gameStateChanged();
         qDebug() << "Game started";
     }
 }
@@ -89,6 +90,7 @@ void GameManager::pause() {
     if (m_state == State::Running) {
         m_state = State::Paused;
         emitEvent(GameEvent::GamePaused);
+        emit gameStateChanged();
         qDebug() << "Game paused";
     }
 }
@@ -97,6 +99,7 @@ void GameManager::resume() {
     if (m_state == State::Paused) {
         m_state = State::Running;
         emitEvent(GameEvent::GameResumed);
+        emit gameStateChanged();
         qDebug() << "Game resumed";
     }
 }
@@ -105,12 +108,25 @@ void GameManager::stop() {
     if (m_state != State::Stopped) {
         m_state = State::Stopped;
         emitEvent(GameEvent::GameEnded);
+        emit gameStateChanged();
         qDebug() << "Game stopped";
     }
 }
 
 GameManager::State GameManager::getState() const {
     return m_state;
+}
+
+QString GameManager::getGameState() const {
+    switch (m_state) {
+    case State::Running:
+        return QStringLiteral("Running");
+    case State::Paused:
+        return QStringLiteral("Paused");
+    case State::Stopped:
+    default:
+        return QStringLiteral("Stopped");
+    }
 }
 
 void GameManager::addScene(const QString& name, QSharedPointer<Scene> scene) {
@@ -160,6 +176,7 @@ bool GameManager::setActiveScene(const QString& name) {
     m_activeScene->initialize();
     
     emitEvent(GameEvent::SceneChanged, name);
+    emit activeSceneChanged();
     qDebug() << "Active scene set to:" << name;
     
     return true;

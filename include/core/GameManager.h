@@ -49,6 +49,8 @@ enum class GameEvent {
  */
 class GameManager : public QObject {
     Q_OBJECT
+    Q_PROPERTY(QString gameState READ getGameState NOTIFY gameStateChanged)
+    Q_PROPERTY(QString activeScene READ getActiveSceneName NOTIFY activeSceneChanged)
 public:
     enum class State {
         Stopped,
@@ -84,28 +86,29 @@ public:
     /**
      * @brief Start the game
      */
-    void start();
+    Q_INVOKABLE void start();
 
     /**
      * @brief Pause the game
      */
-    void pause();
+    Q_INVOKABLE void pause();
 
     /**
      * @brief Resume the game
      */
-    void resume();
+    Q_INVOKABLE void resume();
 
     /**
      * @brief Stop the game
      */
-    void stop();
+    Q_INVOKABLE void stop();
 
     /**
      * @brief Get current game state
      * @return Current state
      */
     State getState() const;
+    QString getGameState() const;
 
     // Scene management
     
@@ -160,6 +163,8 @@ public:
 
 signals:
     void gameEventTriggered(GameEvent event, const QVariant& data);
+    void gameStateChanged();
+    void activeSceneChanged();
 
 private:
     GameManager();

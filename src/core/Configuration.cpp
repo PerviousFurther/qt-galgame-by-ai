@@ -147,7 +147,11 @@ int Configuration::getTargetFPS() const {
 }
 
 void Configuration::setTargetFPS(int fps) {
+    if (getTargetFPS() == fps) {
+        return;
+    }
     setInt("render.target_fps", fps);
+    emit targetFpsChanged();
 }
 
 bool Configuration::isVSyncEnabled() const {
@@ -163,7 +167,11 @@ QString Configuration::getApplicationName() const {
 }
 
 void Configuration::setApplicationName(const QString& appName) {
+    if (getApplicationName() == appName) {
+        return;
+    }
     setString("app.name", appName);
+    emit applicationNameChanged();
 }
 
 QString Configuration::getConfigResourceUrl() const {
@@ -179,7 +187,11 @@ QString Configuration::getStartupSceneUrl() const {
 }
 
 void Configuration::setStartupSceneUrl(const QString& sceneUrl) {
+    if (getStartupSceneUrl() == sceneUrl) {
+        return;
+    }
     setString("app.startup_scene_url", sceneUrl);
+    emit startupSceneUrlChanged();
 }
 
 int Configuration::getGameLoopIntervalMs() const {
@@ -187,7 +199,11 @@ int Configuration::getGameLoopIntervalMs() const {
 }
 
 void Configuration::setGameLoopIntervalMs(int intervalMs) {
+    if (getGameLoopIntervalMs() == intervalMs) {
+        return;
+    }
     setInt("app.game_loop_interval_ms", intervalMs);
+    emit gameLoopIntervalMsChanged();
 }
 
 // Generic configuration access

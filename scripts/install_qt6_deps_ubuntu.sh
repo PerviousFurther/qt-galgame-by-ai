@@ -23,6 +23,7 @@ $SUDO apt-get install -y \
   qml6-module-qtquick-templates \
   qml6-module-qtquick-window \
   qml6-module-qtmultimedia \
-  qml6-module-qtqml-workerscript
+  qml6-module-qtqml-workerscript \
+  scrot
 
 echo "Qt6 dependencies installed successfully."
