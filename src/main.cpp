@@ -104,11 +104,13 @@ int main(int argc, char *argv[]) {
     dialogScene->addItem(openingVideo);
 
     if (auto audioItem = bgm.dynamicCast<AudioItem>()) {
+        audioItem->setPlayHandler([]() { std::cout << "BGM play requested" << std::endl; });
         audioItem->play();
         std::cout << "Audio item ready: " << audioItem->getSource().toStdString()
                   << ", playing=" << audioItem->isPlaying() << std::endl;
     }
     if (auto videoItem = openingVideo.dynamicCast<VideoItem>()) {
+        videoItem->setPlayHandler([]() { std::cout << "Video play requested" << std::endl; });
         videoItem->play();
         std::cout << "Video item ready: " << videoItem->getSource().toStdString()
                   << ", playing=" << videoItem->isPlaying() << std::endl;

@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QSharedPointer>
+#include <functional>
 
 /**
  * @brief Base class for all items that can be placed in a scene.
@@ -87,6 +88,8 @@ public:
     void play();
     void stop();
     bool isPlaying() const;
+    void setPlayHandler(const std::function<void()>& handler);
+    void setStopHandler(const std::function<void()>& handler);
 
     QString getType() const override;
 
@@ -94,6 +97,8 @@ private:
     QString m_source;
     bool m_loop;
     bool m_playing;
+    std::function<void()> m_playHandler;
+    std::function<void()> m_stopHandler;
 };
 
 class VideoItem : public Item {
@@ -109,6 +114,8 @@ public:
     void play();
     void stop();
     bool isPlaying() const;
+    void setPlayHandler(const std::function<void()>& handler);
+    void setStopHandler(const std::function<void()>& handler);
 
     QString getType() const override;
 
@@ -116,6 +123,8 @@ private:
     QString m_source;
     bool m_loop;
     bool m_playing;
+    std::function<void()> m_playHandler;
+    std::function<void()> m_stopHandler;
 };
 
 class CharacterItem : public Item {

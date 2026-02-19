@@ -16,16 +16,21 @@ Item {
         volume: 0.8
     }
 
+    AudioOutput {
+        id: videoAudioOutput
+        volume: 0.8
+    }
+
     MediaPlayer {
         id: bgmPlayer
-        source: "audio/opening.mp3"
+        source: "resources/audio/opening.mp3"
         audioOutput: bgmAudioOutput
     }
 
     MediaPlayer {
         id: openingVideoPlayer
-        source: "video/opening.mp4"
-        audioOutput: bgmAudioOutput
+        source: "resources/video/opening.mp4"
+        audioOutput: videoAudioOutput
         videoOutput: openingVideoOutput
     }
 
@@ -33,7 +38,7 @@ Item {
     Image {
         id: background
         anchors.fill: parent
-        source: "background.png"
+        source: "resources/background.png"
     }
 
     // Character sprite
@@ -41,7 +46,7 @@ Item {
         id: character
         x: 100
         y: 200
-        source: root.happyExpression ? "character_happy.png" : "character.png"
+        source: root.happyExpression ? "resources/character_happy.png" : "resources/character.png"
         width: 320
         height: 480
     }
@@ -89,7 +94,7 @@ Item {
             }
 
             Button {
-                text: "切换立绘表情"
+                text: qsTr("Toggle Portrait Expression")
                 onClicked: root.happyExpression = !root.happyExpression
             }
         }

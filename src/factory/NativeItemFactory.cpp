@@ -39,6 +39,23 @@ QSharedPointer<Item> NativeItemFactory::create(const PropertyMap& properties) {
         }
     };
 
+    auto setMediaProperties = [&properties](auto& item) {
+        if (properties.contains("source")) {
+            if (properties["source"].canConvert<QString>()) {
+                item->setSource(properties["source"].toString());
+            } else {
+                throw std::runtime_error("Property 'source' must be a string");
+            }
+        }
+        if (properties.contains("loop")) {
+            if (properties["loop"].canConvert<bool>()) {
+                item->setLoop(properties["loop"].toBool());
+            } else {
+                throw std::runtime_error("Property 'loop' must be a bool");
+            }
+        }
+    };
+
     if (type == "Item" || type == "Base") {
         auto item = QSharedPointer<Item>::create();
         setCommonProperties(item);
@@ -47,46 +64,21 @@ QSharedPointer<Item> NativeItemFactory::create(const PropertyMap& properties) {
 
     if (type == "Audio" || type == "AudioPlayer") {
         auto item = QSharedPointer<AudioItem>::create();
-        if (properties.contains("source")) {
-            if (properties["source"].canConvert<QString>()) {
-                item->setSource(properties["source"].toString());
-            } else {
-                throw std::runtime_error("Property 'source' must be a string");
-            }
-        }
-        if (properties.contains("loop")) {
-            if (properties["loop"].canConvert<bool>()) {
-                item->setLoop(properties["loop"].toBool());
-            } else {
-                throw std::runtime_error("Property 'loop' must be a bool");
-            }
-        }
         setCommonProperties(item);
+        setMediaProperties(item);
         return item;
     }
 
     if (type == "Video" || type == "VideoPlayer") {
         auto item = QSharedPointer<VideoItem>::create();
-        if (properties.contains("source")) {
-            if (properties["source"].canConvert<QString>()) {
-                item->setSource(properties["source"].toString());
-            } else {
-                throw std::runtime_error("Property 'source' must be a string");
-            }
-        }
-        if (properties.contains("loop")) {
-            if (properties["loop"].canConvert<bool>()) {
-                item->setLoop(properties["loop"].toBool());
-            } else {
-                throw std::runtime_error("Property 'loop' must be a bool");
-            }
-        }
         setCommonProperties(item);
+        setMediaProperties(item);
         return item;
     }
 
     if (type == "Character" || type == "Sprite") {
         auto item = QSharedPointer<CharacterItem>::create();
+        setCommonProperties(item);
         if (properties.contains("source")) {
             if (properties["source"].canConvert<QString>()) {
                 item->setPortrait(properties["source"].toString());
@@ -108,7 +100,6 @@ QSharedPointer<Item> NativeItemFactory::create(const PropertyMap& properties) {
                 throw std::runtime_error("Property 'visible' must be a bool");
             }
         }
-        setCommonProperties(item);
         return item;
     }
     
