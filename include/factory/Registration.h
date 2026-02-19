@@ -3,14 +3,11 @@
 #include "codingstyle.h" // include/codingstyle.h
 
 #include "Factory.h"
-#include "resources/Loader.h"
 #include <QSharedPointer>
 #include <QHash>
 #include <QString>
 #include <QStringList>
 #include <QList>
-
-class Item;
 
 /**
  * @brief Registration singleton for managing Item factories
@@ -30,7 +27,13 @@ class Item;
  * props["source"] = "image.png";
  * props["x"] = 100;
  * props["y"] = 200;
- * auto item = Registration::getInstance().createItem("Image", props);
+ * auto object = Registration::getInstance().createObject("Image", props);
+ * if (!object.isNull()) {
+ *     auto item = object.dynamicCast<Item>();
+ *     if (!item.isNull()) {
+ *         // use item
+ *     }
+ * }
  * 
  * // Unregister when no longer needed
  * Registration::getInstance().unregisterFactory("Image");
@@ -65,14 +68,8 @@ public:
      */
     bool unregisterFactory(const QString& typeName);
 
-    /**
-     * @brief Create an Item using the registered factory
-     * @param typeName The type of Item to create
-     * @param properties Dictionary of properties from JSON/QML
-     * @return Shared pointer to the created Item, or null on failure
-     */
-    QSharedPointer<Item> createItem(const QString& typeName, const PropertyMap& properties);
-    QSharedPointer<Loader> createLoader(const QString& protocol, const QString& suffix, const PropertyMap& properties);
+    QSharedPointer<QObject> createObject(const QString& typeName, const PropertyMap& properties);
+    QSharedPointer<QObject> createObjectByRegistry(const QString& protocol, const QString& suffix, const PropertyMap& properties);
 
     /**
      * @brief Check if a factory is registered for a type

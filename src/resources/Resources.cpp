@@ -79,9 +79,15 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
     PropertyMap properties;
     properties["source"] = source;
 
-    QSharedPointer<Loader> loader = Registration::getInstance().createLoader(protocol, suffix, properties);
+    QSharedPointer<QObject> object = Registration::getInstance().createObjectByRegistry(protocol, suffix, properties);
+    if (object.isNull()) {
+        qWarning() << "Unable to create object for resource loader:" << name << source;
+        m_resourceLoaders.remove(name);
+        return;
+    }
+    QSharedPointer<Loader> loader = object.dynamicCast<Loader>();
     if (loader.isNull()) {
-        qWarning() << "Unable to resolve loader for resource:" << name << source;
+        qWarning() << "Resolved object is not Loader for resource:" << name << source;
         m_resourceLoaders.remove(name);
         return;
     }

@@ -116,4 +116,6 @@ public:
     QSharedPointer<Resource> loadImpl(const QString& sourceUrl) override;
 };
 
+Q_DECLARE_METATYPE(QSharedPointer<Loader>)
+
 #endif // LOADER_H

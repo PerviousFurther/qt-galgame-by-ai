@@ -64,7 +64,16 @@ int main(int argc, char *argv[]) {
     
     // Create items using factory
     PropertyMap bgProps = {{"type", "Item"}, {"id", "background"}, {"name", "Background"}};
-    auto bg = registration.createItem("Native", bgProps);
+    auto bgObject = registration.createObject("Native", bgProps);
+    if (bgObject.isNull()) {
+        qWarning() << "Failed to create background object";
+        return 1;
+    }
+    auto bg = bgObject.dynamicCast<Item>();
+    if (bg.isNull()) {
+        qWarning() << "Background object is not Item";
+        return 1;
+    }
     
     PropertyMap charProps = {
         {"type", "Character"},
@@ -73,7 +82,16 @@ int main(int argc, char *argv[]) {
         {"source", "resources/character.png"},
         {"expression", "neutral"}
     };
-    auto character = registration.createItem("Native", charProps);
+    auto characterObject = registration.createObject("Native", charProps);
+    if (characterObject.isNull()) {
+        qWarning() << "Failed to create character object";
+        return 1;
+    }
+    auto character = characterObject.dynamicCast<Item>();
+    if (character.isNull()) {
+        qWarning() << "Character object is not Item";
+        return 1;
+    }
 
     PropertyMap bgmProps = {
         {"type", "Audio"},
@@ -82,7 +100,16 @@ int main(int argc, char *argv[]) {
         {"source", "resources/audio/opening.mp3"},
         {"loop", true}
     };
-    auto bgm = registration.createItem("Native", bgmProps);
+    auto bgmObject = registration.createObject("Native", bgmProps);
+    if (bgmObject.isNull()) {
+        qWarning() << "Failed to create bgm object";
+        return 1;
+    }
+    auto bgm = bgmObject.dynamicCast<Item>();
+    if (bgm.isNull()) {
+        qWarning() << "BGM object is not Item";
+        return 1;
+    }
 
     PropertyMap videoProps = {
         {"type", "Video"},
@@ -91,7 +118,16 @@ int main(int argc, char *argv[]) {
         {"source", "resources/video/opening.mp4"},
         {"loop", false}
     };
-    auto openingVideo = registration.createItem("Native", videoProps);
+    auto openingVideoObject = registration.createObject("Native", videoProps);
+    if (openingVideoObject.isNull()) {
+        qWarning() << "Failed to create opening video object";
+        return 1;
+    }
+    auto openingVideo = openingVideoObject.dynamicCast<Item>();
+    if (openingVideo.isNull()) {
+        qWarning() << "Opening video object is not Item";
+        return 1;
+    }
     
     dialogScene->addItem(bg);
     dialogScene->addItem(character);

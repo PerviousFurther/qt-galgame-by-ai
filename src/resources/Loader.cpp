@@ -321,7 +321,11 @@ QSharedPointer<Resource> JsonLoader::loadImpl(const QString& sourceUrl) {
             const QString suffix = QFileInfo(loaderSource).suffix().toLower();
             PropertyMap properties;
             properties["source"] = loaderSource;
-            QSharedPointer<Loader> loader = Registration::getInstance().createLoader(protocol, suffix, properties);
+            QSharedPointer<QObject> object = Registration::getInstance().createObjectByRegistry(protocol, suffix, properties);
+            if (object.isNull()) {
+                continue;
+            }
+            QSharedPointer<Loader> loader = object.dynamicCast<Loader>();
             if (!loader.isNull()) {
                 generatedLoaders.append(loader);
             }

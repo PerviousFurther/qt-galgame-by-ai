@@ -135,6 +135,6 @@ const QString& GameManager::getActiveSceneName() const {
     return m_activeSceneName;
 }
 
-void GameManager::emitEvent(GameEvent event, const QString& data) {
+void GameManager::emitEvent(GameEvent event, const QVariant& data) {
     emit gameEventTriggered(event, data);
 }

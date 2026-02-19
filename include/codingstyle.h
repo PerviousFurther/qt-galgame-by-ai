@@ -16,6 +16,7 @@
  * - Use QMutex/QReadWriteLock instead of std::mutex where applicable.
  * - Use QThread instead of std::thread where applicable.
  * - Use qDebug/qInfo/qWarning/qCritical instead of iostream logging.
+ * - Custom classes intended for QVariant transport should provide Q_DECLARE_METATYPE.
  *
  * Notes:
  * - Prefer QObject signal/slot over callback wrappers.

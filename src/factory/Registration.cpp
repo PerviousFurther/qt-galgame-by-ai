@@ -1,6 +1,5 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "factory/Registration.h"
-#include "scene/Item.h"
 
 #include <QDebug>
 
@@ -34,7 +33,7 @@ bool Registration::unregisterFactory(const QString& typeName) {
     return true;
 }
 
-QSharedPointer<Item> Registration::createItem(const QString& typeName, const PropertyMap& properties) {
+QSharedPointer<QObject> Registration::createObject(const QString& typeName, const PropertyMap& properties) {
     if (!m_factories.contains(typeName)) {
         qWarning() << "No factory registered for type:" << typeName;
         return {};
@@ -45,16 +44,10 @@ QSharedPointer<Item> Registration::createItem(const QString& typeName, const Pro
         return {};
     }
 
-    Item* item = qobject_cast<Item*>(object);
-    if (!item) {
-        qWarning() << "Factory returned non-Item object for type:" << typeName;
-        object->deleteLater();
-        return {};
-    }
-    return QSharedPointer<Item>(item, [](Item* ptr) { delete ptr; });
+    return QSharedPointer<QObject>(object, [](QObject* ptr) { delete ptr; });
 }
 
-QSharedPointer<Loader> Registration::createLoader(const QString& protocol, const QString& suffix, const PropertyMap& properties) {
+QSharedPointer<QObject> Registration::createObjectByRegistry(const QString& protocol, const QString& suffix, const PropertyMap& properties) {
     for (const LoaderRegistry& loaderRegistry : m_loaderRegistries) {
         if (loaderRegistry.protocol == protocol && loaderRegistry.suffix == suffix) {
             if (!m_factories.contains(loaderRegistry.factoryType)) {
@@ -71,13 +64,7 @@ QSharedPointer<Loader> Registration::createLoader(const QString& protocol, const
                 return {};
             }
 
-            Loader* loader = qobject_cast<Loader*>(object);
-            if (!loader) {
-                qWarning() << "Factory returned non-Loader object:" << loaderRegistry.loaderType;
-                object->deleteLater();
-                return {};
-            }
-            return QSharedPointer<Loader>(loader, [](Loader* ptr) { delete ptr; });
+            return QSharedPointer<QObject>(object, [](QObject* ptr) { delete ptr; });
         }
     }
 

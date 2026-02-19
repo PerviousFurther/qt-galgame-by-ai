@@ -7,6 +7,7 @@
 #include <QHash>
 #include <QSharedPointer>
 #include <QString>
+#include <QVariant>
 
 /**
  * @brief Game event types
@@ -155,10 +156,10 @@ public:
      * @param event Event type
      * @param data Optional event data
      */
-    void emitEvent(GameEvent event, const QString& data = "");
+    void emitEvent(GameEvent event, const QVariant& data = {});
 
 signals:
-    void gameEventTriggered(GameEvent event, const QString& data);
+    void gameEventTriggered(GameEvent event, const QVariant& data);
 
 private:
     GameManager();
@@ -171,5 +172,7 @@ private:
     QSharedPointer<Scene> m_activeScene;
     QString m_activeSceneName;
 };
+
+Q_DECLARE_METATYPE(GameEvent)
 
 #endif // GAMEMANAGER_H

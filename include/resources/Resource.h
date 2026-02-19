@@ -16,7 +16,7 @@
  * Resources emit signals when they are loaded or unloaded, allowing
  * Items to respond to resource state changes.
  * 
- * NOTE: Uses Qt containers - see CodingStandards.h
+ * NOTE: Uses Qt containers - see codingstyle.h
  */
 class Resource {
 public:

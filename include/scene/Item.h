@@ -152,4 +152,6 @@ private:
     bool m_visible;
 };
 
+Q_DECLARE_METATYPE(QSharedPointer<Item>)
+
 #endif // INCLUDE_SCENE_ITEM_H
