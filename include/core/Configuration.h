@@ -4,6 +4,7 @@
 
 #include <QHash>
 #include <QString>
+#include <QVariant>
 
 /**
  * @brief Configuration singleton for managing application settings
@@ -82,6 +83,9 @@ public:
     void setVSyncEnabled(bool enabled);
 
     // Generic configuration access
+    QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
+    void setValue(const QString& key, const QVariant& value);
+
     QString getString(const QString& key, const QString& defaultValue = "") const;
     void setString(const QString& key, const QString& value);
 
@@ -103,10 +107,7 @@ private:
     // Default values
     void setDefaults();
 
-    QHash<QString, QString> m_stringValues;
-    QHash<QString, int> m_intValues;
-    QHash<QString, float> m_floatValues;
-    QHash<QString, bool> m_boolValues;
+    QHash<QString, QVariant> m_values;
 };
 
 #endif // CONFIGURATION_H

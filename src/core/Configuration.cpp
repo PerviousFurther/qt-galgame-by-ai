@@ -53,19 +53,19 @@ void Configuration::parseCommandLine(int argc, char* argv[]) {
             bool converted = false;
             const int intValue = value.toInt(&converted);
             if (converted) {
-                setInt(key, intValue);
+                setValue(key, intValue);
             } else {
                 const float floatValue = value.toFloat(&converted);
                 if (converted) {
-                    setFloat(key, floatValue);
+                    setValue(key, floatValue);
                 }
             }
 
             if (!converted) {
                 if (value == "true" || value == "false") {
-                    setBool(key, value == "true");
+                    setValue(key, value == "true");
                 } else {
-                    setString(key, value);
+                    setValue(key, value);
                 }
             }
         }
@@ -154,34 +154,58 @@ void Configuration::setVSyncEnabled(bool enabled) {
 }
 
 // Generic configuration access
+QVariant Configuration::getValue(const QString& key, const QVariant& defaultValue) const {
+    return m_values.value(key, defaultValue);
+}
+
+void Configuration::setValue(const QString& key, const QVariant& value) {
+    m_values[key] = value;
+}
+
 QString Configuration::getString(const QString& key, const QString& defaultValue) const {
-    return m_stringValues.value(key, defaultValue);
+    const QVariant raw = m_values.value(key);
+    if (!raw.isValid()) {
+        return defaultValue;
+    }
+    return raw.toString();
 }
 
 void Configuration::setString(const QString& key, const QString& value) {
-    m_stringValues[key] = value;
+    setValue(key, value);
 }
 
 int Configuration::getInt(const QString& key, int defaultValue) const {
-    return m_intValues.value(key, defaultValue);
+    const QVariant raw = m_values.value(key);
+    if (!raw.isValid() || !raw.canConvert<int>()) {
+        return defaultValue;
+    }
+    return raw.toInt();
 }
 
 void Configuration::setInt(const QString& key, int value) {
-    m_intValues[key] = value;
+    setValue(key, value);
 }
 
 float Configuration::getFloat(const QString& key, float defaultValue) const {
-    return m_floatValues.value(key, defaultValue);
+    const QVariant raw = m_values.value(key);
+    if (!raw.isValid() || !raw.canConvert<float>()) {
+        return defaultValue;
+    }
+    return raw.toFloat();
 }
 
 void Configuration::setFloat(const QString& key, float value) {
-    m_floatValues[key] = value;
+    setValue(key, value);
 }
 
 bool Configuration::getBool(const QString& key, bool defaultValue) const {
-    return m_boolValues.value(key, defaultValue);
+    const QVariant raw = m_values.value(key);
+    if (!raw.isValid() || !raw.canConvert<bool>()) {
+        return defaultValue;
+    }
+    return raw.toBool();
 }
 
 void Configuration::setBool(const QString& key, bool value) {
-    m_boolValues[key] = value;
+    setValue(key, value);
 }
