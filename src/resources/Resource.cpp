@@ -1,5 +1,7 @@
 #include "codingstyle.h" // include/codingstyle.h
 #include "resources/Resource.h"
+#include <QReadLocker>
+#include <QWriteLocker>
 
 // Resource base class
 Resource::Resource(const QString& url)
@@ -8,15 +10,38 @@ Resource::Resource(const QString& url)
 {
 }
 
+Resource::Resource(const Resource& other)
+    : m_url()
+    , m_state(State::Unloaded)
+{
+    QReadLocker lock(&other.m_copyLock);
+    m_url = other.m_url;
+    m_state = other.m_state;
+}
+
+Resource& Resource::operator=(const Resource& other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    QReadLocker otherLock(&other.m_copyLock);
+    QWriteLocker thisLock(&m_copyLock);
+    m_url = other.m_url;
+    m_state = other.m_state;
+    return *this;
+}
+
 Resource::~Resource() {
     unload();
 }
 
-const QString& Resource::getUrl() const {
+QString Resource::getUrl() const {
+    QReadLocker lock(&m_copyLock);
     return m_url;
 }
 
 Resource::State Resource::getState() const {
+    QReadLocker lock(&m_copyLock);
     return m_state;
 }
 
@@ -29,6 +54,7 @@ void Resource::unload() {
 }
 
 void Resource::setState(State state) {
+    QWriteLocker lock(&m_copyLock);
     m_state = state;
     // TODO: Emit signal when Qt support is available
 }
@@ -78,4 +104,8 @@ ChatSessionResource::ChatSessionResource(const QString& url)
 
 size_t ChatSessionResource::getSize() const {
     return m_dataSize;
+}
+
+void ChatSessionResource::setDataSize(size_t dataSize) {
+    m_dataSize = dataSize;
 }

@@ -6,6 +6,7 @@
 #include "core/GameManager.h"
 #include "factory/Registration.h"
 #include "factory/NativeItemFactory.h"
+#include "resources/Loader.h"
 #include "resources/Resources.h"
 #include <QDebug>
 #include <QThread>
@@ -140,12 +141,16 @@ int main(int argc, char *argv[]) {
     qDebug() << "=== Testing Resource Loading ===";
     resources.addResource("opening_bitmap", "resources/background.png");
     resources.addResource("opening_video", "resources/video/opening.mp4");
+    resources.addResource("scene_descriptor", "qrc:/scene.json");
     QVariant bitmapData = resources.load("opening_bitmap");
     if (bitmapData.isValid()) {
         qDebug() << "Loaded bitmap resource via named loader";
     }
     if (!resources.getLoader("opening_video").isNull()) {
         qDebug() << "Resolved named video loader successfully";
+    }
+    if (!resources.getLoader("opening_bitmap").isNull()) {
+        qDebug() << "Opening bitmap loader initialized:" << resources.getLoader("opening_bitmap")->isInitialized();
     }
 
     // Step 9: Show stats

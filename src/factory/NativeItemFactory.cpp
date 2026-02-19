@@ -82,6 +82,10 @@ QObject* NativeItemFactory::create(const PropertyMap& properties) {
         return new VideoLoader();
     }
 
+    if (type == "JsonLoader") {
+        return new JsonLoader();
+    }
+
     qWarning() << "Unknown native create type:" << type;
     return nullptr;
 }

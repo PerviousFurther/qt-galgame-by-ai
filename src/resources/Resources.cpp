@@ -22,8 +22,12 @@ void Resources::registerDefaultLoaders() {
     const QStringList bitmapSuffixes = {"bmp", "png", "jpg", "jpeg", "webp"};
     for (const QString& suffix : bitmapSuffixes) {
         registration.registerLoader({"file", suffix, "Native", "BitmapLoader"});
+        registration.registerLoader({"qrc", suffix, "Native", "BitmapLoader"});
     }
     registration.registerLoader({"file", "mp4", "Native", "VideoLoader"});
+    registration.registerLoader({"qrc", "mp4", "Native", "VideoLoader"});
+    registration.registerLoader({"file", "json", "Native", "JsonLoader"});
+    registration.registerLoader({"qrc", "json", "Native", "JsonLoader"});
 }
 
 void Resources::addResource(const QString& name, const QVariant& value) {
@@ -44,7 +48,6 @@ QSharedPointer<Loader> Resources::getLoader(const QString& name) const {
 
 QVariant Resources::load(const QString& name) const {
     QSharedPointer<Loader> loader;
-    QVariant value;
     {
         QMutexLocker locker(&m_mutex);
         if (!m_resources.contains(name)) {
@@ -52,14 +55,13 @@ QVariant Resources::load(const QString& name) const {
             return {};
         }
         loader = m_resourceLoaders.value(name);
-        value = m_resources.value(name);
     }
 
     if (loader.isNull()) {
         qWarning() << "Loader not found for resource:" << name;
         return {};
     }
-    return loader->load(value);
+    return loader->load({});
 }
 
 void Resources::resolveLoaderForResource(const QString& name, const QVariant& value) {
@@ -81,10 +83,14 @@ void Resources::resolveLoaderForResource(const QString& name, const QVariant& va
         m_resourceLoaders.remove(name);
         return;
     }
+    loader->setSourceUrl(source);
     m_resourceLoaders[name] = loader;
 }
 
 QString Resources::extractProtocol(const QString& value) {
+    if (value.startsWith("qrc:/") || value.startsWith(":/")) {
+        return "qrc";
+    }
     const int separatorIndex = value.indexOf("://");
     if (separatorIndex >= 0) {
         return value.left(separatorIndex);

@@ -3,6 +3,8 @@
 #include "codingstyle.h" // include/codingstyle.h
 
 #include <QString>
+#include <QReadWriteLock>
+#include <QSharedPointer>
 
 /**
  * @brief Base class for loaded resources
@@ -25,13 +27,15 @@ public:
     };
 
     Resource(const QString& url);
+    Resource(const Resource& other);
+    Resource& operator=(const Resource& other);
     virtual ~Resource();
 
     /**
      * @brief Get the resource URL
      * @return The URL/path of the resource
      */
-    const QString& getUrl() const;
+    QString getUrl() const;
 
     /**
      * @brief Get the current state of the resource
@@ -65,6 +69,7 @@ public:
 protected:
     QString m_url;
     State m_state;
+    mutable QReadWriteLock m_copyLock;
 };
 
 /**
@@ -119,11 +124,14 @@ public:
     virtual ~ChatSessionResource() = default;
 
     size_t getSize() const override;
+    void setDataSize(size_t dataSize);
 
     // TODO: Add dialog tree/chat session data structures
 
 private:
     size_t m_dataSize;
 };
+
+Q_DECLARE_METATYPE(QSharedPointer<Resource>)
 
 #endif // RESOURCE_H
