@@ -79,6 +79,7 @@ It defines what code in this repository should look like.
 
 ## 10. Runtime/Data Placement for QML Story Presentation
 
+- Business/game logic should be implemented in C++ as much as possible; QML should remain focused on simple UI interaction and presentation binding.
 - Keep reusable QML constants (for example: expressions/emoji maps, animation script constants) in JSON resources first, with in-QML fallback defaults.
 - Placeholder/non-real resources are only used when real assets (image/video/audio) are unavailable.
 - Settings panels should be presented within the current scene flow (with scene animation), not through unrelated stack-page push navigation.
