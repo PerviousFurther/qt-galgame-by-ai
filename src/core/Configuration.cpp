@@ -1,5 +1,8 @@
 #include "core/Configuration.h"
 #include <QDebug>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QThread>
 
 Configuration::Configuration() {
@@ -32,22 +35,85 @@ void Configuration::setDefaults() {
 
     // Application bootstrap defaults
     setApplicationName("qt-galgame-by-ai");
-    setConfigResourceUrl("qrc:/config.json");
     setStartupSceneUrl("qrc:/main.qml");
     setGameLoopIntervalMs(16);  // ~60 FPS (1000ms / 60 ≈ 16.67ms)
+
+    // Game state defaults
+    setOpeningAnimationPlayed(false);
+    setConfigFilePath("galgame_config.json");
+    setSavesPath("galgame_saves.json");
 }
 
 bool Configuration::loadFromFile(const QString& filePath) {
-    // TODO: Implement JSON parsing
-    // For now, this is a stub that will be implemented when JSON library is added
-    qDebug() << "Loading configuration from:" << filePath << "(JSON parsing not yet implemented)";
-    return false;
+    QString normalizedPath = filePath;
+    if (filePath.startsWith("qrc:/")) {
+        normalizedPath = ":" + filePath.mid(4);
+    }
+
+    QFile file(normalizedPath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Config file not found:" << filePath;
+        return false;
+    }
+
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    file.close();
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Failed to parse config JSON:" << filePath << parseError.errorString();
+        return false;
+    }
+    if (!doc.isObject()) {
+        qWarning() << "Config JSON root is not an object:" << filePath;
+        return false;
+    }
+
+    const QJsonObject root = doc.object();
+
+    if (root.contains("audio")) {
+        const QJsonObject audio = root["audio"].toObject();
+        if (audio.contains("master_volume"))      setMasterVolume(static_cast<float>(audio["master_volume"].toDouble()));
+        if (audio.contains("music_volume"))       setMusicVolume(static_cast<float>(audio["music_volume"].toDouble()));
+        if (audio.contains("sound_effect_volume")) setSoundEffectVolume(static_cast<float>(audio["sound_effect_volume"].toDouble()));
+        if (audio.contains("voice_volume"))       setVoiceVolume(static_cast<float>(audio["voice_volume"].toDouble()));
+    }
+
+    if (root.contains("window")) {
+        const QJsonObject window = root["window"].toObject();
+        if (window.contains("width"))      setWindowWidth(window["width"].toInt());
+        if (window.contains("height"))     setWindowHeight(window["height"].toInt());
+        if (window.contains("fullscreen")) setFullscreen(window["fullscreen"].toBool());
+    }
+
+    if (root.contains("render")) {
+        const QJsonObject render = root["render"].toObject();
+        if (render.contains("target_fps")) setTargetFPS(render["target_fps"].toInt());
+        if (render.contains("vsync"))      setVSyncEnabled(render["vsync"].toBool());
+    }
+
+    if (root.contains("game")) {
+        const QJsonObject game = root["game"].toObject();
+        if (game.contains("opening_animation_played"))
+            setOpeningAnimationPlayed(game["opening_animation_played"].toBool());
+        if (game.contains("saves_path"))
+            setSavesPath(game["saves_path"].toString());
+    }
+
+    qDebug() << "Configuration loaded from:" << filePath;
+    return true;
 }
 
 void Configuration::parseCommandLine(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         const QString arg = QString::fromUtf8(argv[i]);
-        
+
+        // Handle --config=<path> specifically
+        if (arg.startsWith("--config=")) {
+            setConfigFilePath(arg.mid(9));
+            continue;
+        }
+
         // Parse --key=value format
         const int pos = arg.indexOf('=');
         if (pos >= 0 && arg.startsWith("--")) {
@@ -78,9 +144,41 @@ void Configuration::parseCommandLine(int argc, char* argv[]) {
 }
 
 bool Configuration::saveToFile(const QString& filePath) const {
-    // TODO: Implement JSON serialization
-    qDebug() << "Saving configuration to:" << filePath << "(JSON serialization not yet implemented)";
-    return false;
+    QJsonObject audio;
+    audio["master_volume"]       = static_cast<double>(getMasterVolume());
+    audio["music_volume"]        = static_cast<double>(getMusicVolume());
+    audio["sound_effect_volume"] = static_cast<double>(getSoundEffectVolume());
+    audio["voice_volume"]        = static_cast<double>(getVoiceVolume());
+
+    QJsonObject window;
+    window["width"]      = getWindowWidth();
+    window["height"]     = getWindowHeight();
+    window["fullscreen"] = isFullscreen();
+
+    QJsonObject render;
+    render["target_fps"] = getTargetFPS();
+    render["vsync"]      = isVSyncEnabled();
+
+    QJsonObject game;
+    game["opening_animation_played"] = isOpeningAnimationPlayed();
+    game["saves_path"]               = getSavesPath();
+
+    QJsonObject root;
+    root["audio"]  = audio;
+    root["window"] = window;
+    root["render"] = render;
+    root["game"]   = game;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to save config to:" << filePath;
+        return false;
+    }
+    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    file.close();
+
+    qDebug() << "Configuration saved to:" << filePath;
+    return true;
 }
 
 // Audio settings
@@ -89,7 +187,11 @@ float Configuration::getMasterVolume() const {
 }
 
 void Configuration::setMasterVolume(float volume) {
+    if (getMasterVolume() == volume) {
+        return;
+    }
     setFloat("audio.master_volume", volume);
+    emit masterVolumeChanged();
 }
 
 float Configuration::getMusicVolume() const {
@@ -174,14 +276,6 @@ void Configuration::setApplicationName(const QString& appName) {
     emit applicationNameChanged();
 }
 
-QString Configuration::getConfigResourceUrl() const {
-    return getString("app.config_resource_url", "qrc:/config.json");
-}
-
-void Configuration::setConfigResourceUrl(const QString& resourceUrl) {
-    setString("app.config_resource_url", resourceUrl);
-}
-
 QString Configuration::getStartupSceneUrl() const {
     return getString("app.startup_scene_url", "qrc:/main.qml");
 }
@@ -204,6 +298,46 @@ void Configuration::setGameLoopIntervalMs(int intervalMs) {
     }
     setInt("app.game_loop_interval_ms", intervalMs);
     emit gameLoopIntervalMsChanged();
+}
+
+bool Configuration::isOpeningAnimationPlayed() const {
+    return getBool("game.opening_animation_played", false);
+}
+
+void Configuration::setOpeningAnimationPlayed(bool played) {
+    if (isOpeningAnimationPlayed() == played) {
+        return;
+    }
+    setBool("game.opening_animation_played", played);
+    emit openingAnimationPlayedChanged();
+}
+
+QString Configuration::getConfigFilePath() const {
+    return getString("app.config_file_path", "galgame_config.json");
+}
+
+void Configuration::setConfigFilePath(const QString& path) {
+    if (getConfigFilePath() == path) {
+        return;
+    }
+    setString("app.config_file_path", path);
+    emit configFilePathChanged();
+}
+
+QString Configuration::getSavesPath() const {
+    return getString("game.saves_path", "galgame_saves.json");
+}
+
+void Configuration::setSavesPath(const QString& path) {
+    if (getSavesPath() == path) {
+        return;
+    }
+    setString("game.saves_path", path);
+    emit savesPathChanged();
+}
+
+bool Configuration::saveConfig() const {
+    return saveToFile(getConfigFilePath());
 }
 
 // Generic configuration access

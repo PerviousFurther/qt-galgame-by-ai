@@ -94,6 +94,14 @@ const QList<QSharedPointer<Item>>& Scene::getItems() const {
     return m_items;
 }
 
+bool Scene::load(const QString& url) {
+    const QString suffix = QFileInfo(url).suffix().toLower();
+    if (suffix == "json") {
+        return loadFromJson(url);
+    }
+    return loadFromQml(url);
+}
+
 bool Scene::loadFromJson(const QString& filePath) {
     QFile file(normalizeScenePath(filePath));
     if (!file.open(QIODevice::ReadOnly)) {

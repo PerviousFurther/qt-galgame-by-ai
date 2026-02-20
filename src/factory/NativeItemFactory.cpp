@@ -4,6 +4,7 @@
 #include "scene/AudioItem.h"
 #include "scene/CharacterItem.h"
 #include "scene/Item.h"
+#include "scene/PlayableItem.h"
 #include "scene/VideoItem.h"
 
 #include <QDebug>

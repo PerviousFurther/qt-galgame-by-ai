@@ -7,21 +7,11 @@
 #include <QVariant>
 
 /**
- * @brief Configuration singleton for managing application settings
- * 
- * Configuration handles loading and managing settings from:
- * - JSON configuration files
- * - Command line arguments
- * 
- * Settings include:
- * - Audio volume levels
- * - Window dimensions
- * - Render frame rate
- * - Other game-specific configurations
- * 
- * Configuration can be modified through UI (e.g., menu.qml)
- * Note: This class is not thread-safe. Settings modifications from UI
- * should occur on the main thread.
+ * @brief Configuration singleton for managing application settings.
+ *
+ * Settings are stored in a flat key-value map and exposed to QML via
+ * Q_PROPERTYs.  For non-QML C++ code use getValue() / setValue().
+ * Typed helpers (getInt, etc.) are private implementation details.
  */
 class Configuration : public QObject {
     Q_OBJECT
@@ -29,98 +19,57 @@ class Configuration : public QObject {
     Q_PROPERTY(int targetFps READ getTargetFPS WRITE setTargetFPS NOTIFY targetFpsChanged)
     Q_PROPERTY(int gameLoopIntervalMs READ getGameLoopIntervalMs WRITE setGameLoopIntervalMs NOTIFY gameLoopIntervalMsChanged)
     Q_PROPERTY(QString startupSceneUrl READ getStartupSceneUrl WRITE setStartupSceneUrl NOTIFY startupSceneUrlChanged)
+    Q_PROPERTY(bool openingAnimationPlayed READ isOpeningAnimationPlayed WRITE setOpeningAnimationPlayed NOTIFY openingAnimationPlayedChanged)
+    Q_PROPERTY(QString configFilePath READ getConfigFilePath WRITE setConfigFilePath NOTIFY configFilePathChanged)
+    Q_PROPERTY(QString savesPath READ getSavesPath WRITE setSavesPath NOTIFY savesPathChanged)
+    Q_PROPERTY(float masterVolume READ getMasterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
 public:
-    /**
-     * @brief Get the singleton instance
-     * @return Reference to the Configuration singleton
-     */
     static Configuration& getInstance();
 
-    /**
-     * @brief Load configuration from a JSON file
-     * @param filePath Path to the JSON configuration file
-     * @return true if successful, false otherwise
-     */
     bool loadFromFile(const QString& filePath);
-
-    /**
-     * @brief Parse command line arguments
-     * @param argc Argument count
-     * @param argv Argument values
-     */
     void parseCommandLine(int argc, char* argv[]);
-
-    /**
-     * @brief Save current configuration to a JSON file
-     * @param filePath Path to save the configuration
-     * @return true if successful, false otherwise
-     */
     bool saveToFile(const QString& filePath) const;
 
-    // Audio settings
-    float getMasterVolume() const;
-    void setMasterVolume(float volume);
+    // Generic key-value access (preferred for non-QML C++ callers)
+    QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
+    void setValue(const QString& key, const QVariant& value);
 
-    float getMusicVolume() const;
-    void setMusicVolume(float volume);
-
-    float getSoundEffectVolume() const;
-    void setSoundEffectVolume(float volume);
-
-    float getVoiceVolume() const;
-    void setVoiceVolume(float volume);
-
-    // Window settings
-    int getWindowWidth() const;
-    void setWindowWidth(int width);
-
-    int getWindowHeight() const;
-    void setWindowHeight(int height);
-
-    bool isFullscreen() const;
-    void setFullscreen(bool fullscreen);
-
-    // Render settings
-    int getTargetFPS() const;
-    void setTargetFPS(int fps);
-
-    bool isVSyncEnabled() const;
-    void setVSyncEnabled(bool enabled);
-
-    // Application bootstrap settings
+    // Q_PROPERTY accessors (public because Qt requires it)
     QString getApplicationName() const;
     void setApplicationName(const QString& appName);
 
-    QString getConfigResourceUrl() const;
-    void setConfigResourceUrl(const QString& resourceUrl);
-
-    QString getStartupSceneUrl() const;
-    void setStartupSceneUrl(const QString& sceneUrl);
+    int getTargetFPS() const;
+    void setTargetFPS(int fps);
 
     int getGameLoopIntervalMs() const;
     void setGameLoopIntervalMs(int intervalMs);
 
-    // Generic configuration access
-    QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
-    void setValue(const QString& key, const QVariant& value);
+    QString getStartupSceneUrl() const;
+    void setStartupSceneUrl(const QString& sceneUrl);
 
-    QString getString(const QString& key, const QString& defaultValue = "") const;
-    void setString(const QString& key, const QString& value);
+    bool isOpeningAnimationPlayed() const;
+    void setOpeningAnimationPlayed(bool played);
 
-    int getInt(const QString& key, int defaultValue = 0) const;
-    void setInt(const QString& key, int value);
+    QString getConfigFilePath() const;
+    void setConfigFilePath(const QString& path);
 
-    float getFloat(const QString& key, float defaultValue = 0.0f) const;
-    void setFloat(const QString& key, float value);
+    QString getSavesPath() const;
+    void setSavesPath(const QString& path);
 
-    bool getBool(const QString& key, bool defaultValue = false) const;
-    void setBool(const QString& key, bool value);
+    float getMasterVolume() const;
+    void setMasterVolume(float volume);
+
+    Q_INVOKABLE bool saveConfig() const;
 
 signals:
     void applicationNameChanged();
     void targetFpsChanged();
     void gameLoopIntervalMsChanged();
     void startupSceneUrlChanged();
+    void openingAnimationPlayedChanged();
+    void configFilePathChanged();
+    void savesPathChanged();
+    void masterVolumeChanged();
 
 private:
     Configuration();
@@ -128,8 +77,33 @@ private:
     Configuration(const Configuration&) = delete;
     Configuration& operator=(const Configuration&) = delete;
 
-    // Default values
     void setDefaults();
+
+    // Typed helpers — private; external code uses getValue/setValue
+    QString getString(const QString& key, const QString& defaultValue = {}) const;
+    void setString(const QString& key, const QString& value);
+    int getInt(const QString& key, int defaultValue = 0) const;
+    void setInt(const QString& key, int value);
+    float getFloat(const QString& key, float defaultValue = 0.0f) const;
+    void setFloat(const QString& key, float value);
+    bool getBool(const QString& key, bool defaultValue = false) const;
+    void setBool(const QString& key, bool value);
+
+    // Internal audio/window/render accessors (only used in load/save/defaults)
+    float getMusicVolume() const;
+    void setMusicVolume(float volume);
+    float getSoundEffectVolume() const;
+    void setSoundEffectVolume(float volume);
+    float getVoiceVolume() const;
+    void setVoiceVolume(float volume);
+    int getWindowWidth() const;
+    void setWindowWidth(int width);
+    int getWindowHeight() const;
+    void setWindowHeight(int height);
+    bool isFullscreen() const;
+    void setFullscreen(bool fullscreen);
+    bool isVSyncEnabled() const;
+    void setVSyncEnabled(bool enabled);
 
     QHash<QString, QVariant> m_values;
 };

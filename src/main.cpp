@@ -18,7 +18,12 @@ void initializeCoreSystems(int argc, char* argv[], QGuiApplication& app) {
     Configuration& config = Configuration::getInstance();
     config.parseCommandLine(argc, argv);
     app.setApplicationName(config.getApplicationName());
-    config.loadFromFile(config.getConfigResourceUrl());
+
+    // Load from filesystem config; create with defaults if not found
+    if (!config.loadFromFile(config.getConfigFilePath())) {
+        qDebug() << "Creating default config file:" << config.getConfigFilePath();
+        config.saveToFile(config.getConfigFilePath());
+    }
 
     Execution& execution = Execution::getInstance();
     execution.initialize();
@@ -50,7 +55,7 @@ void shutdownAndLogStats() {
     qDebug() << "Total frames:" << execution.getFrameCount();
     qDebug() << "Total runtime:" << execution.getRuntime() << "s";
     qDebug() << "Active scene:" << gameManager.getActiveSceneName();
-    gameManager.stop();
+    gameManager.setState(GameManager::State::Stopped);
 }
 
 }

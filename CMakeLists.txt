@@ -28,6 +28,7 @@ set(SOURCES
     src/main.cpp
     resources/resources.qrc
     src/scene/Item.cpp
+    src/scene/PlayableItem.cpp
     src/scene/AudioItem.cpp
     src/scene/VideoItem.cpp
     src/scene/CharacterItem.cpp
@@ -39,7 +40,6 @@ set(SOURCES
     src/factory/NativeItemFactory.cpp
     src/resources/Resource.cpp
     src/resources/TextureResource.cpp
-    src/resources/AudioResource.cpp
     src/resources/JsonResource.cpp
     src/resources/QmlResource.cpp
     src/resources/MediaResource.cpp
@@ -50,6 +50,7 @@ set(SOURCES
 # Header files
 set(HEADERS
     include/scene/Item.h
+    include/scene/PlayableItem.h
     include/scene/AudioItem.h
     include/scene/VideoItem.h
     include/scene/CharacterItem.h
@@ -63,7 +64,6 @@ set(HEADERS
     include/resources/Resource.h
     include/resources/FormatSupport.h
     include/resources/TextureResource.h
-    include/resources/AudioResource.h
     include/resources/JsonResource.h
     include/resources/QmlResource.h
     include/resources/MediaResource.h

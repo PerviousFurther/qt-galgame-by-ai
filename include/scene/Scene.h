@@ -62,18 +62,11 @@ public:
     const QList<QSharedPointer<Item>>& getItems() const;
 
     /**
-     * @brief Load scene from a JSON file
-     * @param filePath Path to the JSON file
+     * @brief Load scene from a file; format is inferred from the URL suffix.
+     * @param url Path or qrc URL to a .json or .qml file
      * @return true if successful, false otherwise
      */
-    bool loadFromJson(const QString& filePath);
-
-    /**
-     * @brief Load scene from a QML file
-     * @param filePath Path to the QML file
-     * @return true if successful, false otherwise
-     */
-    bool loadFromQml(const QString& filePath);
+    bool load(const QString& url);
 
     /**
      * @brief Initialize all items in the scene
@@ -98,6 +91,9 @@ public:
     void clear();
 
 private:
+    bool loadFromJson(const QString& filePath);
+    bool loadFromQml(const QString& filePath);
+
     QString m_id;
     QList<QSharedPointer<Item>> m_items;
     QHash<QString, QSharedPointer<Item>> m_itemMap;
