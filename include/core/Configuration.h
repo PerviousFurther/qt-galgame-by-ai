@@ -104,8 +104,6 @@ private:
     void setFullscreen(bool fullscreen);
     bool isVSyncEnabled() const;
     void setVSyncEnabled(bool enabled);
-    QString getConfigResourceUrl() const;
-    void setConfigResourceUrl(const QString& resourceUrl);
 
     QHash<QString, QVariant> m_values;
 };

@@ -40,7 +40,6 @@ set(SOURCES
     src/factory/NativeItemFactory.cpp
     src/resources/Resource.cpp
     src/resources/TextureResource.cpp
-    src/resources/AudioResource.cpp
     src/resources/JsonResource.cpp
     src/resources/QmlResource.cpp
     src/resources/MediaResource.cpp
@@ -65,7 +64,6 @@ set(HEADERS
     include/resources/Resource.h
     include/resources/FormatSupport.h
     include/resources/TextureResource.h
-    include/resources/AudioResource.h
     include/resources/JsonResource.h
     include/resources/QmlResource.h
     include/resources/MediaResource.h

@@ -35,7 +35,6 @@ void Configuration::setDefaults() {
 
     // Application bootstrap defaults
     setApplicationName("qt-galgame-by-ai");
-    setConfigResourceUrl("qrc:/config.json");
     setStartupSceneUrl("qrc:/main.qml");
     setGameLoopIntervalMs(16);  // ~60 FPS (1000ms / 60 ≈ 16.67ms)
 
@@ -275,14 +274,6 @@ void Configuration::setApplicationName(const QString& appName) {
     }
     setString("app.name", appName);
     emit applicationNameChanged();
-}
-
-QString Configuration::getConfigResourceUrl() const {
-    return getString("app.config_resource_url", "qrc:/config.json");
-}
-
-void Configuration::setConfigResourceUrl(const QString& resourceUrl) {
-    setString("app.config_resource_url", resourceUrl);
 }
 
 QString Configuration::getStartupSceneUrl() const {
