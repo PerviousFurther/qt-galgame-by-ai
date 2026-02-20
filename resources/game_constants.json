@@ -18,6 +18,8 @@
     "dropDurationMs": 1400
   },
   "sceneTransition": {
-    "slideLtrDurationMs": 520
+    "slideLtrDurationMs": 520,
+    "slideSwitchDelayMs": 250,
+    "fadeSwitchDelayMs": 400
   }
 }

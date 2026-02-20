@@ -155,7 +155,7 @@ Item {
           charA: { visible: true, emotion: "happy", side: "left"   },
           charB: { visible: true, emotion: "happy", side: "right"  },
           charC: { visible: true, emotion: "happy", side: "center" },
-          type: "narration", text: "友情才牛逼（播放三人音频）", autoAdvanceMs: 3200, transitionStyle: "slide_ltr" },
+          type: "narration", text: "友情才牛逼！", autoAdvanceMs: 3200, transitionStyle: "slide_ltr" },
 
         { shot: 8, shotTitle: "场景1：便利店门口 - 黄昏", bg: "#F8B768", shake: false, transition: true,
           charA: { visible: true,  emotion: "normal", side: "left"   },
@@ -256,18 +256,24 @@ Item {
         normal: "😐"
     })
 
-    function loadJson(url, fallbackValue) {
+    function loadGameConstantsAsync() {
         const request = new XMLHttpRequest()
-        request.open("GET", url, false)
+        request.onreadystatechange = function() {
+            if (request.readyState !== XMLHttpRequest.DONE) {
+                return
+            }
+            if (request.status !== 200 && request.status !== 0) {
+                console.error("Failed to load game_constants.json, status:", request.status)
+                return
+            }
+            try {
+                gameConstants = JSON.parse(request.responseText)
+            } catch (error) {
+                console.error("Failed to parse game_constants.json:", error)
+            }
+        }
+        request.open("GET", "qrc:/game_constants.json")
         request.send()
-        if (request.status !== 200 && request.status !== 0) {
-            return fallbackValue
-        }
-        try {
-            return JSON.parse(request.responseText)
-        } catch (error) {
-            return fallbackValue
-        }
     }
 
     function emotionColor(emotion, base) {
@@ -351,16 +357,20 @@ Item {
         transitionTimer.nextStep = nextStepIdx
         transitionTimer.style = style
         if (style === "slide_ltr") {
-            transitionTimer.interval = 250
+            transitionTimer.interval = gameConstants.sceneTransition !== undefined &&
+                                       gameConstants.sceneTransition.slideSwitchDelayMs !== undefined
+                                       ? gameConstants.sceneTransition.slideSwitchDelayMs : 250
         } else {
-            transitionTimer.interval = 400
+            transitionTimer.interval = gameConstants.sceneTransition !== undefined &&
+                                       gameConstants.sceneTransition.fadeSwitchDelayMs !== undefined
+                                       ? gameConstants.sceneTransition.fadeSwitchDelayMs : 400
             fadeOverlay.opacity = 1.0
         }
         transitionTimer.start()
     }
 
     Component.onCompleted: {
-        gameConstants = loadJson("qrc:/game_constants.json", {})
+        loadGameConstantsAsync()
         currentStep = GameManager.currentStoryStep
         // Record initial shot as visited
         if (storyData.length > 0) {

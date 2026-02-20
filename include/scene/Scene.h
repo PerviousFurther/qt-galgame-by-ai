@@ -13,6 +13,7 @@
  * Scene manages a collection of Items and handles the connections between them.
  * Items don't need to directly interact with each other; the Scene manages
  * their relationships and communications.
+ * Scene is also an Item so Scene instances can be nested for layered composition.
  * 
  * Note: This class is not thread-safe. All operations should be performed
  * from a single thread or externally synchronized.
