@@ -96,3 +96,5 @@ int main(int argc, char* argv[]) {
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &shutdownAndLogStats);
     return app.exec();
 }
+
+

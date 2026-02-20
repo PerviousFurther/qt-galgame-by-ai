@@ -87,3 +87,46 @@ target_link_libraries(${PROJECT_NAME}
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
+
+# Qt deployment - automatically copy required Qt DLLs after build
+if(WIN32)
+    # Find windeployqt executable
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
+    
+    if(WINDEPLOYQT_EXECUTABLE)
+        message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE}")
+        
+        # Run windeployqt after build
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+                --qmldir "${CMAKE_SOURCE_DIR}"
+                --no-compiler-runtime
+                --no-system-d3d-compiler
+                --no-translations
+                "$<TARGET_FILE:${PROJECT_NAME}>"
+            COMMENT "Deploying Qt dependencies..."
+        )
+    else()
+        message(WARNING "windeployqt not found. Qt DLLs will not be automatically deployed.")
+    endif()
+elseif(APPLE)
+    # Find macdeployqt executable
+    get_target_property(_qmake_executable Qt6::qmake IMPORTED_LOCATION)
+    get_filename_component(_qt_bin_dir "${_qmake_executable}" DIRECTORY)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${_qt_bin_dir}")
+    
+    if(MACDEPLOYQT_EXECUTABLE)
+        message(STATUS "Found macdeployqt: ${MACDEPLOYQT_EXECUTABLE}")
+        
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND "${MACDEPLOYQT_EXECUTABLE}"
+                "$<TARGET_FILE:${PROJECT_NAME}>"
+                -qmldir="${CMAKE_SOURCE_DIR}"
+            COMMENT "Deploying Qt dependencies..."
+        )
+    else()
+        message(WARNING "macdeployqt not found. Qt frameworks will not be automatically deployed.")
+    endif()
+endif()

@@ -178,7 +178,7 @@ void GameManager::attachRenderWindow(QQuickWindow* window) {
     m_renderWindow = window;
     QObject::connect(m_renderWindow, &QQuickWindow::beforeRendering,
                      this, &GameManager::processFrame, Qt::DirectConnection);
-    m_renderWindow->requestUpdate();
+    // m_renderWindow->requestUpdate();
 }
 
 void GameManager::processFrame() {
@@ -195,9 +195,9 @@ void GameManager::processFrame() {
         ++fixedStepCount;
     }
     m_frameUpdateInProgress = false;
-    if (!m_renderWindow.isNull()) {
-        m_renderWindow->requestUpdate();
-    }
+    // if (!m_renderWindow.isNull()) {
+    //     m_renderWindow->requestUpdate();
+    // }
 }
 
 // ── Game-flow invokables ───────────────────────────────────────────────────

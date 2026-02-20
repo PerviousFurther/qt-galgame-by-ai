@@ -116,7 +116,7 @@ Item {
           charB: { visible: true, emotion: "surprised", side: "right"  },
           charC: { visible: true, emotion: "calm",      side: "center" },
           type: "dialogue", speaker: "梦雪", speakerChar: "C",
-          text: "肿么滴不牛逼？" },
+          text: "终末地不牛逼？" },
 
         // ── Shot 6: 顿悟 ───────────────────────────────────────────────────
         { shot: 6, shotTitle: "镜头六：顿悟", bg: "#52C41A", shake: false,
@@ -147,7 +147,7 @@ Item {
           charB: { visible: true, emotion: "happy", side: "right"  },
           charC: { visible: true, emotion: "happy", side: "center" },
           type: "dialogue", speaker: "全员", speakerChar: "",
-          text: "肿么滴不牛逼！" },
+          text: "终末地不牛逼！" },
 
         { shot: 7, bg: "#FFD700", shake: false, transition: false,
           charA: { visible: true, emotion: "happy", side: "left"   },
