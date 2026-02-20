@@ -11,7 +11,7 @@ Item {
         if (!Configuration.saveConfig()) {
             console.warn("Failed to save config after opening animation")
         }
-        GameManager.requestScreen("menu")
+        GameManager.currentScreen = "menu"
     }
 
     Rectangle {

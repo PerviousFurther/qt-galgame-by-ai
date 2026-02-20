@@ -35,9 +35,9 @@ void Execution::initialize() {
     m_fpsFrameCount = 0;
     m_fixedUpdateAccumulator = 0.0f;
 
-    int configuredMaxThreads = Configuration::getInstance().getInt(
-        "execution.max_threads",
-        QThread::idealThreadCount());
+    const int configuredMaxThreads = Configuration::getInstance()
+        .getValue(QStringLiteral("execution.max_threads"), QThread::idealThreadCount())
+        .toInt();
     setMaxThreadCount(configuredMaxThreads);
 }
 

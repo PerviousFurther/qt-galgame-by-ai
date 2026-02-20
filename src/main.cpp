@@ -55,7 +55,7 @@ void shutdownAndLogStats() {
     qDebug() << "Total frames:" << execution.getFrameCount();
     qDebug() << "Total runtime:" << execution.getRuntime() << "s";
     qDebug() << "Active scene:" << gameManager.getActiveSceneName();
-    gameManager.stop();
+    gameManager.setState(GameManager::State::Stopped);
 }
 
 }

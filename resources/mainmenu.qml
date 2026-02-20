@@ -40,7 +40,7 @@ Item {
                 width: 220; height: 56
                 text: qsTr("开始游戏")
                 font.pixelSize: 22
-                onClicked: GameManager.startNewGame()
+                onClicked: GameManager.startGame(0)
             }
 
             Button {
@@ -50,7 +50,7 @@ Item {
                 text: qsTr("读取游戏")
                 font.pixelSize: 22
                 enabled: GameManager.hasSaves()
-                onClicked: GameManager.loadGameFromSave()
+                onClicked: GameManager.startGame(GameManager.savedStep)
 
                 ToolTip.visible: hovered && !enabled
                 ToolTip.text: qsTr("暂无存档")

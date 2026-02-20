@@ -28,6 +28,7 @@ set(SOURCES
     src/main.cpp
     resources/resources.qrc
     src/scene/Item.cpp
+    src/scene/PlayableItem.cpp
     src/scene/AudioItem.cpp
     src/scene/VideoItem.cpp
     src/scene/CharacterItem.cpp
@@ -50,6 +51,7 @@ set(SOURCES
 # Header files
 set(HEADERS
     include/scene/Item.h
+    include/scene/PlayableItem.h
     include/scene/AudioItem.h
     include/scene/VideoItem.h
     include/scene/CharacterItem.h

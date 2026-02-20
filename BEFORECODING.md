@@ -66,6 +66,15 @@ It defines what code in this repository should look like.
 - Items should support residency/lifetime tracking (resident vs non-resident) when shared across scenes/graph paths.
 - Large resources may load asynchronously; synchronize UI-visible state changes through Qt signal/slot flows.
 
+## 9. Minimal Public Interfaces
+
+- Keep public APIs as small as possible; every extra public method is a maintenance burden and a leaky abstraction.
+- Prefer a **single unified entry point** over multiple near-identical methods (e.g., `setState(State)` instead of separate `start()` / `pause()` / `resume()` / `stop()` methods).
+- Prefer **writable Q_PROPERTYs** over paired `Q_INVOKABLE` getter/setter methods — property bindings and the NOTIFY signal carry state changes for free.
+- Use a generic `getValue` / `setValue` pattern for configuration access rather than one typed accessor per field; add a `Q_PROPERTY` only when QML binding is genuinely needed for a specific field.
+- Avoid thin wrapper methods whose only body is `emit someSignal(...)` — emit the signal (or set the property) directly from the logical call site.
+- Internal helpers that are not part of the externally observable contract belong in `private` (or the `.cpp` file); do not promote them to `public` just for convenience.
+
 ## 8. Forbidden Qt6 Deprecated/Obsolete APIs
 
 Do not use APIs marked Deprecated/Obsolete in Qt6 official documentation.  

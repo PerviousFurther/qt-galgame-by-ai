@@ -206,14 +206,15 @@ Item {
 
         if (nextShot !== currentShot) {
             // Shot change → auto-save, hide HUD, transition
-            GameManager.saveCurrentProgress(nextStep)
+            GameManager.currentStoryStep = nextStep
+            GameManager.save()
             if (!visitedShots.includes(nextShot)) {
                 visitedShots = visitedShots.concat([nextShot])
             }
             doTransition(nextStep)
         } else {
             currentStep = nextStep
-            GameManager.setCurrentStoryStep(nextStep)
+            GameManager.currentStoryStep = nextStep
         }
     }
 
@@ -254,8 +255,9 @@ Item {
         interval: 400
         property int nextStep: 0
         onTriggered: {
+            // GameManager.currentStoryStep was already updated in advance()
+            // before the transition began; only the local mirror needs syncing.
             gameRoot.currentStep = nextStep
-            GameManager.setCurrentStoryStep(nextStep)
             fadeOverlay.opacity = 0.0
             transitionEndTimer.start()
         }
@@ -532,7 +534,7 @@ Item {
             text: "💾 存档"
             font.pixelSize: 14
             onClicked: {
-                GameManager.saveCurrentProgress(gameRoot.currentStep)
+                GameManager.save()
                 saveNotice.visible = true
                 saveNoticeTimer.restart()
             }
@@ -561,7 +563,7 @@ Item {
         Button {
             text: "← 主菜单"
             font.pixelSize: 14
-            onClicked: GameManager.requestScreen("menu")
+            onClicked: GameManager.currentScreen = "menu"
         }
     }
 
@@ -609,7 +611,7 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: qsTr("返回主菜单")
                 font.pixelSize: 24
-                onClicked: GameManager.requestScreen("menu")
+                onClicked: GameManager.currentScreen = "menu"
             }
         }
     }

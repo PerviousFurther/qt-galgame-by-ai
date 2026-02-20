@@ -101,22 +101,22 @@ Item {
 
             Button {
                 text: qsTr("Start Game")
-                onClicked: GameManager.start()
+                onClicked: GameManager.setState(GameManager.Running)
             }
 
             Button {
                 text: qsTr("Pause Game")
-                onClicked: GameManager.pause()
+                onClicked: GameManager.setState(GameManager.Paused)
             }
 
             Button {
                 text: qsTr("Resume Game")
-                onClicked: GameManager.resume()
+                onClicked: GameManager.setState(GameManager.Running)
             }
 
             Button {
                 text: qsTr("Stop Game")
-                onClicked: GameManager.stop()
+                onClicked: GameManager.setState(GameManager.Stopped)
             }
 
             Text {

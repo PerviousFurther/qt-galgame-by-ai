@@ -9,25 +9,10 @@ Window {
     visible: true
     title: Configuration.applicationName
 
-    property string currentScreen: ""
-
-    Component.onCompleted: {
-        if (Configuration.openingAnimationPlayed) {
-            currentScreen = "menu"
-        } else {
-            currentScreen = "opening"
-        }
-    }
-
-    Connections {
-        target: GameManager
-        function onScreenChangeRequested(screen) {
-            rootWindow.currentScreen = screen
-        }
-    }
+    // Bind directly to the GameManager property; no Connections block needed.
+    readonly property string currentScreen: GameManager.currentScreen
 
     Loader {
-        id: screenLoader
         anchors.fill: parent
         source: {
             if (rootWindow.currentScreen === "opening") return "qrc:/opening.qml"
