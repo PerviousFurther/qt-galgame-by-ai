@@ -53,6 +53,7 @@ class GameManager : public QObject {
     Q_OBJECT
     Q_PROPERTY(QString gameState READ getGameState NOTIFY gameStateChanged)
     Q_PROPERTY(QString activeScene READ getActiveSceneName NOTIFY activeSceneChanged)
+    Q_PROPERTY(int currentStoryStep READ getCurrentStoryStep NOTIFY currentStoryStepChanged)
 public:
     enum class State {
         Stopped,
@@ -105,6 +106,17 @@ public:
      */
     Q_INVOKABLE void stop();
     void handleApplicationStateChange(Qt::ApplicationState state);
+
+    // Game flow
+    Q_INVOKABLE void startNewGame();
+    Q_INVOKABLE bool hasSaves() const;
+    Q_INVOKABLE int getSavedStep() const;
+    Q_INVOKABLE bool saveCurrentProgress(int stepIndex);
+    Q_INVOKABLE void loadGameFromSave();
+    Q_INVOKABLE void requestScreen(const QString& screen);
+
+    int getCurrentStoryStep() const;
+    void setCurrentStoryStep(int step);
 
     /**
      * @brief Get current game state
@@ -172,6 +184,8 @@ signals:
     void gameEventTriggered(GameEvent event, const QVariant& data);
     void gameStateChanged();
     void activeSceneChanged();
+    void screenChangeRequested(const QString& screen);
+    void currentStoryStepChanged();
 
 private:
     GameManager();
@@ -185,6 +199,7 @@ private:
     QString m_activeSceneName;
     bool m_frameUpdateInProgress;
     QPointer<QQuickWindow> m_renderWindow;
+    int m_currentStoryStep;
 };
 
 Q_DECLARE_METATYPE(GameEvent)

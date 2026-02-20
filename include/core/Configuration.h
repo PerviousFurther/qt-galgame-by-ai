@@ -29,6 +29,10 @@ class Configuration : public QObject {
     Q_PROPERTY(int targetFps READ getTargetFPS WRITE setTargetFPS NOTIFY targetFpsChanged)
     Q_PROPERTY(int gameLoopIntervalMs READ getGameLoopIntervalMs WRITE setGameLoopIntervalMs NOTIFY gameLoopIntervalMsChanged)
     Q_PROPERTY(QString startupSceneUrl READ getStartupSceneUrl WRITE setStartupSceneUrl NOTIFY startupSceneUrlChanged)
+    Q_PROPERTY(bool openingAnimationPlayed READ isOpeningAnimationPlayed WRITE setOpeningAnimationPlayed NOTIFY openingAnimationPlayedChanged)
+    Q_PROPERTY(QString configFilePath READ getConfigFilePath WRITE setConfigFilePath NOTIFY configFilePathChanged)
+    Q_PROPERTY(QString savesPath READ getSavesPath WRITE setSavesPath NOTIFY savesPathChanged)
+    Q_PROPERTY(float masterVolume READ getMasterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
 public:
     /**
      * @brief Get the singleton instance
@@ -100,6 +104,21 @@ public:
     int getGameLoopIntervalMs() const;
     void setGameLoopIntervalMs(int intervalMs);
 
+    // Opening animation state
+    bool isOpeningAnimationPlayed() const;
+    void setOpeningAnimationPlayed(bool played);
+
+    // Filesystem config file path (set from command line or default)
+    QString getConfigFilePath() const;
+    void setConfigFilePath(const QString& path);
+
+    // Path to the saves JSON file
+    QString getSavesPath() const;
+    void setSavesPath(const QString& path);
+
+    // Save current settings to the filesystem config file
+    Q_INVOKABLE bool saveConfig() const;
+
     // Generic configuration access
     QVariant getValue(const QString& key, const QVariant& defaultValue = {}) const;
     void setValue(const QString& key, const QVariant& value);
@@ -121,6 +140,10 @@ signals:
     void targetFpsChanged();
     void gameLoopIntervalMsChanged();
     void startupSceneUrlChanged();
+    void openingAnimationPlayedChanged();
+    void configFilePathChanged();
+    void savesPathChanged();
+    void masterVolumeChanged();
 
 private:
     Configuration();

@@ -1,9 +1,14 @@
 #include "core/GameManager.h"
+#include "core/Configuration.h"
 #include "core/Execution.h"
 #include "resources/Resources.h"
 
+#include <QDateTime>
 #include <QDebug>
+#include <QFile>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace {
 constexpr int MaxFixedUpdateStepsPerFrame = 8;
@@ -12,6 +17,7 @@ constexpr int MaxFixedUpdateStepsPerFrame = 8;
 GameManager::GameManager()
     : m_state(State::Stopped)
     , m_frameUpdateInProgress(false)
+    , m_currentStoryStep(0)
 {
 }
 
@@ -234,4 +240,96 @@ void GameManager::processFrame() {
     if (!m_renderWindow.isNull()) {
         m_renderWindow->requestUpdate();
     }
+}
+
+void GameManager::startNewGame() {
+    setCurrentStoryStep(0);
+    emitEvent(GameEvent::GameStarted);
+    emit screenChangeRequested("game");
+    qDebug() << "New game started";
+}
+
+bool GameManager::hasSaves() const {
+    const QString savesPath = Configuration::getInstance().getSavesPath();
+    if (savesPath.isEmpty()) {
+        return false;
+    }
+    QFile file(savesPath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return false;
+    }
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    file.close();
+    if (parseError.error != QJsonParseError::NoError) {
+        qDebug() << "Saves file parse error:" << parseError.errorString();
+        return false;
+    }
+    return doc.isObject() && doc.object().contains("current_step");
+}
+
+int GameManager::getSavedStep() const {
+    const QString savesPath = Configuration::getInstance().getSavesPath();
+    if (savesPath.isEmpty()) {
+        return 0;
+    }
+    QFile file(savesPath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return 0;
+    }
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    file.close();
+    if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        qDebug() << "Saves file parse error:" << parseError.errorString();
+        return 0;
+    }
+    return doc.object().value("current_step").toInt(0);
+}
+
+bool GameManager::saveCurrentProgress(int stepIndex) {
+    const QString savesPath = Configuration::getInstance().getSavesPath();
+    if (savesPath.isEmpty()) {
+        return false;
+    }
+
+    QJsonObject root;
+    root["current_step"] = stepIndex;
+    root["timestamp"]    = QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    QFile file(savesPath);
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "Failed to save game progress to:" << savesPath;
+        return false;
+    }
+    file.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    file.close();
+
+    setCurrentStoryStep(stepIndex);
+    emitEvent(GameEvent::SaveRequested, stepIndex);
+    qDebug() << "Game saved at step:" << stepIndex;
+    return true;
+}
+
+void GameManager::loadGameFromSave() {
+    setCurrentStoryStep(getSavedStep());
+    emitEvent(GameEvent::LoadRequested);
+    emit screenChangeRequested("game");
+    qDebug() << "Game loaded from save at step:" << m_currentStoryStep;
+}
+
+void GameManager::requestScreen(const QString& screen) {
+    emit screenChangeRequested(screen);
+}
+
+int GameManager::getCurrentStoryStep() const {
+    return m_currentStoryStep;
+}
+
+void GameManager::setCurrentStoryStep(int step) {
+    if (m_currentStoryStep == step) {
+        return;
+    }
+    m_currentStoryStep = step;
+    emit currentStoryStepChanged();
 }

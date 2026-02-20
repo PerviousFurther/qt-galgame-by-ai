@@ -2,6 +2,9 @@
     <qresource prefix="/">
         <file>config.json</file>
         <file>main.qml</file>
+        <file>opening.qml</file>
+        <file>mainmenu.qml</file>
+        <file>game.qml</file>
         <file>scene.qml</file>
         <file>menu.qml</file>
         <file>scene.json</file>
