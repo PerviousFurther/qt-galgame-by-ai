@@ -45,6 +45,8 @@ It defines what code in this repository should look like.
 - `Scene` is an `Item` container (architecture direction):
   - it loads and manages `Item` instances;
   - it creates/connects concrete `Item` instances based on JSON/QML configuration.
+  - one Scene should generally represent a narrative scene (not every camera shot);
+  - Scene should support Scene nesting where useful for layered animation/composition.
 - `Item` is the base unit that can be attached to UI, rendered, and handle basic UI interactions.
 - New features should preferably be implemented by extending `Item`.
   - If a requirement truly cannot be implemented this way, stop further feature expansion, record completed scope and blockers, and open an issue before proceeding with alternatives.
@@ -74,6 +76,12 @@ It defines what code in this repository should look like.
 - Use a generic `getValue` / `setValue` pattern for configuration access rather than one typed accessor per field; add a `Q_PROPERTY` only when QML binding is genuinely needed for a specific field.
 - Avoid thin wrapper methods whose only body is `emit someSignal(...)` — emit the signal (or set the property) directly from the logical call site.
 - Internal helpers that are not part of the externally observable contract belong in `private` (or the `.cpp` file); do not promote them to `public` just for convenience.
+
+## 10. Runtime/Data Placement for QML Story Presentation
+
+- Keep reusable QML constants (for example: expressions/emoji maps, animation script constants) in JSON resources first, with in-QML fallback defaults.
+- Placeholder/non-real resources are only used when real assets (image/video/audio) are unavailable.
+- Settings panels should be presented within the current scene flow (with scene animation), not through unrelated stack-page push navigation.
 
 ## 8. Forbidden Qt6 Deprecated/Obsolete APIs
 

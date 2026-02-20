@@ -62,6 +62,10 @@ void shutdownAndLogStats() {
 
 int main(int argc, char* argv[]) {
     QGuiApplication app(argc, argv);
+    Configuration configInstance;
+    GameManager gameManagerInstance;
+    Configuration::setInstance(&configInstance);
+    GameManager::setInstance(&gameManagerInstance);
 
     qDebug() << "Qt Galgame Engine - Visual Novel Development Framework";
     qDebug() << "======================================================";
@@ -96,5 +100,4 @@ int main(int argc, char* argv[]) {
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &shutdownAndLogStats);
     return app.exec();
 }
-
 

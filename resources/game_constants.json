@@ -1,0 +1,23 @@
+{
+  "charMeta": {
+    "A": { "name": "凯瑟琳", "symbol": "🤠", "baseColor": "#8B5E3C" },
+    "B": { "name": "蕾妮", "symbol": "🦅", "baseColor": "#2F6FA8" },
+    "C": { "name": "梦雪", "symbol": "🔮", "baseColor": "#6A3FA8" }
+  },
+  "emotionEmoji": {
+    "angry": "😠",
+    "furious": "🤬",
+    "surprised": "😲",
+    "happy": "😄",
+    "calm": "😌",
+    "normal": "😐"
+  },
+  "magicBeam": {
+    "width": 26,
+    "height": 260,
+    "dropDurationMs": 1400
+  },
+  "sceneTransition": {
+    "slideLtrDurationMs": 520
+  }
+}

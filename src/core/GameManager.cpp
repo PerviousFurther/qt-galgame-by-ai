@@ -13,18 +13,27 @@
 
 namespace {
 constexpr int MaxFixedUpdateStepsPerFrame = 8;
+GameManager* g_gameManagerInstance = nullptr;
 }
 
-GameManager::GameManager()
-    : m_state(State::Stopped)
+GameManager::GameManager(QObject* parent)
+    : QObject(parent)
+    , m_state(State::Stopped)
     , m_frameUpdateInProgress(false)
     , m_currentStoryStep(0)
 {
 }
 
 GameManager& GameManager::getInstance() {
+    if (g_gameManagerInstance != nullptr) {
+        return *g_gameManagerInstance;
+    }
     static GameManager instance;
     return instance;
+}
+
+void GameManager::setInstance(GameManager* instance) {
+    g_gameManagerInstance = instance;
 }
 
 void GameManager::initialize() {
@@ -293,5 +302,4 @@ void GameManager::setCurrentScreen(const QString& screen) {
     m_currentScreen = screen;
     emit currentScreenChanged();
 }
-
 

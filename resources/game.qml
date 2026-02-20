@@ -6,6 +6,8 @@ import Galgame 1.0
 Item {
     id: gameRoot
     anchors.fill: parent
+    property var gameConstants: ({})
+    property real sceneOffsetX: 0
 
     // ── Story data ──────────────────────────────────────────────────────────
     // Each entry is one displayable step in the story.
@@ -20,7 +22,7 @@ Item {
     //   speaker       : character display name (string, dialogue only)
     //   speakerChar   : "A" | "B" | "C" | "" (all)
     //   text          : display text
-    property var storyData: [
+    property var fallbackStoryData: [
         // ── Shot 1: 开场 ───────────────────────────────────────────────────
         { shot: 1, shotTitle: "镜头一：开场", bg: "#87CEEB", shake: false,
           transition: true,
@@ -153,8 +155,82 @@ Item {
           charA: { visible: true, emotion: "happy", side: "left"   },
           charB: { visible: true, emotion: "happy", side: "right"  },
           charC: { visible: true, emotion: "happy", side: "center" },
-          type: "ending", text: "友情才是最牛逼的！" }
+          type: "narration", text: "友情才牛逼（播放三人音频）", autoAdvanceMs: 3200, transitionStyle: "slide_ltr" },
+
+        { shot: 8, shotTitle: "场景1：便利店门口 - 黄昏", bg: "#F8B768", shake: false, transition: true,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "calm",   side: "center" },
+          type: "narration", text: "（背景音：蝉鸣声，偶尔的汽车经过声）" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "angry", side: "left"   },
+          charB: { visible: true,  emotion: "normal",side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "哎哟，这关怎么又没过！这破手机，关键时刻掉帧。" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal",side: "left"   },
+          charB: { visible: true,  emotion: "angry", side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "彬彬", speakerChar: "B", text: "谁让你刚才不吃那颗药补血？现在好了，装备全爆了。" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "happy",  side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "哟，这不是阿伟和彬彬吗？怎么，看你们垂头丧气的，没钱吃饭啊？" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "normal",side: "right"  },
+          charC: { visible: true,  emotion: "calm",  side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "跟我走，杰哥家房子很大，里面有好吃的和最新的游戏机。走，带你们去康康好康的！" },
+
+        { shot: 9, shotTitle: "场景2：杰哥家客厅 - 晚上", bg: "#3D4B73", shake: false, transition: true,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "happy", side: "right"  },
+          charC: { visible: true,  emotion: "calm",  side: "center" },
+          type: "narration", text: "（背景音：游戏机电子音，敲击手柄的声音）" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "happy", side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "哇！这电视也太大了吧！打起来真爽！" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: false, emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "happy",  side: "right"  },
+          charC: { visible: true,  emotion: "calm",   side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "我那里还有更刺激的游戏，阿伟，你要不要进来我房间看看？" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "normal", side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "彬彬你就在这睡。阿伟，来，跟我进屋。" },
+
+        { shot: 10, shotTitle: "场景3：杰哥卧室 - 深夜", bg: "#1A2238", shake: true, transition: true,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "normal",    side: "center" },
+          type: "narration", text: "（背景音：门锁转动声，极其轻微底噪）" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "angry",     side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "杰哥，你干嘛脱衣服啊？空调太热了吗？" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "furious",   side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "阿伟，你脸红了。还没玩够呢，走什么？" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "furious",   side: "left"   },
+          charB: { visible: true,  emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "furious",   side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "救命啊！彬彬！彬彬救我！" },
+        { shot: 10, bg: "#1A2238", shake: false, transition: false,
+          charA: { visible: false, emotion: "normal",    side: "left"   },
+          charB: { visible: true,  emotion: "normal",    side: "right"  },
+          charC: { visible: false, emotion: "normal",    side: "center" },
+          type: "ending", text: "彬彬：阿伟……你们在里面吵什么啊……杰哥，我也要看好康的……\n欲知后事如何，且听下回分解…" }
     ]
+    property var storyData: fallbackStoryData
 
     // ── State ──────────────────────────────────────────────────────────────
     property int  currentStep:    GameManager.currentStoryStep
@@ -165,11 +241,34 @@ Item {
     readonly property int fastForwardIntervalMs: 600
 
     property var  visitedShots:   []
-    readonly property var charMeta: ({
+    readonly property var charMeta: gameConstants.charMeta !== undefined ? gameConstants.charMeta : ({
         A: { name: "凯瑟琳", symbol: "🤠", baseColor: "#8B5E3C" },
         B: { name: "蕾妮",   symbol: "🦅", baseColor: "#2F6FA8" },
         C: { name: "梦雪",   symbol: "🔮", baseColor: "#6A3FA8" }
     })
+
+    readonly property var emotionEmojiMap: gameConstants.emotionEmoji !== undefined ? gameConstants.emotionEmoji : ({
+        angry: "😠",
+        furious: "🤬",
+        surprised: "😲",
+        happy: "😄",
+        calm: "😌",
+        normal: "😐"
+    })
+
+    function loadJson(url, fallbackValue) {
+        const request = new XMLHttpRequest()
+        request.open("GET", url, false)
+        request.send()
+        if (request.status !== 200 && request.status !== 0) {
+            return fallbackValue
+        }
+        try {
+            return JSON.parse(request.responseText)
+        } catch (error) {
+            return fallbackValue
+        }
+    }
 
     function emotionColor(emotion, base) {
         switch (emotion) {
@@ -183,14 +282,41 @@ Item {
     }
 
     function emotionEmoji(emotion) {
-        switch (emotion) {
-        case "angry":     return "😠"
-        case "furious":   return "🤬"
-        case "surprised": return "😲"
-        case "happy":     return "😄"
-        case "calm":      return "😌"
-        default:          return "😐"
+        return emotionEmojiMap[emotion] !== undefined ? emotionEmojiMap[emotion] : emotionEmojiMap.normal
+    }
+
+    function routeShots() {
+        const map = {}
+        const routes = []
+        for (let i = 0; i < storyData.length; ++i) {
+            const shot = storyData[i].shot
+            if (shot === undefined || map[shot] === true) {
+                continue
+            }
+            map[shot] = true
+            const title = storyData[i].shotTitle !== undefined ? storyData[i].shotTitle : ("镜头 " + shot)
+            routes.push({ num: shot, title: title })
         }
+        return routes
+    }
+
+    function scheduleAutoAdvance() {
+        autoAdvanceTimer.stop()
+        if (storyData.length === 0 || currentStep >= storyData.length - 1) {
+            return
+        }
+        if (step().autoAdvanceMs !== undefined && step().autoAdvanceMs > 0) {
+            autoAdvanceTimer.interval = step().autoAdvanceMs
+            autoAdvanceTimer.start()
+        }
+    }
+
+    function showSettingsInScene() {
+        if (settingsPopup.opened) {
+            return
+        }
+        settingsSceneOverlay.visible = true
+        settingsSceneOverlayAnimation.restart()
     }
 
     function step() {
@@ -211,28 +337,39 @@ Item {
             if (!visitedShots.includes(nextShot)) {
                 visitedShots = visitedShots.concat([nextShot])
             }
-            doTransition(nextStep)
+            doTransition(nextStep, storyData[nextStep].transitionStyle || "fade")
         } else {
             currentStep = nextStep
             GameManager.currentStoryStep = nextStep
+            scheduleAutoAdvance()
         }
     }
 
-    function doTransition(nextStepIdx) {
+    function doTransition(nextStepIdx, style) {
         inTransition = true
         hudVisible   = false
-        fadeOverlay.opacity = 1.0
         transitionTimer.nextStep = nextStepIdx
+        transitionTimer.style = style
+        if (style === "slide_ltr") {
+            transitionTimer.interval = 250
+        } else {
+            transitionTimer.interval = 400
+            fadeOverlay.opacity = 1.0
+        }
         transitionTimer.start()
     }
 
     Component.onCompleted: {
+        gameConstants = loadJson("qrc:/game_constants.json", {})
         currentStep = GameManager.currentStoryStep
         // Record initial shot as visited
         if (storyData.length > 0) {
             visitedShots = [storyData[currentStep].shot]
         }
+        scheduleAutoAdvance()
     }
+
+    onCurrentStepChanged: scheduleAutoAdvance()
 
     // Fast-forward timer
     Timer {
@@ -249,17 +386,30 @@ Item {
         }
     }
 
+    Timer {
+        id: autoAdvanceTimer
+        interval: 3000
+        repeat: false
+        onTriggered: gameRoot.advance()
+    }
+
     // Transition timer: switch content mid-fade, then fade back in
     Timer {
         id: transitionTimer
         interval: 400
         property int nextStep: 0
+        property string style: "fade"
         onTriggered: {
             // GameManager.currentStoryStep was already updated in advance()
             // before the transition began; only the local mirror needs syncing.
             gameRoot.currentStep = nextStep
-            fadeOverlay.opacity = 0.0
-            transitionEndTimer.start()
+            if (style === "slide_ltr") {
+                gameRoot.sceneOffsetX = -sceneContent.width
+                sceneSlideAnimation.start()
+            } else {
+                fadeOverlay.opacity = 0.0
+                transitionEndTimer.start()
+            }
         }
     }
 
@@ -270,6 +420,17 @@ Item {
             gameRoot.inTransition = false
             gameRoot.hudVisible   = true
         }
+    }
+
+    NumberAnimation {
+        id: sceneSlideAnimation
+        target: gameRoot
+        property: "sceneOffsetX"
+        to: 0
+        duration: gameConstants.sceneTransition !== undefined &&
+                  gameConstants.sceneTransition.slideLtrDurationMs !== undefined
+                  ? gameConstants.sceneTransition.slideLtrDurationMs : 520
+        onFinished: transitionEndTimer.start()
     }
 
     // ── Background ────────────────────────────────────────────────────────
@@ -291,6 +452,7 @@ Item {
         anchors.top: parent.top
         anchors.bottom: dialogBox.top
         anchors.bottomMargin: 4
+        transform: Translate { x: gameRoot.sceneOffsetX }
 
         // Shot title shown briefly during transitions
         Text {
@@ -308,6 +470,44 @@ Item {
                   ? gameRoot.step().shotTitle : ""
 
             Behavior on opacity { NumberAnimation { duration: 300 } }
+        }
+
+        Item {
+            id: parentSceneLayer
+            anchors.fill: parent
+
+            Item {
+                id: childSceneLayer
+                anchors.fill: parent
+
+                Rectangle {
+                    id: magicBeam
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.width !== undefined
+                           ? gameConstants.magicBeam.width : 26
+                    height: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.height !== undefined
+                            ? gameConstants.magicBeam.height : 260
+                    radius: width / 2
+                    color: "#88CCFF"
+                    border.color: "#DDF8FF"
+                    border.width: 2
+                    opacity: gameRoot.storyData.length > 0 &&
+                             gameRoot.step().shot === 5 &&
+                             gameRoot.step().charC !== undefined &&
+                             gameRoot.step().charC.visible === true ? 0.92 : 0.0
+                    y: beamDropAnimation.running ? beamDropAnimation.currentValue : -height
+
+                    NumberAnimation {
+                        id: beamDropAnimation
+                        running: magicBeam.opacity > 0.0
+                        loops: Animation.Infinite
+                        from: -magicBeam.height
+                        to: parent.height - magicBeam.height - 12
+                        duration: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.dropDurationMs !== undefined
+                                  ? gameConstants.magicBeam.dropDurationMs : 1400
+                    }
+                }
+            }
         }
 
         // Shake wrapper for shot 4
@@ -543,7 +743,7 @@ Item {
         Button {
             text: "⚙ 设置"
             font.pixelSize: 14
-            onClicked: settingsPopup.open()
+            onClicked: gameRoot.showSettingsInScene()
         }
 
         Button {
@@ -640,6 +840,22 @@ Item {
     }
 
     // ── Settings popup ────────────────────────────────────────────────────
+    Rectangle {
+        id: settingsSceneOverlay
+        anchors.fill: parent
+        color: "#55000000"
+        visible: false
+        opacity: 0.0
+    }
+
+    SequentialAnimation {
+        id: settingsSceneOverlayAnimation
+        NumberAnimation { target: settingsSceneOverlay; property: "opacity"; from: 0.0; to: 1.0; duration: 180 }
+        ScriptAction { script: settingsPopup.open() }
+        NumberAnimation { target: settingsSceneOverlay; property: "opacity"; from: 1.0; to: 0.0; duration: 180 }
+        ScriptAction { script: settingsSceneOverlay.visible = false }
+    }
+
     Popup {
         id: settingsPopup
         anchors.centerIn: parent
@@ -694,15 +910,7 @@ Item {
                 spacing: 10
 
                 Repeater {
-                    model: [
-                        { num: 1, title: "开场" },
-                        { num: 2, title: "对峙" },
-                        { num: 3, title: "升级" },
-                        { num: 4, title: "冲突" },
-                        { num: 5, title: "转折" },
-                        { num: 6, title: "顿悟" },
-                        { num: 7, title: "结尾" }
-                    ]
+                    model: gameRoot.routeShots()
 
                     Rectangle {
                         width: 110; height: 70

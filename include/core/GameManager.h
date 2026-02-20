@@ -36,6 +36,9 @@ public:
     Q_ENUM(State)
 
     static GameManager& getInstance();
+    static void setInstance(GameManager* instance);
+    explicit GameManager(QObject* parent = nullptr);
+    ~GameManager() = default;
 
     void initialize();
     void attachRenderWindow(QQuickWindow* window);
@@ -77,8 +80,6 @@ signals:
     void currentScreenChanged();
 
 private:
-    GameManager();
-    ~GameManager() = default;
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
 

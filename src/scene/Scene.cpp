@@ -17,19 +17,12 @@ QString normalizeScenePath(const QString& filePath) {
 }
 }
 
-Scene::Scene() {
+Scene::Scene(QObject* parent)
+    : Item(parent) {
 }
 
 Scene::~Scene() {
     clear();
-}
-
-const QString& Scene::getId() const {
-    return m_id;
-}
-
-void Scene::setId(const QString& id) {
-    m_id = id;
 }
 
 bool Scene::addItem(QSharedPointer<Item> item) {
@@ -123,7 +116,7 @@ bool Scene::loadFromJson(const QString& filePath) {
     const QString parsedId = sceneObject.value("id").toString();
     if (!parsedId.isEmpty()) {
         setId(parsedId);
-    } else if (m_id.isEmpty()) {
+    } else if (getId().isEmpty()) {
         setId(QFileInfo(filePath).completeBaseName());
     }
 
@@ -132,7 +125,7 @@ bool Scene::loadFromJson(const QString& filePath) {
         const QJsonObject itemObject = value.toObject();
         const QString itemType = itemObject.value("type").toString();
         if (itemType.isEmpty()) {
-            qWarning() << "Scene item missing type in scene:" << m_id << "- falling back to Item";
+            qWarning() << "Scene item missing type in scene:" << getId() << "- falling back to Item";
         }
         PropertyMap properties;
         properties["type"] = itemType.isEmpty() ? QStringLiteral("Item") : itemType;
@@ -147,7 +140,7 @@ bool Scene::loadFromJson(const QString& filePath) {
         if (!item.isNull()) {
             addItem(item);
         } else {
-            qWarning() << "Failed to create scene item: scene=" << m_id
+            qWarning() << "Failed to create scene item: scene=" << getId()
                        << ", itemId=" << itemObject.value("id").toString()
                        << ", type=" << properties["type"].toString();
         }
@@ -162,7 +155,7 @@ bool Scene::loadFromQml(const QString& filePath) {
         qWarning() << "Scene QML does not exist:" << filePath;
         return false;
     }
-    if (m_id.isEmpty()) {
+    if (getId().isEmpty()) {
         setId(QFileInfo(filePath).completeBaseName());
     }
     return true;
@@ -200,4 +193,8 @@ void Scene::clear() {
     }
     m_items.clear();
     m_itemMap.clear();
+}
+
+QString Scene::getType() const {
+    return "Scene";
 }
