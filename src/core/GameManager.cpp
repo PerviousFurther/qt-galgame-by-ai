@@ -10,6 +10,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QMetaObject>
 
 namespace {
 constexpr int MaxFixedUpdateStepsPerFrame = 8;
@@ -196,7 +197,7 @@ void GameManager::processFrame() {
     }
     m_frameUpdateInProgress = false;
     if (!m_renderWindow.isNull()) {
-        m_renderWindow->requestUpdate();
+        QMetaObject::invokeMethod(m_renderWindow, "requestUpdate", Qt::QueuedConnection);
     }
 }
 
