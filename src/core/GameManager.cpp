@@ -269,6 +269,14 @@ bool GameManager::save() {
     return true;
 }
 
+void GameManager::finishOpening() {
+    Configuration::getInstance().setOpeningAnimationPlayed(true);
+    if (!Configuration::getInstance().saveConfig()) {
+        qWarning() << "Failed to save config after opening animation";
+    }
+    setCurrentScreen(QStringLiteral("menu"));
+}
+
 QVariantMap GameManager::advanceStory(const QVariantList& storyData, const QVariantList& visitedShots) {
     QVariantMap result;
     result["advanced"] = false;
@@ -343,6 +351,42 @@ QString GameManager::emotionEmoji(const QString& emotion) const {
     return QStringLiteral("😐");
 }
 
+QColor GameManager::emotionColor(const QString& emotion, const QColor& baseColor) const {
+    if (emotion == QStringLiteral("angry")) {
+        return baseColor.darker(130);
+    }
+    if (emotion == QStringLiteral("furious")) {
+        return baseColor.darker(160);
+    }
+    if (emotion == QStringLiteral("surprised")) {
+        return baseColor.lighter(140);
+    }
+    if (emotion == QStringLiteral("happy")) {
+        return baseColor.lighter(130);
+    }
+    return baseColor;
+}
+
+QVariantMap GameManager::getGameConstants() const {
+    if (!m_cachedGameConstants.isEmpty()) {
+        return m_cachedGameConstants;
+    }
+    QFile file(QStringLiteral(":/game_constants.json"));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open game constants JSON resource";
+        return {};
+    }
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    file.close();
+    if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        qWarning() << "Failed to parse game constants JSON:" << parseError.errorString();
+        return {};
+    }
+    m_cachedGameConstants = doc.object().toVariantMap();
+    return m_cachedGameConstants;
+}
+
 // ── Q_PROPERTY accessors ──────────────────────────────────────────────────
 
 int GameManager::getCurrentStoryStep() const {
@@ -378,6 +422,19 @@ int GameManager::getSavedStep() const {
 
 QString GameManager::getCurrentScreen() const {
     return m_currentScreen;
+}
+
+QString GameManager::getCurrentScreenUrl() const {
+    if (m_currentScreen == QStringLiteral("opening")) {
+        return QStringLiteral("qrc:/opening.qml");
+    }
+    if (m_currentScreen == QStringLiteral("menu")) {
+        return QStringLiteral("qrc:/mainmenu.qml");
+    }
+    if (m_currentScreen == QStringLiteral("game")) {
+        return QStringLiteral("qrc:/game.qml");
+    }
+    return {};
 }
 
 void GameManager::setCurrentScreen(const QString& screen) {

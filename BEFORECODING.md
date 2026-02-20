@@ -80,11 +80,17 @@ It defines what code in this repository should look like.
 ## 10. Runtime/Data Placement for QML Story Presentation
 
 - Business/game logic should be implemented in C++ as much as possible; QML should remain focused on simple UI interaction and presentation binding.
+- QML must not contain complex script logic (state machines, data processing loops, asynchronous fetch/parsing logic, etc.); move such logic to C++.
+- Avoid asynchronous JavaScript patterns in QML business flow. QML is for UI wiring and C++ interaction, not full JS runtime-style orchestration.
 - Keep reusable QML constants (for example: expressions/emoji maps, animation script constants) in JSON resources first, with in-QML fallback defaults.
 - Placeholder/non-real resources are only used when real assets (image/video/audio) are unavailable.
 - Settings panels should be presented within the current scene flow (with scene animation), not through unrelated stack-page push navigation.
 
-## 8. Forbidden Qt6 Deprecated/Obsolete APIs
+## 11. Environment Bootstrap Scripts
+
+- Use `/scripts/install_qt6_deps_ubuntu.sh` on Ubuntu/Debian to automatically install Qt6 development dependencies and screenshot tool dependencies (e.g., `scrot`) before build/verification.
+
+## 12. Forbidden Qt6 Deprecated/Obsolete APIs
 
 Do not use APIs marked Deprecated/Obsolete in Qt6 official documentation.  
 Repository-level enforced replacement list:

@@ -6,7 +6,7 @@ import Galgame 1.0
 Item {
     id: gameRoot
     anchors.fill: parent
-    property var gameConstants: ({})
+    property var gameConstants: GameManager.getGameConstants()
     property real sceneOffsetX: 0
 
     // ── Story data ──────────────────────────────────────────────────────────
@@ -234,7 +234,8 @@ Item {
 
     // ── State ──────────────────────────────────────────────────────────────
     property int  currentStep:    GameManager.currentStoryStep
-    property int  currentShot:    storyData.length > 0 ? step().shot : 1
+    readonly property var currentStepData: storyData.length > 0 ? storyData[Math.min(currentStep, storyData.length - 1)] : ({})
+    readonly property int currentShot:    currentStepData.shot !== undefined ? currentStepData.shot : 1
     property bool inTransition:   false
     property bool fastForward:    false
     property bool hudVisible:     true
@@ -247,48 +248,13 @@ Item {
         C: { name: "梦雪",   symbol: "🔮", baseColor: "#6A3FA8" }
     })
 
-    function loadGameConstantsAsync() {
-        const request = new XMLHttpRequest()
-        request.onreadystatechange = function() {
-            if (request.readyState !== XMLHttpRequest.DONE) {
-                return
-            }
-            if (request.status !== 200 && request.status !== 0) {
-                console.error("Failed to load game_constants.json, status:", request.status)
-                return
-            }
-            try {
-                gameConstants = JSON.parse(request.responseText)
-            } catch (error) {
-                console.error("Failed to parse game_constants.json:", error)
-            }
-        }
-        request.open("GET", "qrc:/game_constants.json")
-        request.send()
-    }
-
-    function emotionColor(emotion, base) {
-        switch (emotion) {
-        case "angry":     return Qt.darker(base, 1.3)
-        case "furious":   return Qt.darker(base, 1.6)
-        case "surprised": return Qt.lighter(base, 1.4)
-        case "happy":     return Qt.lighter(base, 1.3)
-        case "calm":      return base
-        default:          return base
-        }
-    }
-
-    function emotionEmoji(emotion) {
-        return GameManager.emotionEmoji(emotion)
-    }
-
     function scheduleAutoAdvance() {
         autoAdvanceTimer.stop()
         if (storyData.length === 0 || currentStep >= storyData.length - 1) {
             return
         }
-        if (step().autoAdvanceMs !== undefined && step().autoAdvanceMs > 0) {
-            autoAdvanceTimer.interval = step().autoAdvanceMs
+        if (currentStepData.autoAdvanceMs !== undefined && currentStepData.autoAdvanceMs > 0) {
+            autoAdvanceTimer.interval = currentStepData.autoAdvanceMs
             autoAdvanceTimer.start()
         }
     }
@@ -299,10 +265,6 @@ Item {
         }
         settingsSceneOverlay.visible = true
         settingsSceneOverlayAnimation.restart()
-    }
-
-    function step() {
-        return storyData[Math.min(currentStep, storyData.length - 1)]
     }
 
     function advance() {
@@ -337,7 +299,6 @@ Item {
     }
 
     Component.onCompleted: {
-        loadGameConstantsAsync()
         currentStep = GameManager.currentStoryStep
         // Record initial shot as visited
         if (storyData.length > 0) {
@@ -415,7 +376,7 @@ Item {
         id: background
         anchors.fill: parent
         color: gameRoot.storyData.length > 0
-               ? gameRoot.step().bg
+               ? gameRoot.currentStepData.bg
                : "#87CEEB"
 
         Behavior on color { ColorAnimation { duration: 300 } }
@@ -443,8 +404,8 @@ Item {
             style: Text.Outline
             styleColor: "#000000"
             opacity: gameRoot.inTransition ? 1.0 : 0.0
-            text: gameRoot.storyData.length > 0 && gameRoot.step().shotTitle !== undefined
-                  ? gameRoot.step().shotTitle : ""
+            text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.shotTitle !== undefined
+                  ? gameRoot.currentStepData.shotTitle : ""
 
             Behavior on opacity { NumberAnimation { duration: 300 } }
         }
@@ -469,9 +430,9 @@ Item {
                     border.color: "#DDF8FF"
                     border.width: 2
                     opacity: gameRoot.storyData.length > 0 &&
-                             gameRoot.step().shot === 5 &&
-                             gameRoot.step().charC !== undefined &&
-                             gameRoot.step().charC.visible === true ? 0.92 : 0.0
+                             gameRoot.currentStepData.shot === 5 &&
+                             gameRoot.currentStepData.charC !== undefined &&
+                             gameRoot.currentStepData.charC.visible === true ? 0.92 : 0.0
                     y: beamDropAnimation.running ? beamDropAnimation.currentValue : -height
 
                     NumberAnimation {
@@ -497,7 +458,7 @@ Item {
             transform: Translate { x: shakeWrapper.shakeX; y: shakeWrapper.shakeY }
 
             SequentialAnimation {
-                running: gameRoot.storyData.length > 0 && gameRoot.step().shake
+                running: gameRoot.storyData.length > 0 && gameRoot.currentStepData.shake
                 loops: Animation.Infinite
                 NumberAnimation { target: shakeWrapper; property: "shakeX"; from: 0; to:  6; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeX"; from: 6; to: -6; duration: 60 }
@@ -505,15 +466,6 @@ Item {
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: 0; to:  4; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: 4; to: -4; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: -4; to: 0; duration: 60 }
-            }
-
-            // Character display function
-            function charData(which) {
-                if (gameRoot.storyData.length === 0) return { visible: false }
-                const s = gameRoot.step()
-                if (which === "A") return s.charA
-                if (which === "B") return s.charB
-                return s.charC
             }
 
             // ── Character A (left) ──────────────────────────────────────────
@@ -524,15 +476,15 @@ Item {
                 anchors.leftMargin: 80
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("A").visible === true
+                visible: gameRoot.currentStepData.charA !== undefined && gameRoot.currentStepData.charA.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("A").emotion || "normal",
-                                                 gameRoot.charMeta["A"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charA !== undefined ? (gameRoot.currentStepData.charA.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["A"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -540,7 +492,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["A"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("A").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charA !== undefined ? (gameRoot.currentStepData.charA.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -558,15 +510,15 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("C").visible === true
+                visible: gameRoot.currentStepData.charC !== undefined && gameRoot.currentStepData.charC.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("C").emotion || "normal",
-                                                 gameRoot.charMeta["C"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charC !== undefined ? (gameRoot.currentStepData.charC.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["C"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -574,7 +526,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["C"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("C").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charC !== undefined ? (gameRoot.currentStepData.charC.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -593,15 +545,15 @@ Item {
                 anchors.rightMargin: 80
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("B").visible === true
+                visible: gameRoot.currentStepData.charB !== undefined && gameRoot.currentStepData.charB.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("B").emotion || "normal",
-                                                 gameRoot.charMeta["B"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charB !== undefined ? (gameRoot.currentStepData.charB.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["B"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -609,7 +561,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["B"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("B").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charB !== undefined ? (gameRoot.currentStepData.charB.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -630,7 +582,7 @@ Item {
         anchors.right: parent.right
         height: 190
         color: "#CC000000"
-        visible: gameRoot.storyData.length > 0 && gameRoot.step().type !== "ending"
+        visible: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type !== "ending"
 
         // Speaker name plate
         Rectangle {
@@ -644,14 +596,14 @@ Item {
             radius: 6
             color: "#CC333355"
             visible: gameRoot.storyData.length > 0 &&
-                     gameRoot.step().type === "dialogue" &&
-                     gameRoot.step().speaker !== undefined
+                     gameRoot.currentStepData.type === "dialogue" &&
+                     gameRoot.currentStepData.speaker !== undefined
 
             Text {
                 id: speakerLabel
                 anchors.centerIn: parent
-                text: gameRoot.storyData.length > 0 && gameRoot.step().speaker !== undefined
-                      ? gameRoot.step().speaker : ""
+                text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.speaker !== undefined
+                      ? gameRoot.currentStepData.speaker : ""
                 font.pixelSize: 20; font.bold: true; color: "#ffffff"
             }
         }
@@ -663,7 +615,7 @@ Item {
             anchors.top: parent.top
             anchors.bottom: continueHint.top
             anchors.margins: 24
-            text: gameRoot.storyData.length > 0 ? gameRoot.step().text : ""
+            text: gameRoot.storyData.length > 0 ? gameRoot.currentStepData.text : ""
             font.pixelSize: 24
             color: "#ffffff"
             wrapMode: Text.Wrap
@@ -767,7 +719,7 @@ Item {
         id: endingOverlay
         anchors.fill: parent
         color: "#CC000000"
-        visible: gameRoot.storyData.length > 0 && gameRoot.step().type === "ending"
+        visible: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type === "ending"
 
         Column {
             anchors.centerIn: parent
@@ -775,8 +727,8 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: gameRoot.storyData.length > 0 && gameRoot.step().type === "ending"
-                      ? gameRoot.step().text : ""
+                text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type === "ending"
+                      ? gameRoot.currentStepData.text : ""
                 font.pixelSize: 48
                 font.bold: true
                 color: "#FFD700"
