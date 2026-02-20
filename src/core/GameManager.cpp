@@ -14,6 +14,17 @@
 namespace {
 constexpr int MaxFixedUpdateStepsPerFrame = 8;
 GameManager* g_gameManagerInstance = nullptr;
+
+QVariantMap storyStepAt(const QVariantList& storyData, int index) {
+    if (index < 0 || index >= storyData.size()) {
+        return {};
+    }
+    return storyData[index].toMap();
+}
+
+int storyShotAt(const QVariantList& storyData, int index) {
+    return storyStepAt(storyData, index).value(QStringLiteral("shot")).toInt(0);
+}
 }
 
 GameManager::GameManager(QObject* parent)
@@ -258,6 +269,80 @@ bool GameManager::save() {
     return true;
 }
 
+QVariantMap GameManager::advanceStory(const QVariantList& storyData, const QVariantList& visitedShots) {
+    QVariantMap result;
+    result["advanced"] = false;
+    result["nextStep"] = m_currentStoryStep;
+    result["shotChanged"] = false;
+    result["transitionStyle"] = QStringLiteral("fade");
+    result["visitedShots"] = visitedShots;
+
+    if (storyData.isEmpty() || m_currentStoryStep >= storyData.size() - 1) {
+        return result;
+    }
+
+    const int nextStep = m_currentStoryStep + 1;
+    const int currentShot = storyShotAt(storyData, m_currentStoryStep);
+    const int nextShot = storyShotAt(storyData, nextStep);
+    const QVariantMap nextStepMap = storyStepAt(storyData, nextStep);
+    const QString transitionStyle = nextStepMap.value(QStringLiteral("transitionStyle"), QStringLiteral("fade")).toString();
+    const bool shotChanged = currentShot != nextShot;
+
+    setCurrentStoryStep(nextStep);
+    if (shotChanged) {
+        save();
+    }
+
+    QVariantList updatedVisitedShots = visitedShots;
+    if (shotChanged && !updatedVisitedShots.contains(nextShot)) {
+        updatedVisitedShots.append(nextShot);
+    }
+
+    result["advanced"] = true;
+    result["nextStep"] = nextStep;
+    result["shotChanged"] = shotChanged;
+    result["transitionStyle"] = transitionStyle;
+    result["visitedShots"] = updatedVisitedShots;
+    return result;
+}
+
+QVariantList GameManager::buildRouteShots(const QVariantList& storyData) const {
+    QVariantList routes;
+    QVariantList seenShots;
+    for (const QVariant& stepVariant : storyData) {
+        const QVariantMap step = stepVariant.toMap();
+        const int shot = step.value(QStringLiteral("shot")).toInt(0);
+        if (shot < 0 || seenShots.contains(shot)) {
+            continue;
+        }
+        seenShots.append(shot);
+        QVariantMap route;
+        route["num"] = shot;
+        route["title"] = step.value(QStringLiteral("shotTitle"), QStringLiteral("镜头 %1").arg(shot)).toString();
+        routes.append(route);
+    }
+    return routes;
+}
+
+QString GameManager::emotionEmoji(const QString& emotion) const {
+    if (emotion == QStringLiteral("angry")) {
+        return QStringLiteral("😠");
+    }
+    if (emotion == QStringLiteral("furious")) {
+        return QStringLiteral("🤬");
+    }
+    if (emotion == QStringLiteral("surprised")) {
+        return QStringLiteral("😲");
+    }
+    if (emotion == QStringLiteral("happy")) {
+        return QStringLiteral("😄");
+    }
+    if (emotion == QStringLiteral("calm")) {
+        return QStringLiteral("😌");
+    }
+    return QStringLiteral("😐");
+}
+
 // ── Q_PROPERTY accessors ──────────────────────────────────────────────────
 
 int GameManager::getCurrentStoryStep() const {
@@ -302,4 +387,3 @@ void GameManager::setCurrentScreen(const QString& screen) {
     m_currentScreen = screen;
     emit currentScreenChanged();
 }
-

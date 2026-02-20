@@ -68,6 +68,9 @@ public:
     Q_INVOKABLE void startGame(int fromStep = 0);
     Q_INVOKABLE bool hasSaves() const;
     Q_INVOKABLE bool save();
+    Q_INVOKABLE QVariantMap advanceStory(const QVariantList& storyData, const QVariantList& visitedShots);
+    Q_INVOKABLE QVariantList buildRouteShots(const QVariantList& storyData) const;
+    Q_INVOKABLE QString emotionEmoji(const QString& emotion) const;
 
 public slots:
     void processFrame();

@@ -247,15 +247,6 @@ Item {
         C: { name: "梦雪",   symbol: "🔮", baseColor: "#6A3FA8" }
     })
 
-    readonly property var emotionEmojiMap: gameConstants.emotionEmoji !== undefined ? gameConstants.emotionEmoji : ({
-        angry: "😠",
-        furious: "🤬",
-        surprised: "😲",
-        happy: "😄",
-        calm: "😌",
-        normal: "😐"
-    })
-
     function loadGameConstantsAsync() {
         const request = new XMLHttpRequest()
         request.onreadystatechange = function() {
@@ -288,22 +279,7 @@ Item {
     }
 
     function emotionEmoji(emotion) {
-        return emotionEmojiMap[emotion] !== undefined ? emotionEmojiMap[emotion] : emotionEmojiMap.normal
-    }
-
-    function routeShots() {
-        const map = {}
-        const routes = []
-        for (let i = 0; i < storyData.length; ++i) {
-            const shot = storyData[i].shot
-            if (shot === undefined || map[shot] === true) {
-                continue
-            }
-            map[shot] = true
-            const title = storyData[i].shotTitle !== undefined ? storyData[i].shotTitle : ("镜头 " + shot)
-            routes.push({ num: shot, title: title })
-        }
-        return routes
+        return GameManager.emotionEmoji(emotion)
     }
 
     function scheduleAutoAdvance() {
@@ -331,22 +307,13 @@ Item {
 
     function advance() {
         if (inTransition) return
-        if (currentStep >= storyData.length - 1) return
-
-        const nextStep = currentStep + 1
-        const nextShot = storyData[nextStep].shot
-
-        if (nextShot !== currentShot) {
-            // Shot change → auto-save, hide HUD, transition
-            GameManager.currentStoryStep = nextStep
-            GameManager.save()
-            if (!visitedShots.includes(nextShot)) {
-                visitedShots = visitedShots.concat([nextShot])
-            }
-            doTransition(nextStep, storyData[nextStep].transitionStyle || "fade")
+        const advanceResult = GameManager.advanceStory(storyData, visitedShots)
+        if (advanceResult.advanced !== true) return
+        currentStep = advanceResult.nextStep
+        visitedShots = advanceResult.visitedShots
+        if (advanceResult.shotChanged === true) {
+            doTransition(advanceResult.nextStep, advanceResult.transitionStyle)
         } else {
-            currentStep = nextStep
-            GameManager.currentStoryStep = nextStep
             scheduleAutoAdvance()
         }
     }
@@ -920,7 +887,7 @@ Item {
                 spacing: 10
 
                 Repeater {
-                    model: gameRoot.routeShots()
+                    model: GameManager.buildRouteShots(gameRoot.storyData)
 
                     Rectangle {
                         width: 110; height: 70
