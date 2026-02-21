@@ -22,8 +22,8 @@ Item {
     //   speaker       : character display name (string, dialogue only)
     //   speakerChar   : "A" | "B" | "C" | "" (all)
     //   text          : display text
-    property var fallbackStoryData: gameConstants.storyData !== undefined ? gameConstants.storyData : []
-    property var storyData: fallbackStoryData
+    property var loadedStoryData: gameConstants.storyData !== undefined ? gameConstants.storyData : []
+    property var storyData: loadedStoryData
 
     // ── State ──────────────────────────────────────────────────────────────
     property int  currentStep:    GameManager.currentStoryStep
