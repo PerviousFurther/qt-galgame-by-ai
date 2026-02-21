@@ -1,8 +1,20 @@
 {
   "charMeta": {
-    "A": { "name": "凯瑟琳", "symbol": "🤠", "baseColor": "#8B5E3C" },
-    "B": { "name": "蕾妮", "symbol": "🦅", "baseColor": "#2F6FA8" },
-    "C": { "name": "梦雪", "symbol": "🔮", "baseColor": "#6A3FA8" }
+    "A": {
+      "name": "凯瑟琳",
+      "symbol": "🤠",
+      "baseColor": "#8B5E3C"
+    },
+    "B": {
+      "name": "蕾妮",
+      "symbol": "🦅",
+      "baseColor": "#2F6FA8"
+    },
+    "C": {
+      "name": "梦雪",
+      "symbol": "🔮",
+      "baseColor": "#6A3FA8"
+    }
   },
   "emotionEmoji": {
     "angry": "😠",
@@ -21,5 +33,791 @@
     "slideLtrDurationMs": 520,
     "slideSwitchDelayMs": 250,
     "fadeSwitchDelayMs": 400
-  }
+  },
+  "storyData": [
+    {
+      "shot": 1,
+      "shotTitle": "镜头一：开场",
+      "bg": "#87CEEB",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "空旷的广场，两位原创角色面对面站立。"
+    },
+    {
+      "shot": 1,
+      "bg": "#87CEEB",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "凯瑟琳",
+      "speakerChar": "A",
+      "text": "原神牛逼！"
+    },
+    {
+      "shot": 2,
+      "shotTitle": "镜头二：对峙",
+      "bg": "#4A90D9",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "center"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "镜头切到角色B，表情同样愤怒。"
+    },
+    {
+      "shot": 2,
+      "bg": "#4A90D9",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "center"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "蕾妮",
+      "speakerChar": "B",
+      "text": "鸣潮牛逼！"
+    },
+    {
+      "shot": 3,
+      "shotTitle": "镜头三：升级",
+      "bg": "#E8A020",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "背景音乐紧张，镜头快速切换，营造即将打架的气氛。"
+    },
+    {
+      "shot": 3,
+      "bg": "#E8A020",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "left"
+      },
+      "charB": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "凯瑟琳",
+      "speakerChar": "A",
+      "text": "原神牛逼！"
+    },
+    {
+      "shot": 3,
+      "bg": "#E8A020",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "蕾妮",
+      "speakerChar": "B",
+      "text": "鸣潮牛逼！"
+    },
+    {
+      "shot": 3,
+      "bg": "#E8A020",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "left"
+      },
+      "charB": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "凯瑟琳",
+      "speakerChar": "A",
+      "text": "原神牛逼！！"
+    },
+    {
+      "shot": 3,
+      "bg": "#E8A020",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "蕾妮",
+      "speakerChar": "B",
+      "text": "鸣潮牛逼！！"
+    },
+    {
+      "shot": 4,
+      "shotTitle": "镜头四：冲突临近",
+      "bg": "#D4380D",
+      "shake": true,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "两人动作加剧，准备扑向对方。"
+    },
+    {
+      "shot": 4,
+      "bg": "#D4380D",
+      "shake": true,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "角色A抬起拳头，角色B张开翅膀。画面抖动，制造紧张感。"
+    },
+    {
+      "shot": 5,
+      "shotTitle": "镜头五：转折",
+      "bg": "#722ED1",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "突然，角色C从画面中央冲入！她用魔法光束拉开两人。"
+    },
+    {
+      "shot": 5,
+      "bg": "#722ED1",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "梦雪",
+      "speakerChar": "C",
+      "text": "终末地不牛逼？"
+    },
+    {
+      "shot": 6,
+      "shotTitle": "镜头六：顿悟",
+      "bg": "#52C41A",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "角色A和角色B愣住，表情从愤怒转为恍然大悟。"
+    },
+    {
+      "shot": 6,
+      "bg": "#52C41A",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "两人互相看了一眼，突然笑了。音乐转为轻快搞笑。"
+    },
+    {
+      "shot": 7,
+      "shotTitle": "镜头七：结尾",
+      "bg": "#FFD700",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "三人并肩站在一起，面对屏幕。"
+    },
+    {
+      "shot": 7,
+      "bg": "#FFD700",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "全员",
+      "speakerChar": "",
+      "text": "终末地不牛逼！"
+    },
+    {
+      "shot": 7,
+      "bg": "#FFD700",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "友情才牛逼！",
+      "autoAdvanceMs": 3200,
+      "transitionStyle": "slide_ltr"
+    },
+    {
+      "shot": 8,
+      "shotTitle": "场景1：便利店门口 - 黄昏",
+      "bg": "#F8B768",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "（背景音：蝉鸣声，偶尔的汽车经过声）"
+    },
+    {
+      "shot": 8,
+      "bg": "#F8B768",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "阿伟",
+      "speakerChar": "A",
+      "text": "哎哟，这关怎么又没过！这破手机，关键时刻掉帧。"
+    },
+    {
+      "shot": 8,
+      "bg": "#F8B768",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "彬彬",
+      "speakerChar": "B",
+      "text": "谁让你刚才不吃那颗药补血？现在好了，装备全爆了。"
+    },
+    {
+      "shot": 8,
+      "bg": "#F8B768",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "杰哥",
+      "speakerChar": "C",
+      "text": "哟，这不是阿伟和彬彬吗？怎么，看你们垂头丧气的，没钱吃饭啊？"
+    },
+    {
+      "shot": 8,
+      "bg": "#F8B768",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "杰哥",
+      "speakerChar": "C",
+      "text": "跟我走，杰哥家房子很大，里面有好吃的和最新的游戏机。走，带你们去康康好康的！"
+    },
+    {
+      "shot": 9,
+      "shotTitle": "场景2：杰哥家客厅 - 晚上",
+      "bg": "#3D4B73",
+      "shake": false,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "（背景音：游戏机电子音，敲击手柄的声音）"
+    },
+    {
+      "shot": 9,
+      "bg": "#3D4B73",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "阿伟",
+      "speakerChar": "A",
+      "text": "哇！这电视也太大了吧！打起来真爽！"
+    },
+    {
+      "shot": 9,
+      "bg": "#3D4B73",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "happy",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "calm",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "杰哥",
+      "speakerChar": "C",
+      "text": "我那里还有更刺激的游戏，阿伟，你要不要进来我房间看看？"
+    },
+    {
+      "shot": 9,
+      "bg": "#3D4B73",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "杰哥",
+      "speakerChar": "C",
+      "text": "彬彬你就在这睡。阿伟，来，跟我进屋。"
+    },
+    {
+      "shot": 10,
+      "shotTitle": "场景3：杰哥卧室 - 深夜",
+      "bg": "#1A2238",
+      "shake": true,
+      "transition": true,
+      "charA": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "left"
+      },
+      "charB": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "narration",
+      "text": "（背景音：门锁转动声，极其轻微底噪）"
+    },
+    {
+      "shot": 10,
+      "bg": "#1A2238",
+      "shake": true,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "left"
+      },
+      "charB": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "angry",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "阿伟",
+      "speakerChar": "A",
+      "text": "杰哥，你干嘛脱衣服啊？空调太热了吗？"
+    },
+    {
+      "shot": 10,
+      "bg": "#1A2238",
+      "shake": true,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "surprised",
+        "side": "left"
+      },
+      "charB": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "杰哥",
+      "speakerChar": "C",
+      "text": "阿伟，你脸红了。还没玩够呢，走什么？"
+    },
+    {
+      "shot": 10,
+      "bg": "#1A2238",
+      "shake": true,
+      "transition": false,
+      "charA": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": true,
+        "emotion": "furious",
+        "side": "center"
+      },
+      "type": "dialogue",
+      "speaker": "阿伟",
+      "speakerChar": "A",
+      "text": "救命啊！彬彬！彬彬救我！"
+    },
+    {
+      "shot": 10,
+      "bg": "#1A2238",
+      "shake": false,
+      "transition": false,
+      "charA": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "left"
+      },
+      "charB": {
+        "visible": true,
+        "emotion": "normal",
+        "side": "right"
+      },
+      "charC": {
+        "visible": false,
+        "emotion": "normal",
+        "side": "center"
+      },
+      "type": "ending",
+      "text": "彬彬：阿伟……你们在里面吵什么啊……杰哥，我也要看好康的……\n欲知后事如何，且听下回分解…"
+    }
+  ]
 }
