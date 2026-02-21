@@ -13,26 +13,15 @@
  * Scene manages a collection of Items and handles the connections between them.
  * Items don't need to directly interact with each other; the Scene manages
  * their relationships and communications.
+ * Scene is also an Item so Scene instances can be nested for layered composition.
  * 
  * Note: This class is not thread-safe. All operations should be performed
  * from a single thread or externally synchronized.
  */
-class Scene {
+class Scene : public Item {
 public:
-    Scene();
-    virtual ~Scene();
-
-    /**
-     * @brief Get the unique identifier of this scene
-     * @return The scene's ID
-     */
-    const QString& getId() const;
-
-    /**
-     * @brief Set the unique identifier of this scene
-     * @param id The new ID
-     */
-    void setId(const QString& id);
+    explicit Scene(QObject* parent = nullptr);
+    ~Scene() override;
 
     /**
      * @brief Add an item to the scene
@@ -71,30 +60,31 @@ public:
     /**
      * @brief Initialize all items in the scene
      */
-    void initialize();
+    void initialize() override;
 
     /**
      * @brief Update all items in the scene
      * Called every frame
      */
-    void update();
+    void update() override;
 
     /**
      * @brief Fixed update for all items in the scene
      * Called at fixed intervals
      */
-    void fixedUpdate();
+    void fixedUpdate() override;
 
     /**
      * @brief Clear all items from the scene
      */
     void clear();
 
+    QString getType() const override;
+
 private:
     bool loadFromJson(const QString& filePath);
     bool loadFromQml(const QString& filePath);
 
-    QString m_id;
     QList<QSharedPointer<Item>> m_items;
     QHash<QString, QSharedPointer<Item>> m_itemMap;
 };

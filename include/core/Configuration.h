@@ -25,6 +25,9 @@ class Configuration : public QObject {
     Q_PROPERTY(float masterVolume READ getMasterVolume WRITE setMasterVolume NOTIFY masterVolumeChanged)
 public:
     static Configuration& getInstance();
+    static void setInstance(Configuration* instance);
+    explicit Configuration(QObject* parent = nullptr);
+    ~Configuration() = default;
 
     bool loadFromFile(const QString& filePath);
     void parseCommandLine(int argc, char* argv[]);
@@ -72,8 +75,6 @@ signals:
     void masterVolumeChanged();
 
 private:
-    Configuration();
-    ~Configuration() = default;
     Configuration(const Configuration&) = delete;
     Configuration& operator=(const Configuration&) = delete;
 

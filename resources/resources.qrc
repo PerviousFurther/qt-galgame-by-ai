@@ -4,5 +4,6 @@
         <file>opening.qml</file>
         <file>mainmenu.qml</file>
         <file>game.qml</file>
+        <file>game_constants.json</file>
     </qresource>
 </RCC>

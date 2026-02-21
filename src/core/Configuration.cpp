@@ -5,13 +5,25 @@
 #include <QJsonObject>
 #include <QThread>
 
-Configuration::Configuration() {
+namespace {
+Configuration* g_configurationInstance = nullptr;
+}
+
+Configuration::Configuration(QObject* parent)
+    : QObject(parent) {
     setDefaults();
 }
 
 Configuration& Configuration::getInstance() {
+    if (g_configurationInstance != nullptr) {
+        return *g_configurationInstance;
+    }
     static Configuration instance;
     return instance;
+}
+
+void Configuration::setInstance(Configuration* instance) {
+    g_configurationInstance = instance;
 }
 
 void Configuration::setDefaults() {

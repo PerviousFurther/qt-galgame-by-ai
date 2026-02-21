@@ -6,6 +6,8 @@ import Galgame 1.0
 Item {
     id: gameRoot
     anchors.fill: parent
+    property var gameConstants: GameManager.getGameConstants()
+    property real sceneOffsetX: 0
 
     // ── Story data ──────────────────────────────────────────────────────────
     // Each entry is one displayable step in the story.
@@ -20,7 +22,7 @@ Item {
     //   speaker       : character display name (string, dialogue only)
     //   speakerChar   : "A" | "B" | "C" | "" (all)
     //   text          : display text
-    property var storyData: [
+    property var fallbackStoryData: [
         // ── Shot 1: 开场 ───────────────────────────────────────────────────
         { shot: 1, shotTitle: "镜头一：开场", bg: "#87CEEB", shake: false,
           transition: true,
@@ -153,76 +155,146 @@ Item {
           charA: { visible: true, emotion: "happy", side: "left"   },
           charB: { visible: true, emotion: "happy", side: "right"  },
           charC: { visible: true, emotion: "happy", side: "center" },
-          type: "ending", text: "友情才是最牛逼的！" }
+          type: "narration", text: "友情才牛逼！", autoAdvanceMs: 3200, transitionStyle: "slide_ltr" },
+
+        { shot: 8, shotTitle: "场景1：便利店门口 - 黄昏", bg: "#F8B768", shake: false, transition: true,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "calm",   side: "center" },
+          type: "narration", text: "（背景音：蝉鸣声，偶尔的汽车经过声）" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "angry", side: "left"   },
+          charB: { visible: true,  emotion: "normal",side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "哎哟，这关怎么又没过！这破手机，关键时刻掉帧。" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal",side: "left"   },
+          charB: { visible: true,  emotion: "angry", side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "彬彬", speakerChar: "B", text: "谁让你刚才不吃那颗药补血？现在好了，装备全爆了。" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "happy",  side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "哟，这不是阿伟和彬彬吗？怎么，看你们垂头丧气的，没钱吃饭啊？" },
+        { shot: 8, bg: "#F8B768", shake: false, transition: false,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "normal",side: "right"  },
+          charC: { visible: true,  emotion: "calm",  side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "跟我走，杰哥家房子很大，里面有好吃的和最新的游戏机。走，带你们去康康好康的！" },
+
+        { shot: 9, shotTitle: "场景2：杰哥家客厅 - 晚上", bg: "#3D4B73", shake: false, transition: true,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "happy", side: "right"  },
+          charC: { visible: true,  emotion: "calm",  side: "center" },
+          type: "narration", text: "（背景音：游戏机电子音，敲击手柄的声音）" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: true,  emotion: "happy", side: "left"   },
+          charB: { visible: true,  emotion: "happy", side: "right"  },
+          charC: { visible: false, emotion: "normal",side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "哇！这电视也太大了吧！打起来真爽！" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: false, emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "happy",  side: "right"  },
+          charC: { visible: true,  emotion: "calm",   side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "我那里还有更刺激的游戏，阿伟，你要不要进来我房间看看？" },
+        { shot: 9, bg: "#3D4B73", shake: false, transition: false,
+          charA: { visible: true,  emotion: "normal", side: "left"   },
+          charB: { visible: true,  emotion: "normal", side: "right"  },
+          charC: { visible: true,  emotion: "normal", side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "彬彬你就在这睡。阿伟，来，跟我进屋。" },
+
+        { shot: 10, shotTitle: "场景3：杰哥卧室 - 深夜", bg: "#1A2238", shake: true, transition: true,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "normal",    side: "center" },
+          type: "narration", text: "（背景音：门锁转动声，极其轻微底噪）" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "angry",     side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "杰哥，你干嘛脱衣服啊？空调太热了吗？" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "surprised", side: "left"   },
+          charB: { visible: false, emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "furious",   side: "center" },
+          type: "dialogue", speaker: "杰哥", speakerChar: "C", text: "阿伟，你脸红了。还没玩够呢，走什么？" },
+        { shot: 10, bg: "#1A2238", shake: true, transition: false,
+          charA: { visible: true,  emotion: "furious",   side: "left"   },
+          charB: { visible: true,  emotion: "normal",    side: "right"  },
+          charC: { visible: true,  emotion: "furious",   side: "center" },
+          type: "dialogue", speaker: "阿伟", speakerChar: "A", text: "救命啊！彬彬！彬彬救我！" },
+        { shot: 10, bg: "#1A2238", shake: false, transition: false,
+          charA: { visible: false, emotion: "normal",    side: "left"   },
+          charB: { visible: true,  emotion: "normal",    side: "right"  },
+          charC: { visible: false, emotion: "normal",    side: "center" },
+          type: "ending", text: "彬彬：阿伟……你们在里面吵什么啊……杰哥，我也要看好康的……\n欲知后事如何，且听下回分解…" }
     ]
+    property var storyData: fallbackStoryData
 
     // ── State ──────────────────────────────────────────────────────────────
     property int  currentStep:    GameManager.currentStoryStep
-    property int  currentShot:    storyData.length > 0 ? step().shot : 1
+    readonly property var currentStepData: storyData.length > 0 ? storyData[Math.min(currentStep, storyData.length - 1)] : ({})
+    readonly property int currentShot:    currentStepData.shot !== undefined ? currentStepData.shot : 1
     property bool inTransition:   false
     property bool fastForward:    false
     property bool hudVisible:     true
     readonly property int fastForwardIntervalMs: 600
 
     property var  visitedShots:   []
-    readonly property var charMeta: ({
+    readonly property var charMeta: gameConstants.charMeta !== undefined ? gameConstants.charMeta : ({
         A: { name: "凯瑟琳", symbol: "🤠", baseColor: "#8B5E3C" },
         B: { name: "蕾妮",   symbol: "🦅", baseColor: "#2F6FA8" },
         C: { name: "梦雪",   symbol: "🔮", baseColor: "#6A3FA8" }
     })
 
-    function emotionColor(emotion, base) {
-        switch (emotion) {
-        case "angry":     return Qt.darker(base, 1.3)
-        case "furious":   return Qt.darker(base, 1.6)
-        case "surprised": return Qt.lighter(base, 1.4)
-        case "happy":     return Qt.lighter(base, 1.3)
-        case "calm":      return base
-        default:          return base
+    function scheduleAutoAdvance() {
+        autoAdvanceTimer.stop()
+        if (storyData.length === 0 || currentStep >= storyData.length - 1) {
+            return
+        }
+        if (currentStepData.autoAdvanceMs !== undefined && currentStepData.autoAdvanceMs > 0) {
+            autoAdvanceTimer.interval = currentStepData.autoAdvanceMs
+            autoAdvanceTimer.start()
         }
     }
 
-    function emotionEmoji(emotion) {
-        switch (emotion) {
-        case "angry":     return "😠"
-        case "furious":   return "🤬"
-        case "surprised": return "😲"
-        case "happy":     return "😄"
-        case "calm":      return "😌"
-        default:          return "😐"
+    function showSettingsInScene() {
+        if (settingsPopup.opened) {
+            return
         }
-    }
-
-    function step() {
-        return storyData[Math.min(currentStep, storyData.length - 1)]
+        settingsSceneOverlay.visible = true
+        settingsSceneOverlayAnimation.restart()
     }
 
     function advance() {
         if (inTransition) return
-        if (currentStep >= storyData.length - 1) return
-
-        const nextStep = currentStep + 1
-        const nextShot = storyData[nextStep].shot
-
-        if (nextShot !== currentShot) {
-            // Shot change → auto-save, hide HUD, transition
-            GameManager.currentStoryStep = nextStep
-            GameManager.save()
-            if (!visitedShots.includes(nextShot)) {
-                visitedShots = visitedShots.concat([nextShot])
-            }
-            doTransition(nextStep)
+        const advanceResult = GameManager.advanceStory(storyData, visitedShots)
+        if (advanceResult.advanced !== true) return
+        currentStep = advanceResult.nextStep
+        visitedShots = advanceResult.visitedShots
+        if (advanceResult.shotChanged === true) {
+            doTransition(advanceResult.nextStep, advanceResult.transitionStyle)
         } else {
-            currentStep = nextStep
-            GameManager.currentStoryStep = nextStep
+            scheduleAutoAdvance()
         }
     }
 
-    function doTransition(nextStepIdx) {
+    function doTransition(nextStepIdx, style) {
         inTransition = true
         hudVisible   = false
-        fadeOverlay.opacity = 1.0
         transitionTimer.nextStep = nextStepIdx
+        transitionTimer.style = style
+        if (style === "slide_ltr") {
+            transitionTimer.interval = gameConstants.sceneTransition !== undefined &&
+                                       gameConstants.sceneTransition.slideSwitchDelayMs !== undefined
+                                       ? gameConstants.sceneTransition.slideSwitchDelayMs : 250
+        } else {
+            transitionTimer.interval = gameConstants.sceneTransition !== undefined &&
+                                       gameConstants.sceneTransition.fadeSwitchDelayMs !== undefined
+                                       ? gameConstants.sceneTransition.fadeSwitchDelayMs : 400
+            fadeOverlay.opacity = 1.0
+        }
         transitionTimer.start()
     }
 
@@ -232,7 +304,10 @@ Item {
         if (storyData.length > 0) {
             visitedShots = [storyData[currentStep].shot]
         }
+        scheduleAutoAdvance()
     }
+
+    onCurrentStepChanged: scheduleAutoAdvance()
 
     // Fast-forward timer
     Timer {
@@ -249,17 +324,30 @@ Item {
         }
     }
 
+    Timer {
+        id: autoAdvanceTimer
+        interval: 3000
+        repeat: false
+        onTriggered: gameRoot.advance()
+    }
+
     // Transition timer: switch content mid-fade, then fade back in
     Timer {
         id: transitionTimer
         interval: 400
         property int nextStep: 0
+        property string style: "fade"
         onTriggered: {
             // GameManager.currentStoryStep was already updated in advance()
             // before the transition began; only the local mirror needs syncing.
             gameRoot.currentStep = nextStep
-            fadeOverlay.opacity = 0.0
-            transitionEndTimer.start()
+            if (style === "slide_ltr") {
+                gameRoot.sceneOffsetX = -sceneContent.width
+                sceneSlideAnimation.start()
+            } else {
+                fadeOverlay.opacity = 0.0
+                transitionEndTimer.start()
+            }
         }
     }
 
@@ -272,12 +360,23 @@ Item {
         }
     }
 
+    NumberAnimation {
+        id: sceneSlideAnimation
+        target: gameRoot
+        property: "sceneOffsetX"
+        to: 0
+        duration: gameConstants.sceneTransition !== undefined &&
+                  gameConstants.sceneTransition.slideLtrDurationMs !== undefined
+                  ? gameConstants.sceneTransition.slideLtrDurationMs : 520
+        onFinished: transitionEndTimer.start()
+    }
+
     // ── Background ────────────────────────────────────────────────────────
     Rectangle {
         id: background
         anchors.fill: parent
         color: gameRoot.storyData.length > 0
-               ? gameRoot.step().bg
+               ? gameRoot.currentStepData.bg
                : "#87CEEB"
 
         Behavior on color { ColorAnimation { duration: 300 } }
@@ -291,6 +390,7 @@ Item {
         anchors.top: parent.top
         anchors.bottom: dialogBox.top
         anchors.bottomMargin: 4
+        transform: Translate { x: gameRoot.sceneOffsetX }
 
         // Shot title shown briefly during transitions
         Text {
@@ -304,10 +404,48 @@ Item {
             style: Text.Outline
             styleColor: "#000000"
             opacity: gameRoot.inTransition ? 1.0 : 0.0
-            text: gameRoot.storyData.length > 0 && gameRoot.step().shotTitle !== undefined
-                  ? gameRoot.step().shotTitle : ""
+            text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.shotTitle !== undefined
+                  ? gameRoot.currentStepData.shotTitle : ""
 
             Behavior on opacity { NumberAnimation { duration: 300 } }
+        }
+
+        Item {
+            id: parentSceneLayer
+            anchors.fill: parent
+
+            Item {
+                id: childSceneLayer
+                anchors.fill: parent
+
+                Rectangle {
+                    id: magicBeam
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.width !== undefined
+                           ? gameConstants.magicBeam.width : 26
+                    height: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.height !== undefined
+                            ? gameConstants.magicBeam.height : 260
+                    radius: width / 2
+                    color: "#88CCFF"
+                    border.color: "#DDF8FF"
+                    border.width: 2
+                    opacity: gameRoot.storyData.length > 0 &&
+                             gameRoot.currentStepData.shot === 5 &&
+                             gameRoot.currentStepData.charC !== undefined &&
+                             gameRoot.currentStepData.charC.visible === true ? 0.92 : 0.0
+                    y: beamDropAnimation.running ? beamDropAnimation.currentValue : -height
+
+                    NumberAnimation {
+                        id: beamDropAnimation
+                        running: magicBeam.opacity > 0.0
+                        loops: Animation.Infinite
+                        from: -magicBeam.height
+                        to: parent.height - magicBeam.height - 12
+                        duration: gameConstants.magicBeam !== undefined && gameConstants.magicBeam.dropDurationMs !== undefined
+                                  ? gameConstants.magicBeam.dropDurationMs : 1400
+                    }
+                }
+            }
         }
 
         // Shake wrapper for shot 4
@@ -320,7 +458,7 @@ Item {
             transform: Translate { x: shakeWrapper.shakeX; y: shakeWrapper.shakeY }
 
             SequentialAnimation {
-                running: gameRoot.storyData.length > 0 && gameRoot.step().shake
+                running: gameRoot.storyData.length > 0 && gameRoot.currentStepData.shake
                 loops: Animation.Infinite
                 NumberAnimation { target: shakeWrapper; property: "shakeX"; from: 0; to:  6; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeX"; from: 6; to: -6; duration: 60 }
@@ -328,15 +466,6 @@ Item {
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: 0; to:  4; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: 4; to: -4; duration: 60 }
                 NumberAnimation { target: shakeWrapper; property: "shakeY"; from: -4; to: 0; duration: 60 }
-            }
-
-            // Character display function
-            function charData(which) {
-                if (gameRoot.storyData.length === 0) return { visible: false }
-                const s = gameRoot.step()
-                if (which === "A") return s.charA
-                if (which === "B") return s.charB
-                return s.charC
             }
 
             // ── Character A (left) ──────────────────────────────────────────
@@ -347,15 +476,15 @@ Item {
                 anchors.leftMargin: 80
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("A").visible === true
+                visible: gameRoot.currentStepData.charA !== undefined && gameRoot.currentStepData.charA.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("A").emotion || "normal",
-                                                 gameRoot.charMeta["A"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charA !== undefined ? (gameRoot.currentStepData.charA.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["A"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -363,7 +492,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["A"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("A").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charA !== undefined ? (gameRoot.currentStepData.charA.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -381,15 +510,15 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("C").visible === true
+                visible: gameRoot.currentStepData.charC !== undefined && gameRoot.currentStepData.charC.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("C").emotion || "normal",
-                                                 gameRoot.charMeta["C"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charC !== undefined ? (gameRoot.currentStepData.charC.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["C"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -397,7 +526,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["C"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("C").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charC !== undefined ? (gameRoot.currentStepData.charC.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -416,15 +545,15 @@ Item {
                 anchors.rightMargin: 80
                 anchors.bottomMargin: 10
                 spacing: 6
-                visible: shakeWrapper.charData("B").visible === true
+                visible: gameRoot.currentStepData.charB !== undefined && gameRoot.currentStepData.charB.visible === true
                 opacity: visible ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200 } }
 
                 Rectangle {
                     width: 160; height: 300
                     radius: 12
-                    color: gameRoot.emotionColor(shakeWrapper.charData("B").emotion || "normal",
-                                                 gameRoot.charMeta["B"].baseColor)
+                    color: GameManager.emotionColor(gameRoot.currentStepData.charB !== undefined ? (gameRoot.currentStepData.charB.emotion || "normal") : "normal",
+                                                    gameRoot.charMeta["B"].baseColor)
                     border.color: Qt.darker(color, 1.5)
                     border.width: 3
 
@@ -432,7 +561,7 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
                         Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.charMeta["B"].symbol; font.pixelSize: 56 }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: gameRoot.emotionEmoji(shakeWrapper.charData("B").emotion || "normal"); font.pixelSize: 36 }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: GameManager.emotionEmoji(gameRoot.currentStepData.charB !== undefined ? (gameRoot.currentStepData.charB.emotion || "normal") : "normal"); font.pixelSize: 36 }
                     }
                 }
                 Text {
@@ -453,7 +582,7 @@ Item {
         anchors.right: parent.right
         height: 190
         color: "#CC000000"
-        visible: gameRoot.storyData.length > 0 && gameRoot.step().type !== "ending"
+        visible: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type !== "ending"
 
         // Speaker name plate
         Rectangle {
@@ -467,14 +596,14 @@ Item {
             radius: 6
             color: "#CC333355"
             visible: gameRoot.storyData.length > 0 &&
-                     gameRoot.step().type === "dialogue" &&
-                     gameRoot.step().speaker !== undefined
+                     gameRoot.currentStepData.type === "dialogue" &&
+                     gameRoot.currentStepData.speaker !== undefined
 
             Text {
                 id: speakerLabel
                 anchors.centerIn: parent
-                text: gameRoot.storyData.length > 0 && gameRoot.step().speaker !== undefined
-                      ? gameRoot.step().speaker : ""
+                text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.speaker !== undefined
+                      ? gameRoot.currentStepData.speaker : ""
                 font.pixelSize: 20; font.bold: true; color: "#ffffff"
             }
         }
@@ -486,7 +615,7 @@ Item {
             anchors.top: parent.top
             anchors.bottom: continueHint.top
             anchors.margins: 24
-            text: gameRoot.storyData.length > 0 ? gameRoot.step().text : ""
+            text: gameRoot.storyData.length > 0 ? gameRoot.currentStepData.text : ""
             font.pixelSize: 24
             color: "#ffffff"
             wrapMode: Text.Wrap
@@ -543,7 +672,7 @@ Item {
         Button {
             text: "⚙ 设置"
             font.pixelSize: 14
-            onClicked: settingsPopup.open()
+            onClicked: gameRoot.showSettingsInScene()
         }
 
         Button {
@@ -590,7 +719,7 @@ Item {
         id: endingOverlay
         anchors.fill: parent
         color: "#CC000000"
-        visible: gameRoot.storyData.length > 0 && gameRoot.step().type === "ending"
+        visible: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type === "ending"
 
         Column {
             anchors.centerIn: parent
@@ -598,8 +727,8 @@ Item {
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: gameRoot.storyData.length > 0 && gameRoot.step().type === "ending"
-                      ? gameRoot.step().text : ""
+                text: gameRoot.storyData.length > 0 && gameRoot.currentStepData.type === "ending"
+                      ? gameRoot.currentStepData.text : ""
                 font.pixelSize: 48
                 font.bold: true
                 color: "#FFD700"
@@ -640,6 +769,22 @@ Item {
     }
 
     // ── Settings popup ────────────────────────────────────────────────────
+    Rectangle {
+        id: settingsSceneOverlay
+        anchors.fill: parent
+        color: "#55000000"
+        visible: false
+        opacity: 0.0
+    }
+
+    SequentialAnimation {
+        id: settingsSceneOverlayAnimation
+        NumberAnimation { target: settingsSceneOverlay; property: "opacity"; from: 0.0; to: 1.0; duration: 180 }
+        ScriptAction { script: settingsPopup.open() }
+        NumberAnimation { target: settingsSceneOverlay; property: "opacity"; from: 1.0; to: 0.0; duration: 180 }
+        ScriptAction { script: settingsSceneOverlay.visible = false }
+    }
+
     Popup {
         id: settingsPopup
         anchors.centerIn: parent
@@ -694,15 +839,7 @@ Item {
                 spacing: 10
 
                 Repeater {
-                    model: [
-                        { num: 1, title: "开场" },
-                        { num: 2, title: "对峙" },
-                        { num: 3, title: "升级" },
-                        { num: 4, title: "冲突" },
-                        { num: 5, title: "转折" },
-                        { num: 6, title: "顿悟" },
-                        { num: 7, title: "结尾" }
-                    ]
+                    model: GameManager.buildRouteShots(gameRoot.storyData)
 
                     Rectangle {
                         width: 110; height: 70

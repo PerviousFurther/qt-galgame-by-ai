@@ -4,6 +4,7 @@
 #include <QObject>
 #include "scene/Scene.h"
 #include <QHash>
+#include <QColor>
 #include <QPointer>
 #include <QSharedPointer>
 #include <QQuickWindow>
@@ -30,12 +31,16 @@ class GameManager : public QObject {
     Q_PROPERTY(int currentStoryStep READ getCurrentStoryStep WRITE setCurrentStoryStep NOTIFY currentStoryStepChanged)
     Q_PROPERTY(int savedStep READ getSavedStep NOTIFY savedStepChanged)
     Q_PROPERTY(QString currentScreen READ getCurrentScreen WRITE setCurrentScreen NOTIFY currentScreenChanged)
+    Q_PROPERTY(QString currentScreenUrl READ getCurrentScreenUrl NOTIFY currentScreenChanged)
 
 public:
     enum class State { Stopped, Running, Paused };
     Q_ENUM(State)
 
     static GameManager& getInstance();
+    static void setInstance(GameManager* instance);
+    explicit GameManager(QObject* parent = nullptr);
+    ~GameManager() = default;
 
     void initialize();
     void attachRenderWindow(QQuickWindow* window);
@@ -58,6 +63,7 @@ public:
     void setCurrentStoryStep(int step);
     int getSavedStep() const;
     QString getCurrentScreen() const;
+    QString getCurrentScreenUrl() const;
     void setCurrentScreen(const QString& screen);
 
     // Invokable actions exposed to QML
@@ -65,6 +71,12 @@ public:
     Q_INVOKABLE void startGame(int fromStep = 0);
     Q_INVOKABLE bool hasSaves() const;
     Q_INVOKABLE bool save();
+    Q_INVOKABLE void finishOpening();
+    Q_INVOKABLE QVariantMap advanceStory(const QVariantList& storyData, const QVariantList& visitedShots);
+    Q_INVOKABLE QVariantList buildRouteShots(const QVariantList& storyData) const;
+    Q_INVOKABLE QString emotionEmoji(const QString& emotion) const;
+    Q_INVOKABLE QColor emotionColor(const QString& emotion, const QColor& baseColor) const;
+    Q_INVOKABLE QVariantMap getGameConstants() const;
 
 public slots:
     void processFrame();
@@ -77,8 +89,6 @@ signals:
     void currentScreenChanged();
 
 private:
-    GameManager();
-    ~GameManager() = default;
     GameManager(const GameManager&) = delete;
     GameManager& operator=(const GameManager&) = delete;
 
@@ -94,6 +104,7 @@ private:
     QPointer<QQuickWindow> m_renderWindow;
     int m_currentStoryStep;
     QString m_currentScreen;
+    mutable QVariantMap m_cachedGameConstants;
 };
 
 #endif // GAMEMANAGER_H

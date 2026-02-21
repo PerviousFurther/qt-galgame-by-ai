@@ -6,14 +6,6 @@ Item {
     id: openingRoot
     anchors.fill: parent
 
-    function finishOpening() {
-        Configuration.openingAnimationPlayed = true
-        if (!Configuration.saveConfig()) {
-            console.warn("Failed to save config after opening animation")
-        }
-        GameManager.currentScreen = "menu"
-    }
-
     Rectangle {
         anchors.fill: parent
         color: "#0a0a0a"
@@ -71,18 +63,18 @@ Item {
             anchors.right: parent.right
             anchors.margins: 16
             text: qsTr("跳过")
-            onClicked: openingRoot.finishOpening()
+            onClicked: GameManager.finishOpening()
         }
 
         MouseArea {
             anchors.fill: parent
-            onClicked: openingRoot.finishOpening()
+            onClicked: GameManager.finishOpening()
         }
     }
 
     Timer {
         interval: 5000
         running: true
-        onTriggered: openingRoot.finishOpening()
+        onTriggered: GameManager.finishOpening()
     }
 }

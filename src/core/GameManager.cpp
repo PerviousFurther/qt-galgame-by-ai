@@ -13,18 +13,38 @@
 
 namespace {
 constexpr int MaxFixedUpdateStepsPerFrame = 8;
+GameManager* g_gameManagerInstance = nullptr;
+
+QVariantMap storyStepAt(const QVariantList& storyData, int index) {
+    if (index < 0 || index >= storyData.size()) {
+        return {};
+    }
+    return storyData[index].toMap();
 }
 
-GameManager::GameManager()
-    : m_state(State::Stopped)
+int storyShotAt(const QVariantList& storyData, int index) {
+    return storyStepAt(storyData, index).value(QStringLiteral("shot")).toInt(0);
+}
+}
+
+GameManager::GameManager(QObject* parent)
+    : QObject(parent)
+    , m_state(State::Stopped)
     , m_frameUpdateInProgress(false)
     , m_currentStoryStep(0)
 {
 }
 
 GameManager& GameManager::getInstance() {
+    if (g_gameManagerInstance != nullptr) {
+        return *g_gameManagerInstance;
+    }
     static GameManager instance;
     return instance;
+}
+
+void GameManager::setInstance(GameManager* instance) {
+    g_gameManagerInstance = instance;
 }
 
 void GameManager::initialize() {
@@ -249,6 +269,124 @@ bool GameManager::save() {
     return true;
 }
 
+void GameManager::finishOpening() {
+    Configuration::getInstance().setOpeningAnimationPlayed(true);
+    if (!Configuration::getInstance().saveConfig()) {
+        qWarning() << "Failed to save config after opening animation";
+    }
+    setCurrentScreen(QStringLiteral("menu"));
+}
+
+QVariantMap GameManager::advanceStory(const QVariantList& storyData, const QVariantList& visitedShots) {
+    QVariantMap result;
+    result["advanced"] = false;
+    result["nextStep"] = m_currentStoryStep;
+    result["shotChanged"] = false;
+    result["transitionStyle"] = QStringLiteral("fade");
+    result["visitedShots"] = visitedShots;
+
+    if (storyData.isEmpty() || m_currentStoryStep >= storyData.size() - 1) {
+        return result;
+    }
+
+    const int nextStep = m_currentStoryStep + 1;
+    const int currentShot = storyShotAt(storyData, m_currentStoryStep);
+    const int nextShot = storyShotAt(storyData, nextStep);
+    const QVariantMap nextStepMap = storyStepAt(storyData, nextStep);
+    const QString transitionStyle = nextStepMap.value(QStringLiteral("transitionStyle"), QStringLiteral("fade")).toString();
+    const bool shotChanged = currentShot != nextShot;
+
+    setCurrentStoryStep(nextStep);
+    if (shotChanged) {
+        save();
+    }
+
+    QVariantList updatedVisitedShots = visitedShots;
+    if (shotChanged && !updatedVisitedShots.contains(nextShot)) {
+        updatedVisitedShots.append(nextShot);
+    }
+
+    result["advanced"] = true;
+    result["nextStep"] = nextStep;
+    result["shotChanged"] = shotChanged;
+    result["transitionStyle"] = transitionStyle;
+    result["visitedShots"] = updatedVisitedShots;
+    return result;
+}
+
+QVariantList GameManager::buildRouteShots(const QVariantList& storyData) const {
+    QVariantList routes;
+    QVariantList seenShots;
+    for (const QVariant& stepVariant : storyData) {
+        const QVariantMap step = stepVariant.toMap();
+        const int shot = step.value(QStringLiteral("shot")).toInt(0);
+        if (shot < 0 || seenShots.contains(shot)) {
+            continue;
+        }
+        seenShots.append(shot);
+        QVariantMap route;
+        route["num"] = shot;
+        route["title"] = step.value(QStringLiteral("shotTitle"), QStringLiteral("镜头 %1").arg(shot)).toString();
+        routes.append(route);
+    }
+    return routes;
+}
+
+QString GameManager::emotionEmoji(const QString& emotion) const {
+    if (emotion == QStringLiteral("angry")) {
+        return QStringLiteral("😠");
+    }
+    if (emotion == QStringLiteral("furious")) {
+        return QStringLiteral("🤬");
+    }
+    if (emotion == QStringLiteral("surprised")) {
+        return QStringLiteral("😲");
+    }
+    if (emotion == QStringLiteral("happy")) {
+        return QStringLiteral("😄");
+    }
+    if (emotion == QStringLiteral("calm")) {
+        return QStringLiteral("😌");
+    }
+    return QStringLiteral("😐");
+}
+
+QColor GameManager::emotionColor(const QString& emotion, const QColor& baseColor) const {
+    if (emotion == QStringLiteral("angry")) {
+        return baseColor.darker(130);
+    }
+    if (emotion == QStringLiteral("furious")) {
+        return baseColor.darker(160);
+    }
+    if (emotion == QStringLiteral("surprised")) {
+        return baseColor.lighter(140);
+    }
+    if (emotion == QStringLiteral("happy")) {
+        return baseColor.lighter(130);
+    }
+    return baseColor;
+}
+
+QVariantMap GameManager::getGameConstants() const {
+    if (!m_cachedGameConstants.isEmpty()) {
+        return m_cachedGameConstants;
+    }
+    QFile file(QStringLiteral(":/game_constants.json"));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Failed to open game constants JSON resource";
+        return {};
+    }
+    QJsonParseError parseError;
+    const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+    file.close();
+    if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+        qWarning() << "Failed to parse game constants JSON:" << parseError.errorString();
+        return {};
+    }
+    m_cachedGameConstants = doc.object().toVariantMap();
+    return m_cachedGameConstants;
+}
+
 // ── Q_PROPERTY accessors ──────────────────────────────────────────────────
 
 int GameManager::getCurrentStoryStep() const {
@@ -286,6 +424,19 @@ QString GameManager::getCurrentScreen() const {
     return m_currentScreen;
 }
 
+QString GameManager::getCurrentScreenUrl() const {
+    if (m_currentScreen == QStringLiteral("opening")) {
+        return QStringLiteral("qrc:/opening.qml");
+    }
+    if (m_currentScreen == QStringLiteral("menu")) {
+        return QStringLiteral("qrc:/mainmenu.qml");
+    }
+    if (m_currentScreen == QStringLiteral("game")) {
+        return QStringLiteral("qrc:/game.qml");
+    }
+    return {};
+}
+
 void GameManager::setCurrentScreen(const QString& screen) {
     if (m_currentScreen == screen) {
         return;
@@ -293,5 +444,3 @@ void GameManager::setCurrentScreen(const QString& screen) {
     m_currentScreen = screen;
     emit currentScreenChanged();
 }
-
-

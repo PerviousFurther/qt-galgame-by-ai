@@ -45,6 +45,8 @@ It defines what code in this repository should look like.
 - `Scene` is an `Item` container (architecture direction):
   - it loads and manages `Item` instances;
   - it creates/connects concrete `Item` instances based on JSON/QML configuration.
+  - one Scene should generally represent a narrative scene (not every camera shot);
+  - Scene should support Scene nesting where useful for layered animation/composition.
 - `Item` is the base unit that can be attached to UI, rendered, and handle basic UI interactions.
 - New features should preferably be implemented by extending `Item`.
   - If a requirement truly cannot be implemented this way, stop further feature expansion, record completed scope and blockers, and open an issue before proceeding with alternatives.
@@ -75,7 +77,20 @@ It defines what code in this repository should look like.
 - Avoid thin wrapper methods whose only body is `emit someSignal(...)` — emit the signal (or set the property) directly from the logical call site.
 - Internal helpers that are not part of the externally observable contract belong in `private` (or the `.cpp` file); do not promote them to `public` just for convenience.
 
-## 8. Forbidden Qt6 Deprecated/Obsolete APIs
+## 10. Runtime/Data Placement for QML Story Presentation
+
+- Business/game logic should be implemented in C++ as much as possible; QML should remain focused on simple UI interaction and presentation binding.
+- QML must not contain complex script logic (state machines, data processing loops, asynchronous fetch/parsing logic, etc.); move such logic to C++.
+- Avoid asynchronous JavaScript patterns in QML business flow. QML is for UI wiring and C++ interaction, not full JS runtime-style orchestration.
+- Keep reusable QML constants (for example: expressions/emoji maps, animation script constants) in JSON resources first, with in-QML fallback defaults.
+- Placeholder/non-real resources are only used when real assets (image/video/audio) are unavailable.
+- Settings panels should be presented within the current scene flow (with scene animation), not through unrelated stack-page push navigation.
+
+## 11. Environment Bootstrap Scripts
+
+- Use `/scripts/install_qt6_deps_ubuntu.sh` on Ubuntu/Debian to automatically install Qt6 development dependencies and screenshot tool dependencies (e.g., `scrot`) before build/verification.
+
+## 12. Forbidden Qt6 Deprecated/Obsolete APIs
 
 Do not use APIs marked Deprecated/Obsolete in Qt6 official documentation.  
 Repository-level enforced replacement list:
